@@ -22,6 +22,10 @@ import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.plugins.scala.ScalaBasePlugin
 import org.gradle.internal.reflect.Instantiator
+import org.gradle.jvm.JvmLibrarySpec
+import org.gradle.language.base.plugins.ComponentModelBasePlugin
+import org.gradle.model.internal.registry.ModelRegistry
+import org.gradle.platform.base.ComponentSpecContainer
 import org.gradle.plugins.ide.api.XmlFileContentMerger
 import org.gradle.plugins.ide.idea.internal.IdeaNameDeduper
 import org.gradle.plugins.ide.idea.internal.IdeaScalaConfigurer
@@ -36,10 +40,12 @@ import javax.inject.Inject
  */
 class IdeaPlugin extends IdePlugin {
     private final Instantiator instantiator
+    private final ModelRegistry modelRegistry
     private IdeaModel ideaModel
 
     @Inject
-    IdeaPlugin(Instantiator instantiator) {
+    IdeaPlugin(Instantiator instantiator, ModelRegistry modelRegistry) {
+        this.modelRegistry = modelRegistry
         this.instantiator = instantiator
     }
 
@@ -62,7 +68,35 @@ class IdeaPlugin extends IdePlugin {
         configureIdeaModule(project)
         configureForJavaPlugin(project)
         configureForScalaPlugin()
+        configureForSoftwareModel(project)
+
         hookDeduplicationToTheRoot(project)
+    }
+
+    def configureForSoftwareModel(Project project) {
+        if (!project.plugins.hasPlugin(ComponentModelBasePlugin)) {
+            return
+        }
+        def modules = [model.module] as List<IdeaModule>
+        collectSoftwareModelModulesInto(modules, project)
+        model.project.modules = modules
+    }
+
+    void collectSoftwareModelModulesInto(Collection<IdeaModule> modules, Project project) {
+        ComponentSpecContainer components = modelRegistry.find("components", ComponentSpecContainer)
+        components.values().each({ JvmLibrarySpec component ->
+            IdeaModule module = instantiator.newInstance(IdeaModule, project, null)
+            module.conventionMapping.name = { component.name }
+            module.conventionMapping.sourceDirs = { sourceDirsFor(component) }
+            module.conventionMapping.contentRoot = { project.projectDir }
+            module.conventionMapping.testSourceDirs = { [] as LinkedHashSet }
+            module.conventionMapping.excludeDirs = { [project.buildDir, project.file('.gradle')] as LinkedHashSet }
+            modules.add(module)
+        })
+    }
+
+    Set<File> sourceDirsFor(JvmLibrarySpec jvmLibrarySpec) {
+        jvmLibrarySpec.getSources().collectMany { it.source.srcDirs }
     }
 
     void hookDeduplicationToTheRoot(Project project) {
