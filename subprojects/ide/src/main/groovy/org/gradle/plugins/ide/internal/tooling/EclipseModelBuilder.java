@@ -17,12 +17,20 @@
 package org.gradle.plugins.ide.internal.tooling;
 
 import org.apache.commons.lang.StringUtils;
+import org.gradle.api.JavaVersion;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.jvm.JvmLibrarySpec;
+import org.gradle.jvm.test.JvmTestSuiteSpec;
+import org.gradle.language.base.LanguageSourceSet;
+import org.gradle.language.base.plugins.ComponentModelBasePlugin;
+import org.gradle.model.internal.registry.ModelRegistry;
+import org.gradle.platform.base.ComponentSpecContainer;
 import org.gradle.plugins.ide.eclipse.EclipsePlugin;
 import org.gradle.plugins.ide.eclipse.model.*;
 import org.gradle.plugins.ide.internal.tooling.eclipse.*;
 import org.gradle.plugins.ide.internal.tooling.java.DefaultInstalledJdk;
+import org.gradle.testing.base.TestSuiteContainer;
 import org.gradle.tooling.internal.gradle.DefaultGradleProject;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
 import org.gradle.util.GUtil;
@@ -39,9 +47,15 @@ public class EclipseModelBuilder implements ToolingModelBuilder {
     private TasksFactory tasksFactory;
     private DefaultGradleProject<?> rootGradleProject;
     private Project currentProject;
+    private final ModelRegistry modelRegistry;
 
     public EclipseModelBuilder(GradleProjectBuilder gradleProjectBuilder) {
+        this(gradleProjectBuilder, null);
+    }
+
+    public EclipseModelBuilder(GradleProjectBuilder gradleProjectBuilder, ModelRegistry modelRegistry) {
         this.gradleProjectBuilder = gradleProjectBuilder;
+        this.modelRegistry = modelRegistry;
     }
 
     public boolean canBuild(String modelName) {
@@ -167,8 +181,70 @@ public class EclipseModelBuilder implements ToolingModelBuilder {
             );
         }
 
+        populateSoftwareModelSpike(project);
+
         for (Project childProject : project.getChildProjects().values()) {
             populate(childProject);
         }
+    }
+
+    private void populateSoftwareModelSpike(Project project) {
+        if (modelRegistry == null || !project.getPlugins().hasPlugin(ComponentModelBasePlugin.class)) {
+            return;
+        }
+        DefaultEclipseProject eclipseProject = projectMapping.get(project.getPath());
+        boolean addJavaBuilder = true;
+        for (DefaultEclipseBuildCommand builder : eclipseProject.getBuildCommands()) {
+            if (builder.getName().equals("org.eclipse.jdt.core.javabuilder")) {
+                addJavaBuilder = false;
+            }
+        }
+        if (addJavaBuilder) {
+            eclipseProject.getBuildCommands().add(new DefaultEclipseBuildCommand("org.eclipse.jdt.core.javabuilder", Collections.EMPTY_MAP));
+        }
+        boolean addJavaNature = true;
+        for (DefaultEclipseProjectNature nature : eclipseProject.getProjectNatures()) {
+            if (nature.getId().equals("org.eclipse.jdt.core.javanature")) {
+                addJavaNature = false;
+            }
+        }
+        if (addJavaNature) {
+            eclipseProject.getProjectNatures().add(new DefaultEclipseProjectNature("org.eclipse.jdt.core.javanature"));
+        }
+        List<DefaultEclipseExternalDependency> classpath = new ArrayList<DefaultEclipseExternalDependency>();
+        List<DefaultEclipseSourceDirectory> sourceDirectories = new ArrayList<DefaultEclipseSourceDirectory>();
+        List<DefaultEclipseLinkedResource> linkedResources = new ArrayList<DefaultEclipseLinkedResource>();
+        ComponentSpecContainer components = modelRegistry.find("components", ComponentSpecContainer.class);
+        if (components != null) {
+            for (JvmLibrarySpec component : components.withType(JvmLibrarySpec.class).values()) {
+                for (LanguageSourceSet lss : component.getSources().values()) {
+                    for (File srcDir : lss.getSource().getSrcDirs()) {
+                        classpath.add(new DefaultEclipseExternalDependency(srcDir, null, srcDir, null, true));
+                        sourceDirectories.add(new DefaultEclipseSourceDirectory(project.relativePath(srcDir), srcDir));
+                        linkedResources.add(new DefaultEclipseLinkedResource(lss.getDisplayName(), "2", srcDir.getAbsolutePath(), null));
+                    }
+                }
+            }
+        }
+        TestSuiteContainer testSuites = modelRegistry.find("testSuites", TestSuiteContainer.class);
+        if (testSuites != null) {
+            for (JvmTestSuiteSpec testSuite : testSuites.withType(JvmTestSuiteSpec.class).values()) {
+                for (LanguageSourceSet lss : testSuite.getSources().values()) {
+                    for (File srcDir : lss.getSource().getSrcDirs()) {
+                        classpath.add(new DefaultEclipseExternalDependency(srcDir, null, srcDir, null, false));
+                        sourceDirectories.add(new DefaultEclipseSourceDirectory(project.relativePath(srcDir), srcDir));
+                        linkedResources.add(new DefaultEclipseLinkedResource(lss.getDisplayName(), "2", srcDir.getAbsolutePath(), null));
+                    }
+                }
+            }
+        }
+        eclipseProject.setLinkedResources(linkedResources);
+        eclipseProject.setSourceDirectories(sourceDirectories);
+        eclipseProject.setClasspath(classpath);
+        eclipseProject.setJavaSourceSettings(new DefaultEclipseJavaSourceSettings()
+            .setSourceLanguageLevel(JavaVersion.VERSION_1_6)
+            .setTargetBytecodeVersion(JavaVersion.VERSION_1_6)
+            .setJdk(DefaultInstalledJdk.current())
+        );
     }
 }
