@@ -16,23 +16,25 @@
 
 package org.gradle.api.internal.resolve;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
-import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.component.local.model.DefaultLibraryBinaryIdentifier;
-import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier;
 import org.gradle.internal.component.local.model.LocalComponentMetadata;
 import org.gradle.internal.component.local.model.PublishArtifactLocalArtifactMetadata;
 import org.gradle.language.base.internal.model.DefaultLibraryLocalComponentMetadata;
-import org.gradle.nativeplatform.SharedLibraryBinarySpec;
-import org.gradle.nativeplatform.StaticLibraryBinarySpec;
 import org.gradle.platform.base.Binary;
-import org.gradle.platform.base.BinarySpec;
+import org.gradle.nativeplatform.NativeLibraryBinary;
+import org.gradle.nativeplatform.NativeLibraryBinarySpec;
 import org.gradle.platform.base.DependencySpec;
+import org.gradle.platform.base.LibraryBinarySpec;
 
+import java.io.File;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 import static org.gradle.language.base.internal.model.DefaultLibraryLocalComponentMetadata.newResolvedLibraryMetadata;
@@ -40,39 +42,47 @@ import static org.gradle.language.base.internal.model.DefaultLibraryLocalCompone
 public class NativeLocalLibraryMetaDataAdapter implements LocalLibraryMetaDataAdapter {
     @Override
     public LocalComponentMetadata createLocalComponentMetaData(Binary selectedBinary, String projectPath, boolean toAssembly) {
-        if (selectedBinary instanceof StaticLibraryBinarySpec) {
-            StaticLibraryBinarySpec binarySpec = (StaticLibraryBinarySpec) selectedBinary;
-            return createForStaticLibrary(binarySpec);
-        }
-
-        if (selectedBinary instanceof SharedLibraryBinarySpec) {
-            SharedLibraryBinarySpec binarySpec = (SharedLibraryBinarySpec) selectedBinary;
-            return createForSharedLibrary(binarySpec);
+        if (selectedBinary instanceof NativeLibraryBinarySpec) {
+            return createForNativeLibrary((NativeLibraryBinarySpec) selectedBinary);
         }
         throw new RuntimeException("Can't create metadata for binary: " + selectedBinary);
     }
 
-    private static LocalComponentMetadata createForStaticLibrary(StaticLibraryBinarySpec staticLib) {
-        String projectPath = staticLib.getProjectPath();
-        ProjectComponentIdentifier componentIdentifier = DefaultProjectComponentIdentifier.newId(projectPath);
-        LibraryBinaryIdentifier id = new DefaultLibraryBinaryIdentifier(projectPath, staticLib.getLibrary().getName(), "staticLibrary");
-        Map<String, TaskDependency> configurations = Collections.singletonMap("default", (TaskDependency) new DefaultTaskDependency());
-        DefaultLibraryLocalComponentMetadata metadata = newResolvedLibraryMetadata(id, configurations, Collections.<String, Iterable<DependencySpec>>emptyMap(), projectPath);
+    private static LocalComponentMetadata createForNativeLibrary(NativeLibraryBinarySpec sharedLib) {
+        LibraryBinaryIdentifier id = createComponentId(sharedLib);
+        DefaultLibraryLocalComponentMetadata metadata = createComponentMetadata(id);
 
-        PublishArtifact art = new LibraryPublishArtifact("staticLibrary", staticLib.getStaticLibraryFile());
-        metadata.addArtifact("default", new PublishArtifactLocalArtifactMetadata(componentIdentifier, staticLib.getDisplayName(), art));
+        // TODO:DAZ Don't use PublishArtifact and PublishArtifactLocalArtifactMetadata here
+        NativeLibraryBinary libraryBinary = (NativeLibraryBinary) sharedLib;
+        for (File headerDir : libraryBinary.getHeaderDirs()) {
+            PublishArtifact headerDirArtifact = new LibraryPublishArtifact("header", headerDir);
+            metadata.addArtifact("compile", new PublishArtifactLocalArtifactMetadata(id, sharedLib.getDisplayName(), headerDirArtifact));
+        }
+
+        for (File linkFile : libraryBinary.getLinkFiles()) {
+            PublishArtifact linkFileArtifact = new LibraryPublishArtifact("link-file", linkFile);
+            metadata.addArtifact("link", new PublishArtifactLocalArtifactMetadata(id, sharedLib.getDisplayName(), linkFileArtifact));
+        }
+
+        for (File runtimeFile : libraryBinary.getRuntimeFiles()) {
+            PublishArtifact runtimeFileArtifact = new LibraryPublishArtifact("runtime-file", runtimeFile);
+            metadata.addArtifact("run", new PublishArtifactLocalArtifactMetadata(id, sharedLib.getDisplayName(), runtimeFileArtifact));
+        }
+
         return metadata;
     }
 
-    private static LocalComponentMetadata createForSharedLibrary(SharedLibraryBinarySpec staticLib) {
+    private static LibraryBinaryIdentifier createComponentId(LibraryBinarySpec staticLib) {
         String projectPath = staticLib.getProjectPath();
-        ProjectComponentIdentifier componentIdentifier = DefaultProjectComponentIdentifier.newId(projectPath);
-        LibraryBinaryIdentifier id = new DefaultLibraryBinaryIdentifier(projectPath, staticLib.getLibrary().getName(), "sharedLibrary");
-        Map<String, TaskDependency> configurations = Collections.singletonMap("default", (TaskDependency) new DefaultTaskDependency());
-        DefaultLibraryLocalComponentMetadata metadata = newResolvedLibraryMetadata(id, configurations, Collections.<String, Iterable<DependencySpec>>emptyMap(), projectPath);
+        return new DefaultLibraryBinaryIdentifier(projectPath, staticLib.getLibrary().getName(), "staticLibrary");
+    }
 
-        PublishArtifact art = new LibraryPublishArtifact("sharedLibrary", staticLib.getSharedLibraryFile());
-        metadata.addArtifact("default", new PublishArtifactLocalArtifactMetadata(componentIdentifier, staticLib.getDisplayName(), art));
-        return metadata;
+    private static DefaultLibraryLocalComponentMetadata createComponentMetadata(LibraryBinaryIdentifier id) {
+        List<String> usages = Lists.newArrayList("compile", "link", "run");
+        Map<String, TaskDependency> configurations = Maps.newLinkedHashMap();
+        for (String usage : usages) {
+            configurations.put(usage, new DefaultTaskDependency());
+        }
+        return newResolvedLibraryMetadata(id, configurations, Collections.<String, Iterable<DependencySpec>>emptyMap(), null);
     }
 }

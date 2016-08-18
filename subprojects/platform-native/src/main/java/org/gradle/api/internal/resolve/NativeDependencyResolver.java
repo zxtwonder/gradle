@@ -57,8 +57,8 @@ public class NativeDependencyResolver {
         this.dependencyResolver = dependencyResolver;
     }
 
-    public Set<File> resolveFiles(String project, String component, String variant) {
-        ResolveResult resolveResult = doResolve(project, component, variant);
+    public Set<File> resolveFiles(String project, String component, String variant, String usage) {
+        ResolveResult resolveResult = doResolve(project, component, variant, usage);
         Set<ResolvedArtifact> artifacts = resolveResult.artifactResults.getArtifacts();
 
         failOnUnresolvedDependency(resolveResult.notFound);
@@ -71,7 +71,7 @@ public class NativeDependencyResolver {
         });
     }
 
-    private ResolveResult doResolve(String project, String library, @Nullable String variant) {
+    private ResolveResult doResolve(String project, String library, @Nullable String variant, String usage) {
         LibraryBinaryIdentifier libraryId = new DefaultLibraryBinaryIdentifier(":foo", "bar", "baz");
         DependencySpec dep;
         if (variant == null) {
@@ -79,7 +79,7 @@ public class NativeDependencyResolver {
         } else {
             dep = new DefaultLibraryBinaryDependencySpec(project, library, variant);
         }
-        NativeComponentResolveContext context = new NativeComponentResolveContext(libraryId, Collections.singleton(dep), "default", "foo");
+        NativeComponentResolveContext context = new NativeComponentResolveContext(libraryId, Collections.singleton(dep), usage, "foo");
 
         ResolveResult result = new ResolveResult();
         dependencyResolver.resolve(context, remoteRepositories, globalRules, result, result);

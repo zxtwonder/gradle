@@ -16,10 +16,16 @@
 package org.gradle.nativeplatform.resolve
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.nativeplatform.fixtures.app.CHelloWorldApp
 
 class NativeDependencyResolutionIntegrationTest extends AbstractIntegrationSpec {
     def "can resolve"() {
         given:
+        // Need sources to ensure that the library has outputs
+        def app = new CHelloWorldApp()
+        app.library.writeSources(file("native-lib/src/hello"))
+
+        and:
         settingsFile.text = "include ':native-lib'"
         buildFile << """
 project(':native-lib') {
@@ -38,6 +44,7 @@ task resolve(type: NativeDependencyResolveTask) {
     targetProject = ':native-lib'
     targetComponent = 'hello'
     targetVariant = 'sharedLibrary'
+    usage = 'compile'
 }
 
 import org.gradle.api.internal.resolve.NativeDependencyResolver
@@ -61,11 +68,13 @@ public class NativeDependencyResolveTask extends DefaultTask {
     @Input @Optional
     public String targetVariant;
 
+    @Input String usage;
+
     @TaskAction
     public void resolve() {
-        Set<File> files = resolver.resolveFiles(targetProject, targetComponent, targetVariant);
+        Set<File> files = resolver.resolveFiles(targetProject, targetComponent, targetVariant, usage);
         for (File file : files) {
-            System.out.println("Resolved file: " + file.getName());
+            System.out.println("Resolved file: \${file.name} [\${file.absolutePath}]");
         }
     }
 }
