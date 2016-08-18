@@ -20,7 +20,9 @@ import org.gradle.api.internal.artifacts.ResolveContext;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionRules;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultResolutionStrategy;
+import org.gradle.internal.component.local.model.DefaultLibraryBinaryIdentifier;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
+import org.gradle.nativeplatform.NativeBinarySpec;
 import org.gradle.platform.base.DependencySpec;
 
 import static org.gradle.language.base.internal.model.DefaultLibraryLocalComponentMetadata.newResolvingLocalComponentMetadata;
@@ -31,13 +33,15 @@ public class NativeComponentResolveContext implements ResolveContext {
     private final String usage;
     private final ResolutionStrategyInternal resolutionStrategy = new DefaultResolutionStrategy(DependencySubstitutionRules.NO_OP);
     private final Iterable<DependencySpec> dependencies;
+    private final NativeBinarySpec binarySpec;
 
     public NativeComponentResolveContext(
-        LibraryBinaryIdentifier libraryBinaryIdentifier,
+        NativeBinarySpec binarySpec,
         Iterable<DependencySpec> dependencies,
         String usage,
         String displayName) {
-        this.libraryBinaryIdentifier = libraryBinaryIdentifier;
+        this.libraryBinaryIdentifier = new DefaultLibraryBinaryIdentifier(binarySpec.getProjectPath(), binarySpec.getComponent().getName(), binarySpec.getName());;
+        this.binarySpec = binarySpec;
         this.usage = usage;
         this.displayName = displayName;
         this.dependencies = dependencies;
@@ -63,4 +67,7 @@ public class NativeComponentResolveContext implements ResolveContext {
         return newResolvingLocalComponentMetadata(libraryBinaryIdentifier, usage, dependencies);
     }
 
+    public NativeBinarySpec getBinarySpec() {
+        return binarySpec;
+    }
 }

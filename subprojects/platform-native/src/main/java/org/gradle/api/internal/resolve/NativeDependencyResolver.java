@@ -19,7 +19,6 @@ package org.gradle.api.internal.resolve;
 import com.google.common.collect.Lists;
 import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ResolvedArtifact;
-import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet;
@@ -29,13 +28,19 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.Dependen
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.tasks.TaskDependency;
-import org.gradle.internal.component.local.model.DefaultLibraryBinaryIdentifier;
 import org.gradle.internal.component.local.model.LocalConfigurationMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.language.base.internal.resolve.LibraryResolveException;
+import org.gradle.model.ModelMap;
+import org.gradle.model.internal.registry.ModelRegistry;
+import org.gradle.model.internal.type.ModelType;
+import org.gradle.model.internal.type.ModelTypes;
+import org.gradle.nativeplatform.NativeBinarySpec;
+import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.DependencySpec;
 import org.gradle.platform.base.internal.DefaultLibraryBinaryDependencySpec;
 import org.gradle.platform.base.internal.DefaultProjectDependencySpec;
@@ -49,6 +54,7 @@ import java.util.Set;
 import static org.gradle.util.CollectionUtils.collect;
 
 public class NativeDependencyResolver {
+    private static final ModelType<ModelMap<BinarySpec>> BINARY_MAP_TYPE = ModelTypes.modelMap(BinarySpec.class);
     private final GlobalDependencyResolutionRules globalRules = GlobalDependencyResolutionRules.NO_OP;
     private final List<ResolutionAwareRepository> remoteRepositories = Lists.newArrayList();
     private final ArtifactDependencyResolver dependencyResolver;
@@ -57,8 +63,14 @@ public class NativeDependencyResolver {
         this.dependencyResolver = dependencyResolver;
     }
 
-    public Set<File> resolveFiles(String project, String component, String variant, String usage) {
-        ResolveResult resolveResult = doResolve(project, component, variant, usage);
+    public NativeBinarySpec findBinary(ProjectInternal project, String binaryName) {
+        ModelRegistry projectModel = project.getModelRegistry();
+        ModelMap<BinarySpec> binaries = projectModel.find("binaries", BINARY_MAP_TYPE);
+        return binaries.withType(NativeBinarySpec.class).get(binaryName);
+    }
+
+    public Set<File> resolveFiles(NativeBinarySpec from, String project, String component, String variant, String usage) {
+        ResolveResult resolveResult = doResolve(from, project, component, variant, usage);
         Set<ResolvedArtifact> artifacts = resolveResult.artifactResults.getArtifacts();
 
         failOnUnresolvedDependency(resolveResult.notFound);
@@ -71,15 +83,14 @@ public class NativeDependencyResolver {
         });
     }
 
-    private ResolveResult doResolve(String project, String library, @Nullable String variant, String usage) {
-        LibraryBinaryIdentifier libraryId = new DefaultLibraryBinaryIdentifier(":foo", "bar", "baz");
+    private ResolveResult doResolve(NativeBinarySpec from, String project, String library, @Nullable String variant, String usage) {
         DependencySpec dep;
         if (variant == null) {
             dep = new DefaultProjectDependencySpec(library, project);
         } else {
             dep = new DefaultLibraryBinaryDependencySpec(project, library, variant);
         }
-        NativeComponentResolveContext context = new NativeComponentResolveContext(libraryId, Collections.singleton(dep), usage, "foo");
+        NativeComponentResolveContext context = new NativeComponentResolveContext(from, Collections.singleton(dep), usage, "foo");
 
         ResolveResult result = new ResolveResult();
         dependencyResolver.resolve(context, remoteRepositories, globalRules, result, result);

@@ -26,25 +26,42 @@ class NativeDependencyResolutionIntegrationTest extends AbstractIntegrationSpec 
         app.library.writeSources(file("native-lib/src/hello"))
 
         and:
-        settingsFile.text = "include ':native-lib'"
+        settingsFile.text = "include ':native-lib', ':native-consumer'"
         buildFile << """
 project(':native-lib') {
-    apply plugin: 'base'
     apply plugin: 'c'
 
     model {
+        flavors {
+            one
+            two
+        }
         components {
             hello(NativeLibrarySpec)
         }
     }
 }
 
+project(':native-consumer') {
+    apply plugin: 'c'
 
-task resolve(type: NativeDependencyResolveTask) {
-    targetProject = ':native-lib'
-    targetComponent = 'hello'
-    targetVariant = 'sharedLibrary'
-    usage = 'compile'
+    model {
+        flavors {
+            one
+            two
+        }
+        components {
+            helloExe(NativeExecutableSpec)
+        }
+    }
+
+    task resolve(type: NativeDependencyResolveTask) {
+        binaryName = 'helloExeTwoExecutable'
+        targetProject = ':native-lib'
+        targetComponent = 'hello'
+        linkage = 'static'
+        usage = 'link'
+    }
 }
 
 import org.gradle.api.internal.resolve.NativeDependencyResolver
@@ -60,19 +77,23 @@ public class NativeDependencyResolveTask extends DefaultTask {
     }
 
     @Input
+    public String binaryName;
+
+    @Input
     public String targetProject;
 
     @Input
     public String targetComponent;
 
     @Input @Optional
-    public String targetVariant;
+    public String linkage;
 
     @Input String usage;
 
     @TaskAction
     public void resolve() {
-        Set<File> files = resolver.resolveFiles(targetProject, targetComponent, targetVariant, usage);
+        NativeBinarySpec binary = resolver.findBinary(project, binaryName)
+        Set<File> files = resolver.resolveFiles(binary, targetProject, targetComponent, linkage, usage);
         for (File file : files) {
             System.out.println("Resolved file: \${file.name} [\${file.absolutePath}]");
         }
@@ -82,6 +103,6 @@ public class NativeDependencyResolveTask extends DefaultTask {
 """
 
         expect:
-        succeeds ":resolve"
+        succeeds ":native-consumer:components", ":native-consumer:resolve"
     }
 }

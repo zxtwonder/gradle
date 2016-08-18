@@ -34,6 +34,7 @@ import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
 import org.gradle.nativeplatform.NativeBinary;
+import org.gradle.nativeplatform.NativeBinarySpec;
 import org.gradle.nativeplatform.internal.NativeBinaryRenderer;
 import org.gradle.nativeplatform.internal.NativeExecutableBinaryRenderer;
 import org.gradle.nativeplatform.internal.NativePlatformResolver;
@@ -94,7 +95,8 @@ public class NativeBinaryServices implements PluginServiceRegistry {
 
         @Override
         public ComponentResolvers create(ResolveContext context) {
-            VariantSelector variantSelector = new NativeVariantChooser();
+            NativeBinarySpec binarySpec = ((NativeComponentResolveContext) context).getBinarySpec();
+            VariantSelector variantSelector = new NativeVariantChooser(binarySpec.getFlavor(), binarySpec.getTargetPlatform(), binarySpec.getBuildType());
             LocalLibraryMetaDataAdapter libraryMetaDataAdapter = new NativeLocalLibraryMetaDataAdapter();
             LibraryResolutionErrorMessageBuilder errorMessageBuilder = new NativeLibraryResolutionErrorMessageBuilder();
             LocalLibraryDependencyResolver delegate =

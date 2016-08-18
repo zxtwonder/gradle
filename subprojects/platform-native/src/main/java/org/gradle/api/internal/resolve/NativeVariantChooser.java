@@ -16,36 +16,71 @@
 
 package org.gradle.api.internal.resolve;
 
-import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Nullable;
-import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
+import org.gradle.nativeplatform.BuildType;
+import org.gradle.nativeplatform.Flavor;
+import org.gradle.nativeplatform.NativeLibraryBinarySpec;
+import org.gradle.nativeplatform.SharedLibraryBinarySpec;
+import org.gradle.nativeplatform.StaticLibraryBinarySpec;
+import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.platform.base.Binary;
-import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.VariantComponent;
-import org.gradle.platform.base.internal.BinarySpecInternal;
 
 import java.util.Collection;
-import java.util.Collections;
+import java.util.Set;
 
 public class NativeVariantChooser implements VariantSelector {
-    @Override
-    public Collection<? extends Binary> selectVariants(VariantComponent componentSpec, @Nullable String requestedVariant) {
-        Collection<BinarySpec> allBinaries = Lists.newArrayList();
-        for (Binary binary : componentSpec.getVariants()) {
-            allBinaries.add((BinarySpec) binary);
-        }
-        if (requestedVariant != null) {
-            // Choose explicit variant
-            for (Binary binary : allBinaries) {
-                BinarySpecInternal binarySpec = (BinarySpecInternal) binary;
-                LibraryBinaryIdentifier id = binarySpec.getId();
-                if (Objects.equal(requestedVariant, id.getVariant())) {
-                    return Collections.singleton(binarySpec);
-                }
-            }
-            return Collections.emptySet();
-        }
-        return allBinaries;
+    private final Flavor flavor;
+    private final NativePlatform platform;
+    private final BuildType buildType;
+
+    public NativeVariantChooser(Flavor flavor, NativePlatform platform, BuildType buildType) {
+        this.flavor = flavor;
+        this.platform = platform;
+        this.buildType = buildType;
     }
+
+    @Override
+    public Collection<? extends Binary> selectVariants(VariantComponent componentSpec, @Nullable String linkage) {
+        Class<? extends NativeLibraryBinarySpec> type = getTypeForLinkage(linkage);
+        Collection<NativeLibraryBinarySpec> candidateBinaries = Lists.newArrayList();
+        for (Binary binary : componentSpec.getVariants()) {
+            if (type.isInstance(binary)) {
+                candidateBinaries.add(type.cast(binary));
+            }
+        }
+        return resolve(candidateBinaries, flavor, platform, buildType);
+    }
+
+    private Class<? extends NativeLibraryBinarySpec> getTypeForLinkage(String linkage) {
+        if ("static".equals(linkage)) {
+            return StaticLibraryBinarySpec.class;
+        }
+        if ("shared".equals(linkage) || linkage == null) {
+            return SharedLibraryBinarySpec.class;
+        }
+        throw new InvalidUserDataException("Not a valid linkage: " + linkage);
+    }
+
+    private Collection<NativeLibraryBinarySpec> resolve(Collection<? extends NativeLibraryBinarySpec> candidates, Flavor flavor, NativePlatform platform, BuildType buildType) {
+        Set<NativeLibraryBinarySpec> matches = Sets.newLinkedHashSet();
+        for (NativeLibraryBinarySpec candidate : candidates) {
+            if (flavor != null && !flavor.getName().equals(candidate.getFlavor().getName())) {
+                continue;
+            }
+            if (platform != null && !platform.getName().equals(candidate.getTargetPlatform().getName())) {
+                continue;
+            }
+            if (buildType != null && !buildType.getName().equals(candidate.getBuildType().getName())) {
+                continue;
+            }
+
+            matches.add(candidate);
+        }
+        return matches;
+    }
+
 }

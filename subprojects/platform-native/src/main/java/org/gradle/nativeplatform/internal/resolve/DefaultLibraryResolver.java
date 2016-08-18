@@ -77,11 +77,6 @@ class DefaultLibraryResolver {
             return this;
         }
 
-        public NativeDependencySet resolve(DomainObjectSet<NativeLibraryBinary> allBinaries) {
-            NativeLibraryBinary resolve = resolveLibrary(allBinaries);
-            return new DefaultNativeDependencySet(resolve);
-        }
-
         public NativeLibraryBinary resolveLibrary(DomainObjectSet<NativeLibraryBinary> allBinaries) {
             Class<? extends NativeLibraryBinary> type = getTypeForLinkage(requirement.getLinkage());
             DomainObjectSet<? extends NativeLibraryBinary> candidateBinaries = allBinaries.withType(type);
