@@ -19,6 +19,7 @@ package org.gradle.api.internal.resolve;
 import com.google.common.collect.Lists;
 import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ResolvedArtifact;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet;
@@ -28,6 +29,9 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.Dependen
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
+import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.internal.file.collections.ListBackedFileSet;
+import org.gradle.api.internal.file.collections.MinimalFileSet;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.tasks.TaskDependency;
@@ -58,9 +62,11 @@ public class NativeDependencyResolver {
     private final GlobalDependencyResolutionRules globalRules = GlobalDependencyResolutionRules.NO_OP;
     private final List<ResolutionAwareRepository> remoteRepositories = Lists.newArrayList();
     private final ArtifactDependencyResolver dependencyResolver;
+    private final FileCollectionFactory fileCollectionFactory;
 
-    public NativeDependencyResolver(ArtifactDependencyResolver dependencyResolver) {
+    public NativeDependencyResolver(ArtifactDependencyResolver dependencyResolver, FileCollectionFactory fileCollectionFactory) {
         this.dependencyResolver = dependencyResolver;
+        this.fileCollectionFactory = fileCollectionFactory;
     }
 
     public NativeBinarySpec findBinary(ProjectInternal project, String binaryName) {
@@ -69,28 +75,31 @@ public class NativeDependencyResolver {
         return binaries.withType(NativeBinarySpec.class).get(binaryName);
     }
 
-    public Set<File> resolveFiles(NativeBinarySpec from, String project, String component, String variant, String usage) {
+    public FileCollection resolveFiles(NativeBinarySpec from, String project, String component, String variant, String usage) {
         ResolveResult resolveResult = doResolve(from, project, component, variant, usage);
         Set<ResolvedArtifact> artifacts = resolveResult.artifactResults.getArtifacts();
 
         failOnUnresolvedDependency(resolveResult.notFound);
 
-        return collect(artifacts, new org.gradle.api.Transformer<File, ResolvedArtifact>() {
+        MinimalFileSet artifactCollection = new ListBackedFileSet(collect(artifacts, new org.gradle.api.Transformer<File, ResolvedArtifact>() {
             @Override
             public File transform(ResolvedArtifact resolvedArtifact) {
                 return resolvedArtifact.getFile();
             }
-        });
+        }));
+        return fileCollectionFactory.create(resolveResult.taskDependency, artifactCollection);
     }
 
-    private ResolveResult doResolve(NativeBinarySpec from, String project, String library, @Nullable String variant, String usage) {
+    private ResolveResult doResolve(NativeBinarySpec target, String project, String library, @Nullable String variant, String usage) {
         DependencySpec dep;
+        // TODO: Fix-up the requirements so we always have the project set?
+        String projectPath = project==null ? target.getProjectPath() : project;
         if (variant == null) {
-            dep = new DefaultProjectDependencySpec(library, project);
+            dep = new DefaultProjectDependencySpec(library, projectPath);
         } else {
-            dep = new DefaultLibraryBinaryDependencySpec(project, library, variant);
+            dep = new DefaultLibraryBinaryDependencySpec(projectPath, library, variant);
         }
-        NativeComponentResolveContext context = new NativeComponentResolveContext(from, Collections.singleton(dep), usage, "foo");
+        NativeComponentResolveContext context = new NativeComponentResolveContext(target, Collections.singleton(dep), usage, "foo");
 
         ResolveResult result = new ResolveResult();
         dependencyResolver.resolve(context, remoteRepositories, globalRules, result, result);
