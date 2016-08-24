@@ -25,6 +25,7 @@ import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import org.gradle.nativeplatform.toolchain.internal.PreCompiledHeader;
+import org.gradle.platform.base.DependencySpec;
 import org.gradle.platform.base.internal.BinarySpecInternal;
 
 import java.io.File;
@@ -65,4 +66,6 @@ public interface NativeBinarySpecInternal extends NativeBinarySpec, BinarySpecIn
     Map<File, PreCompiledHeader> getPrefixFileToPCH();
 
     void addPreCompiledHeaderFor(DependentSourceSet sourceSet);
+
+    Map<String,Iterable<DependencySpec>> getDependencySpecs();
 }

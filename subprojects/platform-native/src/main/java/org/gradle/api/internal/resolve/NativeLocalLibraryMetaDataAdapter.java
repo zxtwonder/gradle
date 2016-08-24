@@ -25,9 +25,9 @@ import org.gradle.internal.component.local.model.DefaultLibraryBinaryIdentifier;
 import org.gradle.internal.component.local.model.LocalComponentMetadata;
 import org.gradle.internal.component.local.model.PublishArtifactLocalArtifactMetadata;
 import org.gradle.language.base.internal.model.DefaultLibraryLocalComponentMetadata;
-import org.gradle.platform.base.Binary;
 import org.gradle.nativeplatform.NativeLibraryBinary;
 import org.gradle.nativeplatform.NativeLibraryBinarySpec;
+import org.gradle.nativeplatform.internal.NativeBinarySpecInternal;
 import org.gradle.nativeplatform.internal.prebuilt.AbstractPrebuiltLibraryBinary;
 import org.gradle.platform.base.Binary;
 import org.gradle.platform.base.DependencySpec;
@@ -55,7 +55,7 @@ public class NativeLocalLibraryMetaDataAdapter implements LocalLibraryMetaDataAd
 
     private static LocalComponentMetadata createForNativeLibrary(NativeLibraryBinary library, String projectPath) {
         LibraryBinaryIdentifier id = createComponentId(library, projectPath);
-        DefaultLibraryLocalComponentMetadata metadata = createComponentMetadata(id, library);
+        DefaultLibraryLocalComponentMetadata metadata = createComponentMetadata(id, library, projectPath);
 
         for (File headerDir : library.getHeaderDirs()) {
             PublishArtifact headerDirArtifact = new LibraryPublishArtifact("header", headerDir);
@@ -86,7 +86,7 @@ public class NativeLocalLibraryMetaDataAdapter implements LocalLibraryMetaDataAd
         return new DefaultLibraryBinaryIdentifier(projectPath, libraryName, "library");
     }
 
-    private static DefaultLibraryLocalComponentMetadata createComponentMetadata(LibraryBinaryIdentifier id, NativeLibraryBinary library) {
+    private static DefaultLibraryLocalComponentMetadata createComponentMetadata(LibraryBinaryIdentifier id, NativeLibraryBinary library, String projectPath) {
         // TODO:DAZ Should wire task dependencies to artifacts, not configurations.
         Map<String, TaskDependency> configurations = Maps.newLinkedHashMap();
         configurations.put(COMPILE, new DefaultTaskDependency().add(library.getHeaderDirs()));
@@ -94,8 +94,13 @@ public class NativeLocalLibraryMetaDataAdapter implements LocalLibraryMetaDataAd
         configurations.put(RUN, new DefaultTaskDependency().add(library.getRuntimeFiles()));
 
         // TODO:DAZ For transitive dependency resolution, include dependencies from lib
-        Map<String, Iterable<DependencySpec>> dependencies = Collections.emptyMap();
-
-        return newResolvedLibraryMetadata(id, configurations, dependencies, null);
+        Map<String, Iterable<DependencySpec>> dependencies;
+        if (library instanceof NativeBinarySpecInternal) {
+            NativeBinarySpecInternal librarySpec = (NativeBinarySpecInternal)library;
+            dependencies = librarySpec.getDependencySpecs();
+        } else {
+            dependencies = Collections.emptyMap();
+        }
+        return newResolvedLibraryMetadata(id, configurations, dependencies, projectPath);
     }
 }

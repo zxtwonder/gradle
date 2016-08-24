@@ -17,12 +17,21 @@
 package org.gradle.nativeplatform.internal;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import org.gradle.api.DomainObjectSet;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.internal.resolve.NativeLocalLibraryMetaDataAdapter;
 import org.gradle.language.nativeplatform.DependentSourceSet;
 import org.gradle.language.nativeplatform.internal.DependentSourceSetInternal;
-import org.gradle.nativeplatform.*;
+import org.gradle.nativeplatform.BuildType;
+import org.gradle.nativeplatform.Flavor;
+import org.gradle.nativeplatform.NativeComponentSpec;
+import org.gradle.nativeplatform.NativeDependencySet;
+import org.gradle.nativeplatform.NativeLibraryBinary;
+import org.gradle.nativeplatform.PreprocessingTool;
+import org.gradle.nativeplatform.Tool;
 import org.gradle.nativeplatform.internal.resolve.NativeBinaryResolveResult;
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver;
 import org.gradle.nativeplatform.platform.NativePlatform;
@@ -32,12 +41,18 @@ import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import org.gradle.nativeplatform.toolchain.internal.PreCompiledHeader;
+import org.gradle.platform.base.DependencySpec;
 import org.gradle.platform.base.binary.BaseBinarySpec;
 import org.gradle.platform.base.internal.BinaryBuildAbility;
 import org.gradle.platform.base.internal.ToolSearchBuildAbility;
 
 import java.io.File;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public abstract class AbstractNativeBinarySpec extends BaseBinarySpec implements NativeBinarySpecInternal {
     private final Set<? super Object> libs = new LinkedHashSet<Object>();
@@ -166,12 +181,12 @@ public abstract class AbstractNativeBinarySpec extends BaseBinarySpec implements
 
     @Override
     public Collection<NativeDependencySet> getLibs() {
-        return resolve(getInputs().withType(DependentSourceSet.class)).getAllResults();
+        return resolve(getAllLibs(getAllDependentSourceSets())).getAllResults();
     }
 
     @Override
     public Collection<NativeDependencySet> getLibs(DependentSourceSet sourceSet) {
-        return resolve(Collections.singleton(sourceSet)).getAllResults();
+        return resolve(getAllLibs(Collections.singleton(sourceSet))).getAllResults();
     }
 
     @Override
@@ -181,7 +196,7 @@ public abstract class AbstractNativeBinarySpec extends BaseBinarySpec implements
 
     @Override
     public Collection<NativeLibraryBinary> getDependentBinaries() {
-        return resolve(getInputs().withType(DependentSourceSet.class)).getAllLibraryBinaries();
+        return resolve(getAllLibs(getAllDependentSourceSets())).getAllLibraryBinaries();
     }
 
     @Override
@@ -196,14 +211,22 @@ public abstract class AbstractNativeBinarySpec extends BaseBinarySpec implements
             new PreCompiledHeader(getIdentifier().child("pch")));
     }
 
-    private NativeBinaryResolveResult resolve(Iterable<? extends DependentSourceSet> sourceSets) {
+    private NativeBinaryResolveResult resolve(Set<? super Object> allLibs) {
+        NativeBinaryResolveResult resolution = new NativeBinaryResolveResult(this, allLibs);
+        resolver.resolve(resolution);
+        return resolution;
+    }
+
+    private DomainObjectSet<DependentSourceSet> getAllDependentSourceSets() {
+        return getInputs().withType(DependentSourceSet.class);
+    }
+
+    private Set<? super Object> getAllLibs(Iterable<? extends DependentSourceSet> sourceSets) {
         Set<? super Object> allLibs = new LinkedHashSet<Object>(libs);
         for (DependentSourceSet dependentSourceSet : sourceSets) {
             allLibs.addAll(dependentSourceSet.getLibs());
         }
-        NativeBinaryResolveResult resolution = new NativeBinaryResolveResult(this, allLibs);
-        resolver.resolve(resolution);
-        return resolution;
+        return allLibs;
     }
 
     @Override
@@ -244,4 +267,21 @@ public abstract class AbstractNativeBinarySpec extends BaseBinarySpec implements
     }
 
     protected abstract ObjectFilesToBinary getCreateOrLink();
+
+    @Override
+    public Map<String, Iterable<DependencySpec>> getDependencySpecs() {
+
+        // TODO: Convert from Object into a DependencySpec
+        List<DependencySpec> listOfDependencies = Lists.<DependencySpec>newArrayList();
+        Set<? super Object> allLibs = getAllLibs(getAllDependentSourceSets());
+        for (Object lib : allLibs) {
+            // listOfDependencies.add(lib);
+        }
+        // TODO: SG Add all dependencies to all usage types for now
+        Map<String, Iterable<DependencySpec>> dependencies = Maps.newHashMap();
+        dependencies.put(NativeLocalLibraryMetaDataAdapter.COMPILE, Lists.<DependencySpec>newArrayList());
+        dependencies.put(NativeLocalLibraryMetaDataAdapter.LINK, Lists.<DependencySpec>newArrayList());
+        dependencies.put(NativeLocalLibraryMetaDataAdapter.RUN, Lists.<DependencySpec>newArrayList());
+        return dependencies;
+    }
 }
