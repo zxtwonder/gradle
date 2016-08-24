@@ -22,9 +22,9 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Nullable;
 import org.gradle.nativeplatform.BuildType;
 import org.gradle.nativeplatform.Flavor;
-import org.gradle.nativeplatform.NativeLibraryBinarySpec;
-import org.gradle.nativeplatform.SharedLibraryBinarySpec;
-import org.gradle.nativeplatform.StaticLibraryBinarySpec;
+import org.gradle.nativeplatform.NativeLibraryBinary;
+import org.gradle.nativeplatform.SharedLibraryBinary;
+import org.gradle.nativeplatform.StaticLibraryBinary;
 import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.platform.base.Binary;
 import org.gradle.platform.base.VariantComponent;
@@ -45,8 +45,8 @@ public class NativeVariantChooser implements VariantSelector {
 
     @Override
     public Collection<? extends Binary> selectVariants(VariantComponent componentSpec, @Nullable String linkage) {
-        Class<? extends NativeLibraryBinarySpec> type = getTypeForLinkage(linkage);
-        Collection<NativeLibraryBinarySpec> candidateBinaries = Lists.newArrayList();
+        Class<? extends NativeLibraryBinary> type = getTypeForLinkage(linkage);
+        Collection<NativeLibraryBinary> candidateBinaries = Lists.newArrayList();
         for (Binary binary : componentSpec.getVariants()) {
             if (type.isInstance(binary)) {
                 candidateBinaries.add(type.cast(binary));
@@ -56,22 +56,22 @@ public class NativeVariantChooser implements VariantSelector {
     }
 
     // TODO:DAZ Needs to handle Prebuilt libraries too (with their different type hierarchy...)
-    private Class<? extends NativeLibraryBinarySpec> getTypeForLinkage(String linkage) {
+    private Class<? extends NativeLibraryBinary> getTypeForLinkage(String linkage) {
         if ("static".equals(linkage)) {
-            return StaticLibraryBinarySpec.class;
+            return StaticLibraryBinary.class;
         }
         if ("shared".equals(linkage) || linkage == null) {
-            return SharedLibraryBinarySpec.class;
+            return SharedLibraryBinary.class;
         }
         if ("api".equals(linkage)) {
-            return SharedLibraryBinarySpec.class; // TODO: SG Not correct
+            return SharedLibraryBinary.class; // TODO: SG Not correct
         }
         throw new InvalidUserDataException("Not a valid linkage: " + linkage);
     }
 
-    private Collection<NativeLibraryBinarySpec> resolve(Collection<? extends NativeLibraryBinarySpec> candidates, Flavor flavor, NativePlatform platform, BuildType buildType) {
-        Set<NativeLibraryBinarySpec> matches = Sets.newLinkedHashSet();
-        for (NativeLibraryBinarySpec candidate : candidates) {
+    private Collection<NativeLibraryBinary> resolve(Collection<? extends NativeLibraryBinary> candidates, Flavor flavor, NativePlatform platform, BuildType buildType) {
+        Set<NativeLibraryBinary> matches = Sets.newLinkedHashSet();
+        for (NativeLibraryBinary candidate : candidates) {
             if (flavor != null && !flavor.getName().equals(candidate.getFlavor().getName())) {
                 continue;
             }

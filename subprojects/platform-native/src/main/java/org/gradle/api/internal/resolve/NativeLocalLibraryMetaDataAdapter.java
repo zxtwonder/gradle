@@ -28,8 +28,9 @@ import org.gradle.language.base.internal.model.DefaultLibraryLocalComponentMetad
 import org.gradle.platform.base.Binary;
 import org.gradle.nativeplatform.NativeLibraryBinary;
 import org.gradle.nativeplatform.NativeLibraryBinarySpec;
+import org.gradle.nativeplatform.internal.prebuilt.AbstractPrebuiltLibraryBinary;
+import org.gradle.platform.base.Binary;
 import org.gradle.platform.base.DependencySpec;
-import org.gradle.platform.base.LibraryBinarySpec;
 
 import java.io.File;
 import java.util.Collections;
@@ -45,28 +46,28 @@ public class NativeLocalLibraryMetaDataAdapter implements LocalLibraryMetaDataAd
 
     @Override
     public LocalComponentMetadata createLocalComponentMetaData(Binary selectedBinary, String projectPath, boolean toAssembly) {
-        if (selectedBinary instanceof NativeLibraryBinarySpec) {
-            return createForNativeLibrary((NativeLibraryBinarySpec) selectedBinary);
+
+        if (selectedBinary instanceof NativeLibraryBinary) {
+            return createForNativeLibrary((NativeLibraryBinary) selectedBinary, projectPath);
         }
         throw new RuntimeException("Can't create metadata for binary: " + selectedBinary);
     }
 
-    private static LocalComponentMetadata createForNativeLibrary(NativeLibraryBinarySpec library) {
-        LibraryBinaryIdentifier id = createComponentId(library);
-        NativeLibraryBinary libraryBinary = (NativeLibraryBinary) library;
-        DefaultLibraryLocalComponentMetadata metadata = createComponentMetadata(id, libraryBinary);
+    private static LocalComponentMetadata createForNativeLibrary(NativeLibraryBinary library, String projectPath) {
+        LibraryBinaryIdentifier id = createComponentId(library, projectPath);
+        DefaultLibraryLocalComponentMetadata metadata = createComponentMetadata(id, library);
 
-        for (File headerDir : libraryBinary.getHeaderDirs()) {
+        for (File headerDir : library.getHeaderDirs()) {
             PublishArtifact headerDirArtifact = new LibraryPublishArtifact("header", headerDir);
             metadata.addArtifact(COMPILE, new PublishArtifactLocalArtifactMetadata(id, library.getDisplayName(), headerDirArtifact));
         }
 
-        for (File linkFile : libraryBinary.getLinkFiles()) {
+        for (File linkFile : library.getLinkFiles()) {
             PublishArtifact linkFileArtifact = new LibraryPublishArtifact("link-file", linkFile);
             metadata.addArtifact(LINK, new PublishArtifactLocalArtifactMetadata(id, library.getDisplayName(), linkFileArtifact));
         }
 
-        for (File runtimeFile : libraryBinary.getRuntimeFiles()) {
+        for (File runtimeFile : library.getRuntimeFiles()) {
             PublishArtifact runtimeFileArtifact = new LibraryPublishArtifact("runtime-file", runtimeFile);
             metadata.addArtifact(RUN, new PublishArtifactLocalArtifactMetadata(id, library.getDisplayName(), runtimeFileArtifact));
         }
@@ -74,9 +75,15 @@ public class NativeLocalLibraryMetaDataAdapter implements LocalLibraryMetaDataAd
         return metadata;
     }
 
-    private static LibraryBinaryIdentifier createComponentId(LibraryBinarySpec staticLib) {
-        String projectPath = staticLib.getProjectPath();
-        return new DefaultLibraryBinaryIdentifier(projectPath, staticLib.getLibrary().getName(), "staticLibrary");
+    private static LibraryBinaryIdentifier createComponentId(NativeLibraryBinary library, String projectPath) {
+        String libraryName;
+        // TODO: SG Expose this on a Binary type?
+        if (library instanceof AbstractPrebuiltLibraryBinary) {
+            libraryName = ((AbstractPrebuiltLibraryBinary)library).getComponent().getName();
+        } else {
+            libraryName = ((NativeLibraryBinarySpec)library).getLibrary().getName();
+        }
+        return new DefaultLibraryBinaryIdentifier(projectPath, libraryName, "library");
     }
 
     private static DefaultLibraryLocalComponentMetadata createComponentMetadata(LibraryBinaryIdentifier id, NativeLibraryBinary library) {

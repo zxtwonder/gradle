@@ -80,7 +80,12 @@ public abstract class AbstractPrebuiltLibraryBinary implements NativeLibraryBina
     }
 
     protected FileCollection createFileCollection(File file, String fileCollectionDisplayName, String fileDescription) {
-        return fileCollectionFactory.create(new ValidatingFileSet(file, fileCollectionDisplayName, fileDescription));
+        // TODO: SG we should validate the existence of link/runtime files when we resolve prebuilt libraries
+        String name = fileCollectionDisplayName + " for " + AbstractPrebuiltLibraryBinary.this.getDisplayName();
+        if (file==null) {
+            return fileCollectionFactory.empty(name);
+        }
+        return fileCollectionFactory.fixed(name, file);
     }
 
     private class ValidatingFileSet implements MinimalFileSet {

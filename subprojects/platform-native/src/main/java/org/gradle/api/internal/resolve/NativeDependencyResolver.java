@@ -32,7 +32,6 @@ import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.collections.ListBackedFileSet;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.component.local.model.LocalConfigurationMetadata;
@@ -40,7 +39,6 @@ import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.language.base.internal.resolve.LibraryResolveException;
 import org.gradle.model.ModelMap;
-import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.model.internal.type.ModelTypes;
 import org.gradle.nativeplatform.NativeBinarySpec;
@@ -67,12 +65,6 @@ public class NativeDependencyResolver {
     public NativeDependencyResolver(ArtifactDependencyResolver dependencyResolver, FileCollectionFactory fileCollectionFactory) {
         this.dependencyResolver = dependencyResolver;
         this.fileCollectionFactory = fileCollectionFactory;
-    }
-
-    public NativeBinarySpec findBinary(ProjectInternal project, String binaryName) {
-        ModelRegistry projectModel = project.getModelRegistry();
-        ModelMap<BinarySpec> binaries = projectModel.find("binaries", BINARY_MAP_TYPE);
-        return binaries.withType(NativeBinarySpec.class).get(binaryName);
     }
 
     public FileCollection resolveFiles(NativeBinarySpec from, String project, String component, String variant, String usage) {
