@@ -17,12 +17,11 @@
 package org.gradle.api.internal.resolve;
 
 import com.google.common.collect.Lists;
-import org.gradle.model.ModelMap;
+import org.gradle.api.NamedDomainObjectSet;
 import org.gradle.model.internal.registry.ModelRegistry;
-import org.gradle.model.internal.type.ModelType;
-import org.gradle.model.internal.type.ModelTypes;
 import org.gradle.nativeplatform.PrebuiltLibraries;
 import org.gradle.nativeplatform.PrebuiltLibrary;
+import org.gradle.nativeplatform.Repositories;
 import org.gradle.platform.base.VariantComponent;
 
 import java.util.Collection;
@@ -30,8 +29,6 @@ import java.util.Collections;
 import java.util.List;
 
 public class PrebuiltLibraryResolver implements LocalLibraryResolver {
-    private static final ModelType<ModelMap<PrebuiltLibraries>> PREBUILT_LIBRARIES_TYPE = ModelTypes.modelMap(PrebuiltLibraries.class);
-
     @Override
     public Collection<VariantComponent> resolveCandidates(ModelRegistry projectModel, String libraryName) {
         List<VariantComponent> librarySpecs = Lists.newArrayList();
@@ -43,11 +40,12 @@ public class PrebuiltLibraryResolver implements LocalLibraryResolver {
     }
 
     private void collectLocalComponents(ModelRegistry projectModel, String componentName, List<VariantComponent> librarySpecs) {
-        ModelMap<PrebuiltLibraries> prebuiltLibraries = projectModel.find("repositories", PREBUILT_LIBRARIES_TYPE);
+        // TODO: Should this be realize here?
+        NamedDomainObjectSet<PrebuiltLibraries> prebuiltLibraries = projectModel.find("repositories", Repositories.class).withType(PrebuiltLibraries.class);
         if (prebuiltLibraries != null) {
             for (PrebuiltLibraries repository : prebuiltLibraries) {
                 PrebuiltLibrary prebuiltLibrary = repository.resolveLibrary(componentName);
-                if (prebuiltLibrary!=null) {
+                if (prebuiltLibrary != null) {
                     librarySpecs.add(prebuiltLibrary);
                 }
             }

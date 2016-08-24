@@ -20,6 +20,7 @@ import org.gradle.api.internal.artifacts.ResolveContext;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DelegatingComponentResolvers;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolverProviderFactory;
+import org.gradle.api.internal.resolve.ChainLocalLibraryResolver;
 import org.gradle.api.internal.resolve.DefaultLocalLibraryResolver;
 import org.gradle.api.internal.resolve.LibraryResolutionErrorMessageBuilder;
 import org.gradle.api.internal.resolve.LocalLibraryDependencyResolver;
@@ -29,6 +30,7 @@ import org.gradle.api.internal.resolve.NativeDependencyResolver;
 import org.gradle.api.internal.resolve.NativeLibraryResolutionErrorMessageBuilder;
 import org.gradle.api.internal.resolve.NativeLocalLibraryMetaDataAdapter;
 import org.gradle.api.internal.resolve.NativeVariantChooser;
+import org.gradle.api.internal.resolve.PrebuiltLibraryResolver;
 import org.gradle.api.internal.resolve.ProjectModelResolver;
 import org.gradle.api.internal.resolve.VariantSelector;
 import org.gradle.internal.service.ServiceRegistration;
@@ -105,7 +107,7 @@ public class NativeBinaryServices implements PluginServiceRegistry {
                     new LocalLibraryDependencyResolver(
                             NativeBinary.class,
                             projectModelResolver,
-                            new DefaultLocalLibraryResolver(),
+                            new ChainLocalLibraryResolver(new DefaultLocalLibraryResolver(), new PrebuiltLibraryResolver()),
                             variantSelector,
                             libraryMetaDataAdapter,
                         errorMessageBuilder
