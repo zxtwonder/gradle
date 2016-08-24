@@ -23,6 +23,8 @@ import org.gradle.api.DomainObjectSet;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.resolve.NativeLocalLibraryMetaDataAdapter;
+import org.gradle.internal.typeconversion.NotationParser;
+import org.gradle.internal.typeconversion.UnsupportedNotationException;
 import org.gradle.language.nativeplatform.DependentSourceSet;
 import org.gradle.language.nativeplatform.internal.DependentSourceSetInternal;
 import org.gradle.nativeplatform.BuildType;
@@ -30,9 +32,11 @@ import org.gradle.nativeplatform.Flavor;
 import org.gradle.nativeplatform.NativeComponentSpec;
 import org.gradle.nativeplatform.NativeDependencySet;
 import org.gradle.nativeplatform.NativeLibraryBinary;
+import org.gradle.nativeplatform.NativeLibraryRequirement;
 import org.gradle.nativeplatform.PreprocessingTool;
 import org.gradle.nativeplatform.Tool;
 import org.gradle.nativeplatform.internal.resolve.NativeBinaryResolveResult;
+import org.gradle.nativeplatform.internal.resolve.NativeDependencyNotationParser;
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver;
 import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
@@ -271,17 +275,25 @@ public abstract class AbstractNativeBinarySpec extends BaseBinarySpec implements
     @Override
     public Map<String, Iterable<DependencySpec>> getDependencySpecs() {
 
-        // TODO: Convert from Object into a DependencySpec
         List<DependencySpec> listOfDependencies = Lists.<DependencySpec>newArrayList();
         Set<? super Object> allLibs = getAllLibs(getAllDependentSourceSets());
         for (Object lib : allLibs) {
-            // listOfDependencies.add(lib);
+            try {
+                // TODO: Convert from Object into a DependencySpec
+                // TODO: How do we handle Source set dependencies
+                // TODO: How do we handle NativeDependencySet dependencies?
+                listOfDependencies.add(parser.parseNotation(lib));
+            } catch (UnsupportedNotationException e) {
+                // ignore it
+            }
         }
         // TODO: SG Add all dependencies to all usage types for now
         Map<String, Iterable<DependencySpec>> dependencies = Maps.newHashMap();
-        dependencies.put(NativeLocalLibraryMetaDataAdapter.COMPILE, Lists.<DependencySpec>newArrayList());
-        dependencies.put(NativeLocalLibraryMetaDataAdapter.LINK, Lists.<DependencySpec>newArrayList());
-        dependencies.put(NativeLocalLibraryMetaDataAdapter.RUN, Lists.<DependencySpec>newArrayList());
+        dependencies.put(NativeLocalLibraryMetaDataAdapter.COMPILE, listOfDependencies);
+        dependencies.put(NativeLocalLibraryMetaDataAdapter.LINK, listOfDependencies);
+        dependencies.put(NativeLocalLibraryMetaDataAdapter.RUN, listOfDependencies);
         return dependencies;
     }
+
+    private final NotationParser<Object, NativeLibraryRequirement> parser = NativeDependencyNotationParser.parser();
 }

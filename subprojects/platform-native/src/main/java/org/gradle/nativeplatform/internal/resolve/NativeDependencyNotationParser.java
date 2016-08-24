@@ -23,7 +23,7 @@ import org.gradle.nativeplatform.NativeLibraryRequirement;
 import org.gradle.nativeplatform.NativeLibrarySpec;
 import org.gradle.nativeplatform.internal.ProjectNativeLibraryRequirement;
 
-class NativeDependencyNotationParser {
+public class NativeDependencyNotationParser {
     public static NotationParser<Object, NativeLibraryRequirement> parser() {
         return NotationParserBuilder
                 .toType(NativeLibraryRequirement.class)

@@ -16,12 +16,13 @@
 package org.gradle.nativeplatform;
 
 import org.gradle.api.Incubating;
+import org.gradle.platform.base.LibraryBinaryDependencySpec;
 
 /**
  * A dependency on a native library within the build.
  */
 @Incubating
-public interface NativeLibraryRequirement {
+public interface NativeLibraryRequirement extends LibraryBinaryDependencySpec {
     /**
      * The path to the project containing the library.
      */

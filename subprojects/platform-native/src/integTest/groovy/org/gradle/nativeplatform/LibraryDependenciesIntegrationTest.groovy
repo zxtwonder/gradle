@@ -282,7 +282,7 @@ project(":lib") {
         components {
             hello(NativeLibrarySpec) {
                 sources {
-                    cpp.lib project: ':greet', library: 'greetings', linkage: 'static'
+                    cpp.lib project: ':greet', library: 'greetings', linkage: 'shared'
                 }
             }
         }

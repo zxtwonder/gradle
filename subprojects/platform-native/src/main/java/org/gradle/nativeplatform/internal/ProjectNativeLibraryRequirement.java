@@ -15,8 +15,13 @@
  */
 package org.gradle.nativeplatform.internal;
 
+import com.google.common.base.Joiner;
 import org.gradle.nativeplatform.NativeLibraryRequirement;
 
+import java.util.Arrays;
+import java.util.List;
+
+// TODO: Replace this with DependencySpec
 public class ProjectNativeLibraryRequirement implements NativeLibraryRequirement {
     private final String projectPath;
     private final String libraryName;
@@ -47,5 +52,20 @@ public class ProjectNativeLibraryRequirement implements NativeLibraryRequirement
     @Override
     public String getLinkage() {
         return linkage;
+    }
+
+
+    @Override
+    public String getVariant() {
+        return linkage;
+    }
+
+    @Override
+    public String getDisplayName() {
+        List<String> parts = Arrays.asList(
+            "project '" + getProjectPath() + "'",
+            "library '" + getLibraryName() + "'",
+            "variant '" + getVariant() + "'");
+        return Joiner.on(' ').join(parts);
     }
 }
