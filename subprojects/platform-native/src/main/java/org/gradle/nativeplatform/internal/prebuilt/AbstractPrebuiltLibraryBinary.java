@@ -18,7 +18,6 @@ package org.gradle.nativeplatform.internal.prebuilt;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
-import org.gradle.api.internal.file.collections.MinimalFileSet;
 import org.gradle.nativeplatform.BuildType;
 import org.gradle.nativeplatform.Flavor;
 import org.gradle.nativeplatform.NativeLibraryBinary;
@@ -26,8 +25,6 @@ import org.gradle.nativeplatform.PrebuiltLibrary;
 import org.gradle.nativeplatform.platform.NativePlatform;
 
 import java.io.File;
-import java.util.Collections;
-import java.util.Set;
 
 public abstract class AbstractPrebuiltLibraryBinary implements NativeLibraryBinary {
     private final String name;
@@ -86,33 +83,5 @@ public abstract class AbstractPrebuiltLibraryBinary implements NativeLibraryBina
             return fileCollectionFactory.empty(name);
         }
         return fileCollectionFactory.fixed(name, file);
-    }
-
-    private class ValidatingFileSet implements MinimalFileSet {
-        private final File file;
-        private final String fileCollectionDisplayName;
-        private final String fileDescription;
-
-        private ValidatingFileSet(File file, String fileCollectionDisplayName, String fileDescription) {
-            this.file = file;
-            this.fileCollectionDisplayName = fileCollectionDisplayName;
-            this.fileDescription = fileDescription;
-        }
-
-        @Override
-        public String getDisplayName() {
-            return fileCollectionDisplayName + " for " + AbstractPrebuiltLibraryBinary.this.getDisplayName();
-        }
-
-        @Override
-        public Set<File> getFiles() {
-            if (file == null) {
-                throw new PrebuiltLibraryResolveException(String.format("%s not set for %s.", fileDescription, AbstractPrebuiltLibraryBinary.this.getDisplayName()));
-            }
-            if (!file.exists() || !file.isFile()) {
-                throw new PrebuiltLibraryResolveException(String.format("%s %s does not exist for %s.", fileDescription, file.getAbsolutePath(), AbstractPrebuiltLibraryBinary.this.getDisplayName()));
-            }
-            return Collections.singleton(file);
-        }
     }
 }
