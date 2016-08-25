@@ -47,29 +47,23 @@ public class NativeDependencyResolverServices {
         }
 
         @Override
-        public void resolve(NativeBinaryResolveResult resolution) {
+        public void resolve(final NativeBinaryResolveResult resolution) {
             // TODO: Failures should propagate up
-            for (NativeBinaryRequirementResolveResult requirementResolution : resolution.getPendingResolutions()) {
-                // TODO: Clean-up usages
-                // TODO: Resolve these lazily?
-                final FileCollection compile = resolve(resolution, requirementResolution, NativeLocalLibraryMetaDataAdapter.COMPILE);
-                final FileCollection link = resolve(resolution, requirementResolution, NativeLocalLibraryMetaDataAdapter.LINK);
-                final FileCollection runtime = resolve(resolution, requirementResolution, NativeLocalLibraryMetaDataAdapter.RUN);
-
+            for (final NativeBinaryRequirementResolveResult requirementResolution : resolution.getPendingResolutions()) {
                 NativeDependencySet dependencySet = new NativeDependencySet() {
                     @Override
                     public FileCollection getIncludeRoots() {
-                        return compile;
+                        return resolve(resolution, requirementResolution, NativeLocalLibraryMetaDataAdapter.COMPILE);
                     }
 
                     @Override
                     public FileCollection getLinkFiles() {
-                        return link;
+                        return resolve(resolution, requirementResolution, NativeLocalLibraryMetaDataAdapter.LINK);
                     }
 
                     @Override
                     public FileCollection getRuntimeFiles() {
-                        return runtime;
+                        return resolve(resolution, requirementResolution, NativeLocalLibraryMetaDataAdapter.RUN);
                     }
                 };
                 requirementResolution.setNativeDependencySet(dependencySet);
