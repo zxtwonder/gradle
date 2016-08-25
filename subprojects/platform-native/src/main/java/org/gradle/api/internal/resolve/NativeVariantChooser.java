@@ -20,6 +20,9 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Nullable;
+import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.internal.Cast;
 import org.gradle.nativeplatform.BuildType;
 import org.gradle.nativeplatform.Flavor;
 import org.gradle.nativeplatform.NativeLibraryBinary;
@@ -36,11 +39,13 @@ public class NativeVariantChooser implements VariantSelector {
     private final Flavor flavor;
     private final NativePlatform platform;
     private final BuildType buildType;
+    private final FileCollectionFactory fileCollectionFactory;
 
-    public NativeVariantChooser(Flavor flavor, NativePlatform platform, BuildType buildType) {
+    public NativeVariantChooser(Flavor flavor, NativePlatform platform, BuildType buildType, FileCollectionFactory fileCollectionFactory) {
         this.flavor = flavor;
         this.platform = platform;
         this.buildType = buildType;
+        this.fileCollectionFactory = fileCollectionFactory;
     }
 
     @Override
@@ -48,14 +53,20 @@ public class NativeVariantChooser implements VariantSelector {
         Class<? extends NativeLibraryBinary> type = getTypeForLinkage(linkage);
         Collection<NativeLibraryBinary> candidateBinaries = Lists.newArrayList();
         for (Binary binary : componentSpec.getVariants()) {
-            if (type.isInstance(binary)) {
-                candidateBinaries.add(type.cast(binary));
+            // TODO: SG - Remove this special handling of API linkages
+            if (isApiLinkage(linkage)) {
+                if (SharedLibraryBinary.class.isInstance(binary)) {
+                    candidateBinaries.add(new ApiLibraryBinary(Cast.cast(SharedLibraryBinary.class, binary), fileCollectionFactory));
+                }
+            } else {
+                if (type.isInstance(binary)) {
+                    candidateBinaries.add(type.cast(binary));
+                }
             }
         }
         return resolve(candidateBinaries, flavor, platform, buildType);
     }
 
-    // TODO:DAZ Needs to handle Prebuilt libraries too (with their different type hierarchy...)
     private Class<? extends NativeLibraryBinary> getTypeForLinkage(String linkage) {
         if ("static".equals(linkage)) {
             return StaticLibraryBinary.class;
@@ -63,10 +74,14 @@ public class NativeVariantChooser implements VariantSelector {
         if ("shared".equals(linkage) || linkage == null) {
             return SharedLibraryBinary.class;
         }
-        if ("api".equals(linkage)) {
-            return SharedLibraryBinary.class; // TODO: SG Not correct
+        if (isApiLinkage(linkage)) {
+            return ApiLibraryBinary.class;
         }
         throw new InvalidUserDataException("Not a valid linkage: " + linkage);
+    }
+
+    private boolean isApiLinkage(@Nullable String linkage) {
+        return "api".equals(linkage);
     }
 
     private Collection<NativeLibraryBinary> resolve(Collection<? extends NativeLibraryBinary> candidates, Flavor flavor, NativePlatform platform, BuildType buildType) {
@@ -87,4 +102,51 @@ public class NativeVariantChooser implements VariantSelector {
         return matches;
     }
 
+
+    // TODO: SG-Eventually expose this as an actual binary
+    private static class ApiLibraryBinary implements NativeLibraryBinary {
+
+        private final SharedLibraryBinary sharedLibraryBinary;
+        private final FileCollectionFactory fileCollectionFactory;
+
+        private ApiLibraryBinary(SharedLibraryBinary sharedLibraryBinary, FileCollectionFactory fileCollectionFactory) {
+            this.sharedLibraryBinary = sharedLibraryBinary;
+            this.fileCollectionFactory = fileCollectionFactory;
+        }
+
+        @Override
+        public FileCollection getHeaderDirs() {
+            return sharedLibraryBinary.getHeaderDirs();
+        }
+
+        @Override
+        public FileCollection getLinkFiles() {
+            return fileCollectionFactory.empty("api link files");
+        }
+
+        @Override
+        public FileCollection getRuntimeFiles() {
+            return fileCollectionFactory.empty("api runtime files");
+        }
+
+        @Override
+        public String getDisplayName() {
+            return "API " + sharedLibraryBinary.getDisplayName();
+        }
+
+        @Override
+        public Flavor getFlavor() {
+            return sharedLibraryBinary.getFlavor();
+        }
+
+        @Override
+        public NativePlatform getTargetPlatform() {
+            return sharedLibraryBinary.getTargetPlatform();
+        }
+
+        @Override
+        public BuildType getBuildType() {
+            return sharedLibraryBinary.getBuildType();
+        }
+    }
 }

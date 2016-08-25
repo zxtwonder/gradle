@@ -21,6 +21,7 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.api.internal.resolve.DefaultProjectModelResolver;
+import org.gradle.api.internal.resolve.NativeLocalLibraryMetaDataAdapter;
 import org.gradle.api.internal.resolve.ProjectModelResolver;
 import org.gradle.nativeplatform.NativeDependencySet;
 
@@ -32,7 +33,7 @@ public class NativeDependencyResolverServices {
     }
 
     public NativeDependencyResolver createResolver(org.gradle.api.internal.resolve.NativeDependencyResolver realNativeResolver, FileCollectionFactory fileCollectionFactory) {
-        NativeDependencyResolver resolver = new NativeDependencyResolverAdapter(realNativeResolver, fileCollectionFactory);
+        NativeDependencyResolver resolver = new NativeDependencyResolverAdapter(realNativeResolver);
         resolver = new RequirementParsingNativeDependencyResolver(resolver);
         resolver = new SourceSetNativeDependencyResolver(resolver, fileCollectionFactory);
         return new InputHandlingNativeDependencyResolver(resolver);
@@ -40,11 +41,9 @@ public class NativeDependencyResolverServices {
 
     private static class NativeDependencyResolverAdapter implements NativeDependencyResolver {
         private final org.gradle.api.internal.resolve.NativeDependencyResolver realNativeResolver;
-        private final FileCollectionFactory fileCollectionFactory;
 
-        private NativeDependencyResolverAdapter(org.gradle.api.internal.resolve.NativeDependencyResolver realNativeResolver, FileCollectionFactory fileCollectionFactory) {
+        private NativeDependencyResolverAdapter(org.gradle.api.internal.resolve.NativeDependencyResolver realNativeResolver) {
             this.realNativeResolver = realNativeResolver;
-            this.fileCollectionFactory = fileCollectionFactory;
         }
 
         @Override
@@ -53,17 +52,9 @@ public class NativeDependencyResolverServices {
             for (NativeBinaryRequirementResolveResult requirementResolution : resolution.getPendingResolutions()) {
                 // TODO: Clean-up usages
                 // TODO: Resolve these lazily?
-                final FileCollection compile = resolve(resolution, requirementResolution, "compile");
-                final FileCollection link;
-                final FileCollection runtime;
-
-                if (isApiLinkage(requirementResolution)) {
-                    link = fileCollectionFactory.empty("api link");
-                    runtime = fileCollectionFactory.empty("api runtime");
-                } else {
-                    link = resolve(resolution, requirementResolution, "link");
-                    runtime = resolve(resolution, requirementResolution, "run");
-                }
+                final FileCollection compile = resolve(resolution, requirementResolution, NativeLocalLibraryMetaDataAdapter.COMPILE);
+                final FileCollection link = resolve(resolution, requirementResolution, NativeLocalLibraryMetaDataAdapter.LINK);
+                final FileCollection runtime = resolve(resolution, requirementResolution, NativeLocalLibraryMetaDataAdapter.RUN);
 
                 NativeDependencySet dependencySet = new NativeDependencySet() {
                     @Override
@@ -83,10 +74,6 @@ public class NativeDependencyResolverServices {
                 };
                 requirementResolution.setNativeDependencySet(dependencySet);
             }
-        }
-
-        private boolean isApiLinkage(NativeBinaryRequirementResolveResult requirementResolution) {
-            return "api".equals(requirementResolution.getRequirement().getLinkage());
         }
 
         private FileCollection resolve(NativeBinaryResolveResult resolution, NativeBinaryRequirementResolveResult requirementResolution, String usage) {

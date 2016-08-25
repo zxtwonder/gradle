@@ -20,6 +20,7 @@ import org.gradle.api.internal.artifacts.ResolveContext;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DelegatingComponentResolvers;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolverProviderFactory;
+import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.resolve.ChainLocalLibraryResolver;
 import org.gradle.api.internal.resolve.DefaultLocalLibraryResolver;
 import org.gradle.api.internal.resolve.LibraryResolutionErrorMessageBuilder;
@@ -34,7 +35,6 @@ import org.gradle.api.internal.resolve.PrebuiltLibraryResolver;
 import org.gradle.api.internal.resolve.ProjectModelResolver;
 import org.gradle.api.internal.resolve.VariantSelector;
 import org.gradle.internal.service.ServiceRegistration;
-import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
 import org.gradle.nativeplatform.NativeBinary;
 import org.gradle.nativeplatform.NativeBinarySpec;
@@ -85,11 +85,11 @@ public class NativeBinaryServices implements PluginServiceRegistry {
 
     public static class NativeLibraryDependencyResolverFactory implements ResolverProviderFactory {
         private final ProjectModelResolver projectModelResolver;
-        private final ServiceRegistry registry;
+        private final FileCollectionFactory fileCollectionFactory;
 
-        public NativeLibraryDependencyResolverFactory(ProjectModelResolver projectModelResolver, ServiceRegistry registry) {
+        public NativeLibraryDependencyResolverFactory(ProjectModelResolver projectModelResolver, FileCollectionFactory fileCollectionFactory) {
             this.projectModelResolver = projectModelResolver;
-            this.registry = registry;
+            this.fileCollectionFactory = fileCollectionFactory;
         }
 
         @Override
@@ -100,7 +100,7 @@ public class NativeBinaryServices implements PluginServiceRegistry {
         @Override
         public ComponentResolvers create(ResolveContext context) {
             NativeBinarySpec binarySpec = ((NativeComponentResolveContext) context).getBinarySpec();
-            VariantSelector variantSelector = new NativeVariantChooser(binarySpec.getFlavor(), binarySpec.getTargetPlatform(), binarySpec.getBuildType());
+            VariantSelector variantSelector = new NativeVariantChooser(binarySpec.getFlavor(), binarySpec.getTargetPlatform(), binarySpec.getBuildType(), fileCollectionFactory);
             LocalLibraryMetaDataAdapter libraryMetaDataAdapter = new NativeLocalLibraryMetaDataAdapter();
             LibraryResolutionErrorMessageBuilder errorMessageBuilder = new NativeLibraryResolutionErrorMessageBuilder();
             LocalLibraryDependencyResolver delegate =
