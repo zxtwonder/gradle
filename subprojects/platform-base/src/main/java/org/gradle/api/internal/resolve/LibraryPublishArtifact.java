@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.jvm.internal.resolve;
+package org.gradle.api.internal.resolve;
 
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
