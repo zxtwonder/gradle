@@ -16,7 +16,6 @@
 package org.gradle.nativeplatform
 
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
-import org.gradle.nativeplatform.fixtures.NativePlatformsTestFixture
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 import org.gradle.util.Requires
@@ -209,6 +208,7 @@ model {
         fails "mainReleaseExecutable"
 
         then:
-        failure.assertHasDescription("No static library binary available for library 'hello' with [flavor: 'default', platform: '${NativePlatformsTestFixture.defaultPlatformName}', buildType: 'release']")
+        failure.assertHasDescription("Could not resolve all dependencies")
+        failure.assertHasCause("No compatible variant for native library 'hello'. Found [shared library 'hello:sharedLibrary', static library 'hello:staticLibrary']")
     }
 }

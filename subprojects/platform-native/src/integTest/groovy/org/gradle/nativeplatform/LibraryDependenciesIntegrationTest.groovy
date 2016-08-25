@@ -79,17 +79,14 @@ project(":other") {
         fails ":exe:mainExecutable"
 
         then:
-        if (useCauseDescription) {
-            failure.assertHasCause(description)
-        } else {
-            failure.assertHasDescription(description)
-        }
+        failure.assertHasDescription("Could not resolve all dependencies")
+        failure.assertHasCause(description)
 
         where:
-        label                                  | dependencyNotation                      | description                                                | useCauseDescription
-        "does not exist"                       | "library: 'unknown'"                    | "Could not locate library 'unknown' required by 'main' in project ':exe'."                      | false
-        "project that does not exist"          | "project: ':unknown', library: 'hello'" | "Project with path ':unknown' not found."                  | true
-        "does not exist in referenced project" | "project: ':other', library: 'unknown'" | "Could not locate library 'unknown' in project ':other' required by 'main' in project ':exe'." | false
+        label                                  | dependencyNotation                      | description
+        "does not exist"                       | "library: 'unknown'"                    | "Project ':exe' does not contain library 'unknown'. Did you want to use one of 'hello', 'main'?"
+        "project that does not exist"          | "project: ':unknown', library: 'hello'" | "Project ':unknown' not found."
+        "does not exist in referenced project" | "project: ':other', library: 'unknown'" | "Project ':other' does not contain library 'unknown'. Did you want to use 'hello'?"
     }
 
     @Unroll

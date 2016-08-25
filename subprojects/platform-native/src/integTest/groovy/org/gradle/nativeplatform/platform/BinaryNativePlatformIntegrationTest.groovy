@@ -391,7 +391,8 @@ model {
         fails "mainExecutable"
 
         then:
-        failure.assertHasDescription("No shared library binary available for library 'hello' with [flavor: 'default', platform: 'one', buildType: 'debug']")
+        failure.assertHasDescription("Could not resolve all dependencies")
+        failure.assertHasCause("No compatible variant for native library 'hello'. Found [shared library 'hello:sharedLibrary', static library 'hello:staticLibrary']")
     }
 
     @Issue("GRADLE-3499")

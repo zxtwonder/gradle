@@ -16,7 +16,6 @@
 package org.gradle.nativeplatform
 
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
-import org.gradle.nativeplatform.fixtures.NativePlatformsTestFixture
 import org.gradle.nativeplatform.fixtures.app.ExeWithLibraryUsingLibraryHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.HelloWorldApp
 import org.gradle.util.Requires
@@ -154,7 +153,8 @@ model {
 
         then:
         fails "mainGermanExecutable"
-        failure.assertHasDescription("No shared library binary available for library 'hello' with [flavor: 'german', platform: '${NativePlatformsTestFixture.defaultPlatformName}', buildType: 'debug']")
+        failure.assertHasDescription("Could not resolve all dependencies")
+        failure.assertHasCause("No compatible variant for native library 'hello'. Found [shared library 'hello:english:sharedLibrary', static library 'hello:english:staticLibrary', shared library 'hello:french:sharedLibrary', static library 'hello:french:staticLibrary']")
     }
 
     def "fails with reasonable error message when trying to target an unknown flavor"() {
