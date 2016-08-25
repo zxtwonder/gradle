@@ -22,11 +22,15 @@ public class NativeLibraryResolutionErrorMessageBuilder implements LibraryResolu
 
     @Override
     public String multipleCompatibleVariantsErrorMessage(String libraryName, Iterable<? extends Binary> binaries) {
-        return String.format("Multiple compatible variants for %s: %s", libraryName, binaries);
+        return String.format("Multiple compatible variants for %s. %s", libraryName, prettyPrintBinaries(binaries));
     }
 
     @Override
-    public String noCompatibleVariantErrorMessage(String libraryName, Iterable<? extends Binary> allBinaries) {
-        return String.format("No compatible variant for %s. Found %s", libraryName, allBinaries);
+    public String noCompatibleVariantErrorMessage(String libraryName, Iterable<? extends Binary> binaries) {
+        return String.format("No compatible variant for %s. %s", libraryName, prettyPrintBinaries(binaries));
+    }
+
+    private String prettyPrintBinaries(Iterable<? extends Binary> binaries) {
+        return String.format("Found %s.", binaries);
     }
 }

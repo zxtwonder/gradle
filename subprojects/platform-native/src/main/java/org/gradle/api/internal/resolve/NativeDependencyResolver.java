@@ -38,11 +38,7 @@ import org.gradle.internal.component.local.model.LocalConfigurationMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.language.base.internal.resolve.LibraryResolveException;
-import org.gradle.model.ModelMap;
-import org.gradle.model.internal.type.ModelType;
-import org.gradle.model.internal.type.ModelTypes;
 import org.gradle.nativeplatform.NativeBinarySpec;
-import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.DependencySpec;
 import org.gradle.platform.base.internal.DefaultLibraryBinaryDependencySpec;
 import org.gradle.platform.base.internal.DefaultProjectDependencySpec;
@@ -56,7 +52,6 @@ import java.util.Set;
 import static org.gradle.util.CollectionUtils.collect;
 
 public class NativeDependencyResolver {
-    private static final ModelType<ModelMap<BinarySpec>> BINARY_MAP_TYPE = ModelTypes.modelMap(BinarySpec.class);
     private final GlobalDependencyResolutionRules globalRules = GlobalDependencyResolutionRules.NO_OP;
     private final List<ResolutionAwareRepository> remoteRepositories = Lists.newArrayList();
     private final ArtifactDependencyResolver dependencyResolver;
@@ -67,11 +62,11 @@ public class NativeDependencyResolver {
         this.fileCollectionFactory = fileCollectionFactory;
     }
 
-    public FileCollection resolveFiles(NativeBinarySpec from, String project, String component, String variant, String usage) {
-        ResolveResult resolveResult = doResolve(from, project, component, variant, usage);
+    public FileCollection resolveFiles(NativeBinarySpec target, String project, String component, String variant, String usage) {
+        ResolveResult resolveResult = doResolve(target, project, component, variant, usage);
         Set<ResolvedArtifact> artifacts = resolveResult.artifactResults.getArtifacts();
 
-        failOnUnresolvedDependency(resolveResult.notFound);
+        failOnUnresolvedDependency(target, resolveResult.notFound);
 
         MinimalFileSet artifactCollection = new ListBackedFileSet(collect(artifacts, new org.gradle.api.Transformer<File, ResolvedArtifact>() {
             @Override
@@ -98,9 +93,9 @@ public class NativeDependencyResolver {
         return result;
     }
 
-    private void failOnUnresolvedDependency(List<Throwable> notFound) {
+    private void failOnUnresolvedDependency(NativeBinarySpec target, List<Throwable> notFound) {
         if (!notFound.isEmpty()) {
-            throw new LibraryResolveException("Could not resolve all dependencies", notFound);
+            throw new LibraryResolveException(String.format("Could not resolve all dependencies for %s in project '%s'.", target.getDisplayName(), target.getProjectPath()), notFound);
         }
     }
 
