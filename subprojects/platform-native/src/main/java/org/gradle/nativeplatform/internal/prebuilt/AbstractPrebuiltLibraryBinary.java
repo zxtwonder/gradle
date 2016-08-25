@@ -16,8 +16,10 @@
 
 package org.gradle.nativeplatform.internal.prebuilt;
 
+import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.internal.component.local.model.DefaultLibraryBinaryIdentifier;
 import org.gradle.nativeplatform.BuildType;
 import org.gradle.nativeplatform.Flavor;
 import org.gradle.nativeplatform.NativeLibraryBinary;
@@ -28,14 +30,16 @@ import java.io.File;
 
 public abstract class AbstractPrebuiltLibraryBinary implements NativeLibraryBinary {
     private final String name;
+    private final String projectPath;
     private final PrebuiltLibrary library;
     private final BuildType buildType;
     private final NativePlatform targetPlatform;
     private final Flavor flavor;
     protected final FileCollectionFactory fileCollectionFactory;
 
-    public AbstractPrebuiltLibraryBinary(String name, PrebuiltLibrary library, BuildType buildType, NativePlatform targetPlatform, Flavor flavor, FileCollectionFactory fileCollectionFactory) {
+    public AbstractPrebuiltLibraryBinary(String name, String projectPath, PrebuiltLibrary library, BuildType buildType, NativePlatform targetPlatform, Flavor flavor, FileCollectionFactory fileCollectionFactory) {
         this.name = name;
+        this.projectPath = projectPath;
         this.library = library;
         this.buildType = buildType;
         this.targetPlatform = targetPlatform;
@@ -83,5 +87,10 @@ public abstract class AbstractPrebuiltLibraryBinary implements NativeLibraryBina
             return fileCollectionFactory.empty(name);
         }
         return fileCollectionFactory.fixed(name, file);
+    }
+
+    @Override
+    public LibraryBinaryIdentifier getId() {
+        return new DefaultLibraryBinaryIdentifier(projectPath, library.getName(), getName());
     }
 }

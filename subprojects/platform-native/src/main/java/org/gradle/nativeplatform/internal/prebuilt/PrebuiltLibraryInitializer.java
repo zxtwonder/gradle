@@ -38,9 +38,11 @@ public class PrebuiltLibraryInitializer implements Action<PrebuiltLibrary> {
     private final Set<NativePlatform> allPlatforms = new LinkedHashSet<NativePlatform>();
     private final Set<BuildType> allBuildTypes = new LinkedHashSet<BuildType>();
     private final Set<Flavor> allFlavors = new LinkedHashSet<Flavor>();
+    private final String projectPath;
 
     public PrebuiltLibraryInitializer(Instantiator instantiator,
                                       FileCollectionFactory fileCollectionFactory,
+                                      String projectPath,
                                       NativePlatforms nativePlatforms,
                                       Collection<? extends NativePlatform> allPlatforms,
                                       Collection<? extends BuildType> allBuildTypes,
@@ -51,6 +53,7 @@ public class PrebuiltLibraryInitializer implements Action<PrebuiltLibrary> {
         this.allPlatforms.addAll(nativePlatforms.defaultPlatformDefinitions());
         this.allBuildTypes.addAll(allBuildTypes);
         this.allFlavors.addAll(allFlavors);
+        this.projectPath = projectPath;
     }
 
     @Override
@@ -65,13 +68,13 @@ public class PrebuiltLibraryInitializer implements Action<PrebuiltLibrary> {
     }
 
     public void createNativeBinaries(PrebuiltLibrary library, NativePlatform platform, BuildType buildType, Flavor flavor, FileCollectionFactory fileCollectionFactory) {
-        createNativeBinary(DefaultPrebuiltSharedLibraryBinary.class, "shared", library, platform, buildType, flavor, fileCollectionFactory);
-        createNativeBinary(DefaultPrebuiltStaticLibraryBinary.class, "static", library, platform, buildType, flavor, fileCollectionFactory);
+        createNativeBinary(DefaultPrebuiltSharedLibraryBinary.class, "shared", projectPath, library, platform, buildType, flavor, fileCollectionFactory);
+        createNativeBinary(DefaultPrebuiltStaticLibraryBinary.class, "static", projectPath, library, platform, buildType, flavor, fileCollectionFactory);
     }
 
-    public <T extends NativeLibraryBinary> void createNativeBinary(Class<T> type, String typeName, PrebuiltLibrary library, NativePlatform platform, BuildType buildType, Flavor flavor, FileCollectionFactory fileCollectionFactory) {
+    public <T extends NativeLibraryBinary> void createNativeBinary(Class<T> type, String typeName, String projectPath, PrebuiltLibrary library, NativePlatform platform, BuildType buildType, Flavor flavor, FileCollectionFactory fileCollectionFactory) {
         String name = getName(typeName, library, platform, buildType, flavor);
-        T nativeBinary = instantiator.newInstance(type, name, library, buildType, platform, flavor, fileCollectionFactory);
+        T nativeBinary = instantiator.newInstance(type, name, projectPath, library, buildType, platform, flavor, fileCollectionFactory);
         library.getBinaries().add(nativeBinary);
     }
 

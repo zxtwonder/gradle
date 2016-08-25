@@ -29,8 +29,8 @@ import java.io.File;
 public class DefaultPrebuiltStaticLibraryBinary extends AbstractPrebuiltLibraryBinary implements PrebuiltStaticLibraryBinary {
     private File staticLibraryFile;
 
-    public DefaultPrebuiltStaticLibraryBinary(String name, PrebuiltLibrary library, BuildType buildType, NativePlatform targetPlatform, Flavor flavor, FileCollectionFactory fileCollectionFactory) {
-        super(name, library, buildType, targetPlatform, flavor, fileCollectionFactory);
+    public DefaultPrebuiltStaticLibraryBinary(String name, String projectPath, PrebuiltLibrary library, BuildType buildType, NativePlatform targetPlatform, Flavor flavor, FileCollectionFactory fileCollectionFactory) {
+        super(name, projectPath, library, buildType, targetPlatform, flavor, fileCollectionFactory);
     }
 
     @Override

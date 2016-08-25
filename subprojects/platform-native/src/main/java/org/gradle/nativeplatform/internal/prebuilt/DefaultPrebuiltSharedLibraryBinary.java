@@ -30,8 +30,8 @@ public class DefaultPrebuiltSharedLibraryBinary extends AbstractPrebuiltLibraryB
     private File sharedLibraryFile;
     private File sharedLibraryLinkFile;
 
-    public DefaultPrebuiltSharedLibraryBinary(String name, PrebuiltLibrary library, BuildType buildType, NativePlatform targetPlatform, Flavor flavor, FileCollectionFactory fileCollectionFactory) {
-        super(name, library, buildType, targetPlatform, flavor, fileCollectionFactory);
+    public DefaultPrebuiltSharedLibraryBinary(String name, String projectPath, PrebuiltLibrary library, BuildType buildType, NativePlatform targetPlatform, Flavor flavor, FileCollectionFactory fileCollectionFactory) {
+        super(name, projectPath, library, buildType, targetPlatform, flavor, fileCollectionFactory);
     }
 
     @Override

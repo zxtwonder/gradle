@@ -27,7 +27,7 @@ class DefaultPrebuiltSharedLibraryBinaryTest extends Specification {
     def prebuiltLibrary = Stub(PrebuiltLibrary) {
         getName() >> "lib"
     }
-    def binary = new DefaultPrebuiltSharedLibraryBinary("name", prebuiltLibrary, Stub(BuildType), Stub(NativePlatform), Stub(Flavor), TestFiles.fileCollectionFactory())
+    def binary = new DefaultPrebuiltSharedLibraryBinary("name", "project", prebuiltLibrary, Stub(BuildType), Stub(NativePlatform), Stub(Flavor), TestFiles.fileCollectionFactory())
 
     def "has useful string representation"() {
         expect:

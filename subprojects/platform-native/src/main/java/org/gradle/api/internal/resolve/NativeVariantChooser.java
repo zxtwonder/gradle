@@ -20,9 +20,11 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Nullable;
+import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.internal.Cast;
+import org.gradle.internal.component.local.model.DefaultLibraryBinaryIdentifier;
 import org.gradle.nativeplatform.BuildType;
 import org.gradle.nativeplatform.Flavor;
 import org.gradle.nativeplatform.NativeLibraryBinary;
@@ -127,6 +129,11 @@ public class NativeVariantChooser implements VariantSelector {
         @Override
         public FileCollection getRuntimeFiles() {
             return fileCollectionFactory.empty("api runtime files");
+        }
+
+        @Override
+        public LibraryBinaryIdentifier getId() {
+            return new DefaultLibraryBinaryIdentifier(sharedLibraryBinary.getId().getProjectPath(), sharedLibraryBinary.getId().getLibraryName(), "api");
         }
 
         @Override

@@ -17,6 +17,7 @@
 package org.gradle.nativeplatform;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.api.file.FileCollection;
 
 /**
@@ -30,4 +31,6 @@ public interface NativeLibraryBinary extends NativeBinary {
     FileCollection getLinkFiles();
 
     FileCollection getRuntimeFiles();
+
+    LibraryBinaryIdentifier getId();
 }

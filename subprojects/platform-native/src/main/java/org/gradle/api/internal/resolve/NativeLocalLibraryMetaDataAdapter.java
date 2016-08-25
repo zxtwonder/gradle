@@ -21,14 +21,11 @@ import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.tasks.TaskDependency;
-import org.gradle.internal.component.local.model.DefaultLibraryBinaryIdentifier;
 import org.gradle.internal.component.local.model.LocalComponentMetadata;
 import org.gradle.internal.component.local.model.PublishArtifactLocalArtifactMetadata;
 import org.gradle.language.base.internal.model.DefaultLibraryLocalComponentMetadata;
 import org.gradle.nativeplatform.NativeLibraryBinary;
-import org.gradle.nativeplatform.NativeLibraryBinarySpec;
 import org.gradle.nativeplatform.internal.NativeBinarySpecInternal;
-import org.gradle.nativeplatform.internal.prebuilt.AbstractPrebuiltLibraryBinary;
 import org.gradle.platform.base.Binary;
 import org.gradle.platform.base.DependencySpec;
 
@@ -54,7 +51,7 @@ public class NativeLocalLibraryMetaDataAdapter implements LocalLibraryMetaDataAd
     }
 
     private static LocalComponentMetadata createForNativeLibrary(NativeLibraryBinary library, String projectPath) {
-        LibraryBinaryIdentifier id = createComponentId(library, projectPath);
+        LibraryBinaryIdentifier id = library.getId();
         DefaultLibraryLocalComponentMetadata metadata = createComponentMetadata(id, library, projectPath);
 
         for (File headerDir : library.getHeaderDirs()) {
@@ -73,17 +70,6 @@ public class NativeLocalLibraryMetaDataAdapter implements LocalLibraryMetaDataAd
         }
 
         return metadata;
-    }
-
-    private static LibraryBinaryIdentifier createComponentId(NativeLibraryBinary library, String projectPath) {
-        String libraryName;
-        // TODO: SG Expose this on a Binary type?
-        if (library instanceof AbstractPrebuiltLibraryBinary) {
-            libraryName = ((AbstractPrebuiltLibraryBinary)library).getComponent().getName();
-        } else {
-            libraryName = ((NativeLibraryBinarySpec)library).getLibrary().getName();
-        }
-        return new DefaultLibraryBinaryIdentifier(projectPath, libraryName, "library");
     }
 
     private static DefaultLibraryLocalComponentMetadata createComponentMetadata(LibraryBinaryIdentifier id, NativeLibraryBinary library, String projectPath) {

@@ -23,6 +23,7 @@ import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.DefaultPolymorphicDomainObjectContainer;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.SourceDirectorySetFactory;
+import org.gradle.api.internal.project.ProjectIdentifier;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.tasks.TaskContainer;
@@ -102,12 +103,12 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
         }
 
         @Model
-        Repositories repositories(ServiceRegistry serviceRegistry, FlavorContainer flavors, PlatformContainer platforms, BuildTypeContainer buildTypes) {
+        Repositories repositories(ServiceRegistry serviceRegistry, FlavorContainer flavors, PlatformContainer platforms, BuildTypeContainer buildTypes, ProjectIdentifier projectIdentifier) {
             Instantiator instantiator = serviceRegistry.get(Instantiator.class);
             SourceDirectorySetFactory sourceDirectorySetFactory = serviceRegistry.get(SourceDirectorySetFactory.class);
             NativePlatforms nativePlatforms = serviceRegistry.get(NativePlatforms.class);
             FileCollectionFactory fileCollectionFactory = serviceRegistry.get(FileCollectionFactory.class);
-            Action<PrebuiltLibrary> initializer = new PrebuiltLibraryInitializer(instantiator, fileCollectionFactory, nativePlatforms, platforms.withType(NativePlatform.class), buildTypes, flavors);
+            Action<PrebuiltLibrary> initializer = new PrebuiltLibraryInitializer(instantiator, fileCollectionFactory, projectIdentifier.getPath(), nativePlatforms, platforms.withType(NativePlatform.class), buildTypes, flavors);
             return new DefaultRepositories(instantiator, sourceDirectorySetFactory, initializer);
         }
 
