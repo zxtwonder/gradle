@@ -109,9 +109,9 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
         if (matchingVariants.isEmpty()) {
             // no compatible variant found
             Iterable<? extends Binary> values = selectedLibrary.getVariants();
-            result.failed(new ModuleVersionResolveException(selector, errorMessageBuilder.noCompatibleVariantErrorMessage(libraryName, values)));
+            result.failed(new ModuleVersionResolveException(selector, errorMessageBuilder.noCompatibleVariantErrorMessage(selectedLibrary.getDisplayName(), values)));
         } else if (matchingVariants.size() > 1) {
-            result.failed(new ModuleVersionResolveException(selector, errorMessageBuilder.multipleCompatibleVariantsErrorMessage(libraryName, matchingVariants)));
+            result.failed(new ModuleVersionResolveException(selector, errorMessageBuilder.multipleCompatibleVariantsErrorMessage(selectedLibrary.getDisplayName(), matchingVariants)));
         } else {
             Binary selectedBinary = matchingVariants.iterator().next();
             // TODO:Cedric This is not quite right. We assume that if we are asking for a specific binary, then we resolve to the assembly instead

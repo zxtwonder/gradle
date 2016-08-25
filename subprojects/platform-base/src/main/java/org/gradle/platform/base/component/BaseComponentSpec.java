@@ -57,6 +57,6 @@ public class BaseComponentSpec extends DefaultComponentSpec implements GeneralCo
 
     @Override
     public Iterable<Binary> getVariants() {
-        return ModelMaps.toView(binaries, BINARY_MODEL_TYPE);
+        return ModelMaps.toView(binaries, BINARY_MODEL_TYPE).values();
     }
 }
