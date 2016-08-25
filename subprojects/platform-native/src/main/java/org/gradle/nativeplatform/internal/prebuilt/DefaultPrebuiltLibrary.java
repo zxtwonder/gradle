@@ -22,6 +22,7 @@ import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.file.SourceDirectorySetFactory;
 import org.gradle.nativeplatform.NativeLibraryBinary;
 import org.gradle.nativeplatform.PrebuiltLibrary;
+import org.gradle.platform.base.Binary;
 
 public class DefaultPrebuiltLibrary implements PrebuiltLibrary {
 
@@ -41,12 +42,22 @@ public class DefaultPrebuiltLibrary implements PrebuiltLibrary {
     }
 
     @Override
+    public String getDisplayName() {
+        return "Prebuilt library: " + getName();
+    }
+
+    @Override
     public SourceDirectorySet getHeaders() {
         return headers;
     }
 
     @Override
     public DomainObjectSet<NativeLibraryBinary> getBinaries() {
+        return binaries;
+    }
+
+    @Override
+    public Iterable<? extends Binary> getVariants() {
         return binaries;
     }
 }

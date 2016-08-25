@@ -55,6 +55,7 @@ public class NativeVariantChooser implements VariantSelector {
         return resolve(candidateBinaries, flavor, platform, buildType);
     }
 
+    // TODO:DAZ Needs to handle Prebuilt libraries too (with their different type hierarchy...)
     private Class<? extends NativeLibraryBinarySpec> getTypeForLinkage(String linkage) {
         if ("static".equals(linkage)) {
             return StaticLibraryBinarySpec.class;
