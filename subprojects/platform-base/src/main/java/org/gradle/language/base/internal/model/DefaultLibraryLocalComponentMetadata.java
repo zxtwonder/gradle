@@ -37,6 +37,7 @@ import org.gradle.platform.base.DependencySpec;
 import org.gradle.platform.base.LibraryBinaryDependencySpec;
 import org.gradle.platform.base.ModuleDependencySpec;
 import org.gradle.platform.base.ProjectDependencySpec;
+import org.gradle.util.GUtil;
 
 import java.util.Collections;
 import java.util.List;
@@ -111,7 +112,7 @@ public class DefaultLibraryLocalComponentMetadata extends DefaultLocalComponentM
         LocalOriginDependencyMetadata metadata = dependency instanceof ModuleDependencySpec
             ? moduleDependencyMetadata((ModuleDependencySpec) dependency, usageConfigurationName)
             : dependency instanceof ProjectDependencySpec ? projectDependencyMetadata((ProjectDependencySpec) dependency, defaultProject, usageConfigurationName)
-            : binaryDependencyMetadata((LibraryBinaryDependencySpec) dependency, usageConfigurationName);
+            : binaryDependencyMetadata((LibraryBinaryDependencySpec) dependency, defaultProject, usageConfigurationName);
         addDependency(metadata);
     }
 
@@ -135,8 +136,8 @@ public class DefaultLibraryLocalComponentMetadata extends DefaultLocalComponentM
         return dependencyMetadataFor(selector, requested, usageConfigurationName, usageConfigurationName);
     }
 
-    private LocalOriginDependencyMetadata binaryDependencyMetadata(LibraryBinaryDependencySpec binarySpec, String usageConfigurationName) {
-        String projectPath = binarySpec.getProjectPath();
+    private LocalOriginDependencyMetadata binaryDependencyMetadata(LibraryBinaryDependencySpec binarySpec, String defaultProject, String usageConfigurationName) {
+        String projectPath = GUtil.elvis(binarySpec.getProjectPath(), defaultProject);
         String libraryName = binarySpec.getLibraryName();
         ComponentSelector selector = new DefaultLibraryComponentSelector(projectPath, libraryName, binarySpec.getVariant());
         DefaultModuleVersionSelector requested = new DefaultModuleVersionSelector(projectPath, libraryName, getId().getVersion());
