@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.resolve;
+package org.gradle.nativeplatform.internal.resolve;
 
 import com.google.common.collect.Lists;
 import org.gradle.api.Nullable;
@@ -32,6 +32,8 @@ import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.collections.ListBackedFileSet;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
+import org.gradle.api.internal.resolve.NativeComponentResolveContext;
+import org.gradle.api.internal.resolve.NativeLocalLibraryMetaDataAdapter;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.component.local.model.LocalConfigurationMetadata;
@@ -39,6 +41,7 @@ import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.language.base.internal.resolve.LibraryResolveException;
 import org.gradle.nativeplatform.NativeBinarySpec;
+import org.gradle.nativeplatform.NativeDependencySet;
 import org.gradle.platform.base.DependencySpec;
 import org.gradle.platform.base.internal.DefaultLibraryBinaryDependencySpec;
 import org.gradle.platform.base.internal.DefaultProjectDependencySpec;
@@ -51,18 +54,46 @@ import java.util.Set;
 
 import static org.gradle.util.CollectionUtils.collect;
 
-public class NativeDependencyResolver {
+class ArtifactNativeDependencyResolver implements NativeDependencyResolver {
     private final GlobalDependencyResolutionRules globalRules = GlobalDependencyResolutionRules.NO_OP;
     private final List<ResolutionAwareRepository> remoteRepositories = Lists.newArrayList();
     private final ArtifactDependencyResolver dependencyResolver;
     private final FileCollectionFactory fileCollectionFactory;
 
-    public NativeDependencyResolver(ArtifactDependencyResolver dependencyResolver, FileCollectionFactory fileCollectionFactory) {
+    ArtifactNativeDependencyResolver(ArtifactDependencyResolver dependencyResolver, FileCollectionFactory fileCollectionFactory) {
         this.dependencyResolver = dependencyResolver;
         this.fileCollectionFactory = fileCollectionFactory;
     }
 
-    public FileCollection resolveFiles(NativeBinarySpec target, String project, String component, String variant, String usage) {
+    @Override
+    public void resolve(final NativeBinaryResolveResult resolution) {
+        // TODO: Failures should propagate up
+        for (final NativeBinaryRequirementResolveResult requirementResolution : resolution.getPendingResolutions()) {
+            NativeDependencySet dependencySet = new NativeDependencySet() {
+                @Override
+                public FileCollection getIncludeRoots() {
+                    return resolve(resolution, requirementResolution, NativeLocalLibraryMetaDataAdapter.COMPILE);
+                }
+
+                @Override
+                public FileCollection getLinkFiles() {
+                    return resolve(resolution, requirementResolution, NativeLocalLibraryMetaDataAdapter.LINK);
+                }
+
+                @Override
+                public FileCollection getRuntimeFiles() {
+                    return resolve(resolution, requirementResolution, NativeLocalLibraryMetaDataAdapter.RUN);
+                }
+            };
+            requirementResolution.setNativeDependencySet(dependencySet);
+        }
+    }
+
+    private FileCollection resolve(NativeBinaryResolveResult resolution, NativeBinaryRequirementResolveResult requirementResolution, String usage) {
+        return resolveFiles(resolution.getTarget(), requirementResolution.getRequirement().getProjectPath(), requirementResolution.getRequirement().getLibraryName(), requirementResolution.getRequirement().getLinkage(), usage);
+    }
+
+    private FileCollection resolveFiles(NativeBinarySpec target, String project, String component, String variant, String usage) {
         ResolveResult resolveResult = doResolve(target, project, component, variant, usage);
         Set<ResolvedArtifact> artifacts = resolveResult.artifactResults.getArtifacts();
 

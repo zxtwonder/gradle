@@ -15,15 +15,13 @@
  */
 package org.gradle.nativeplatform.internal.resolve;
 
-import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.api.internal.resolve.DefaultProjectModelResolver;
-import org.gradle.api.internal.resolve.NativeLocalLibraryMetaDataAdapter;
 import org.gradle.api.internal.resolve.ProjectModelResolver;
-import org.gradle.nativeplatform.NativeDependencySet;
 
 public class NativeDependencyResolverServices {
 
@@ -32,46 +30,10 @@ public class NativeDependencyResolverServices {
         return new CurrentProjectModelResolver(currentProjectPath, new DefaultProjectModelResolver(projectRegistry));
     }
 
-    public NativeDependencyResolver createResolver(org.gradle.api.internal.resolve.NativeDependencyResolver realNativeResolver, FileCollectionFactory fileCollectionFactory) {
-        NativeDependencyResolver resolver = new NativeDependencyResolverAdapter(realNativeResolver);
+    public NativeDependencyResolver createResolver(ArtifactDependencyResolver dependencyResolver, FileCollectionFactory fileCollectionFactory) {
+        NativeDependencyResolver resolver = new ArtifactNativeDependencyResolver(dependencyResolver, fileCollectionFactory);
         resolver = new RequirementParsingNativeDependencyResolver(resolver);
         resolver = new SourceSetNativeDependencyResolver(resolver, fileCollectionFactory);
         return new InputHandlingNativeDependencyResolver(resolver);
-    }
-
-    private static class NativeDependencyResolverAdapter implements NativeDependencyResolver {
-        private final org.gradle.api.internal.resolve.NativeDependencyResolver realNativeResolver;
-
-        private NativeDependencyResolverAdapter(org.gradle.api.internal.resolve.NativeDependencyResolver realNativeResolver) {
-            this.realNativeResolver = realNativeResolver;
-        }
-
-        @Override
-        public void resolve(final NativeBinaryResolveResult resolution) {
-            // TODO: Failures should propagate up
-            for (final NativeBinaryRequirementResolveResult requirementResolution : resolution.getPendingResolutions()) {
-                NativeDependencySet dependencySet = new NativeDependencySet() {
-                    @Override
-                    public FileCollection getIncludeRoots() {
-                        return resolve(resolution, requirementResolution, NativeLocalLibraryMetaDataAdapter.COMPILE);
-                    }
-
-                    @Override
-                    public FileCollection getLinkFiles() {
-                        return resolve(resolution, requirementResolution, NativeLocalLibraryMetaDataAdapter.LINK);
-                    }
-
-                    @Override
-                    public FileCollection getRuntimeFiles() {
-                        return resolve(resolution, requirementResolution, NativeLocalLibraryMetaDataAdapter.RUN);
-                    }
-                };
-                requirementResolution.setNativeDependencySet(dependencySet);
-            }
-        }
-
-        private FileCollection resolve(NativeBinaryResolveResult resolution, NativeBinaryRequirementResolveResult requirementResolution, String usage) {
-            return realNativeResolver.resolveFiles(resolution.getTarget(), requirementResolution.getRequirement().getProjectPath(), requirementResolution.getRequirement().getLibraryName(), requirementResolution.getRequirement().getLinkage(), usage);
-        }
     }
 }
