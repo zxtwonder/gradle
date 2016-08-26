@@ -37,13 +37,13 @@ import org.gradle.platform.base.VariantComponent;
 import java.util.Collection;
 import java.util.Set;
 
-public class NativeVariantChooser implements VariantSelector {
+public class NativeVariantSelector implements VariantSelector {
     private final Flavor flavor;
     private final NativePlatform platform;
     private final BuildType buildType;
     private final FileCollectionFactory fileCollectionFactory;
 
-    public NativeVariantChooser(Flavor flavor, NativePlatform platform, BuildType buildType, FileCollectionFactory fileCollectionFactory) {
+    public NativeVariantSelector(Flavor flavor, NativePlatform platform, BuildType buildType, FileCollectionFactory fileCollectionFactory) {
         this.flavor = flavor;
         this.platform = platform;
         this.buildType = buildType;

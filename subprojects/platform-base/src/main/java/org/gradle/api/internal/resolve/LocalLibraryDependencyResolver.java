@@ -141,7 +141,7 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
     }
 
     private Collection<? extends Binary> chooseMatchingVariants(VariantComponent selectedLibrary, String variant) {
-            return variantSelector.selectVariants(selectedLibrary, variant);
+        return variantSelector.selectVariants(selectedLibrary, variant);
     }
 
 

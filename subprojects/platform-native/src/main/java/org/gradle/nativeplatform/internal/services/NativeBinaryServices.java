@@ -29,7 +29,7 @@ import org.gradle.api.internal.resolve.LocalLibraryMetaDataAdapter;
 import org.gradle.api.internal.resolve.NativeComponentResolveContext;
 import org.gradle.api.internal.resolve.NativeLibraryResolutionErrorMessageBuilder;
 import org.gradle.api.internal.resolve.NativeLocalLibraryMetaDataAdapter;
-import org.gradle.api.internal.resolve.NativeVariantChooser;
+import org.gradle.api.internal.resolve.NativeVariantSelector;
 import org.gradle.api.internal.resolve.PrebuiltLibraryResolver;
 import org.gradle.api.internal.resolve.ProjectModelResolver;
 import org.gradle.api.internal.resolve.VariantSelector;
@@ -98,7 +98,7 @@ public class NativeBinaryServices implements PluginServiceRegistry {
         @Override
         public ComponentResolvers create(ResolveContext context) {
             NativeBinarySpec binarySpec = ((NativeComponentResolveContext) context).getBinarySpec();
-            VariantSelector variantSelector = new NativeVariantChooser(binarySpec.getFlavor(), binarySpec.getTargetPlatform(), binarySpec.getBuildType(), fileCollectionFactory);
+            VariantSelector variantSelector = new NativeVariantSelector(binarySpec.getFlavor(), binarySpec.getTargetPlatform(), binarySpec.getBuildType(), fileCollectionFactory);
             LocalLibraryMetaDataAdapter libraryMetaDataAdapter = new NativeLocalLibraryMetaDataAdapter();
             LibraryResolutionErrorMessageBuilder errorMessageBuilder = new NativeLibraryResolutionErrorMessageBuilder();
             LocalLibraryDependencyResolver delegate =
