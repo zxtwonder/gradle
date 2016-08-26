@@ -24,8 +24,8 @@ import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.api.artifacts.component.LibraryComponentSelector;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.component.external.model.MetadataSourcedComponentArtifacts;
+import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
 import org.gradle.internal.component.local.model.LocalComponentMetadata;
-import org.gradle.internal.component.local.model.PublishArtifactLocalArtifactMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
@@ -46,6 +46,7 @@ import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.platform.base.Binary;
 import org.gradle.platform.base.VariantComponent;
 
+import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
 
@@ -174,8 +175,14 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
     @Override
     public void resolveArtifact(ComponentArtifactMetadata artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result) {
         if (isLibrary(artifact.getComponentId())) {
-            if (artifact instanceof PublishArtifactLocalArtifactMetadata) {
-                result.resolved(((PublishArtifactLocalArtifactMetadata) artifact).getFile());
+            if (artifact instanceof LocalComponentArtifactMetadata) {
+                LocalComponentArtifactMetadata localComponentArtifactMetadata = (LocalComponentArtifactMetadata)artifact;
+                File artifactFile = localComponentArtifactMetadata.getFile();
+                if (artifactFile!=null) {
+                    result.resolved(artifactFile);
+                } else {
+                    result.notFound(artifact.getId());
+                }
             } else {
                 result.failed(new ArtifactResolveException("Unsupported artifact metadata type: " + artifact));
             }

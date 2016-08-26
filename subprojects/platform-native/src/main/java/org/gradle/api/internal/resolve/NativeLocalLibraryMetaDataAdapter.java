@@ -17,12 +17,17 @@
 package org.gradle.api.internal.resolve;
 
 import com.google.common.collect.Maps;
+import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
 import org.gradle.internal.component.local.model.LocalComponentMetadata;
+import org.gradle.internal.component.local.model.MissingLocalArtifactMetadata;
 import org.gradle.internal.component.local.model.PublishArtifactLocalArtifactMetadata;
+import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.language.base.internal.model.DefaultLibraryLocalComponentMetadata;
 import org.gradle.nativeplatform.NativeLibraryBinary;
 import org.gradle.platform.base.Binary;
@@ -51,24 +56,42 @@ public class NativeLocalLibraryMetaDataAdapter implements LocalLibraryMetaDataAd
 
     private static LocalComponentMetadata createForNativeLibrary(NativeLibraryBinary library, String projectPath) {
         LibraryBinaryIdentifier id = library.getId();
+        String displayName = library.getDisplayName();
         DefaultLibraryLocalComponentMetadata metadata = createComponentMetadata(id, library, projectPath);
 
-        for (File headerDir : library.getHeaderDirs()) {
-            PublishArtifact headerDirArtifact = new LibraryPublishArtifact("header", headerDir);
-            metadata.addArtifact(COMPILE, new PublishArtifactLocalArtifactMetadata(id, library.getDisplayName(), headerDirArtifact));
-        }
-
-        for (File linkFile : library.getLinkFiles()) {
-            PublishArtifact linkFileArtifact = new LibraryPublishArtifact("link-file", linkFile);
-            metadata.addArtifact(LINK, new PublishArtifactLocalArtifactMetadata(id, library.getDisplayName(), linkFileArtifact));
-        }
-
-        for (File runtimeFile : library.getRuntimeFiles()) {
-            PublishArtifact runtimeFileArtifact = new LibraryPublishArtifact("runtime-file", runtimeFile);
-            metadata.addArtifact(RUN, new PublishArtifactLocalArtifactMetadata(id, library.getDisplayName(), runtimeFileArtifact));
-        }
+        addArtifactsToConfiguration(metadata, COMPILE, library.getHeaderDirs(), new FileToArtifactTransformer("header", id, displayName));
+        addArtifactsToConfiguration(metadata, LINK, library.getLinkFiles(), new FileToArtifactTransformer("link-file", id, displayName));
+        addArtifactsToConfiguration(metadata, RUN, library.getRuntimeFiles(), new FileToArtifactTransformer("runtime-file", id, displayName));
 
         return metadata;
+    }
+
+    private static void addArtifactsToConfiguration(DefaultLibraryLocalComponentMetadata metadata, String configurationName, FileCollection files, Transformer<LocalComponentArtifactMetadata, File> converter) {
+        for (File file : files) {
+            metadata.addArtifact(configurationName, converter.transform(file));
+        }
+    }
+
+    private static class FileToArtifactTransformer implements Transformer<LocalComponentArtifactMetadata, File> {
+        private final String type;
+        private final LibraryBinaryIdentifier id;
+        private final String displayName;
+
+        private FileToArtifactTransformer(String type, LibraryBinaryIdentifier id, String displayName) {
+            this.type = type;
+            this.id = id;
+            this.displayName = displayName;
+        }
+
+        @Override
+        public LocalComponentArtifactMetadata transform(File file) {
+            if (file != null) {
+                PublishArtifact artifact = new LibraryPublishArtifact(type, file);
+                return new PublishArtifactLocalArtifactMetadata(id, displayName, artifact);
+            } else {
+                return new MissingLocalArtifactMetadata(id, displayName, new DefaultIvyArtifactName(displayName, type, null));
+            }
+        }
     }
 
     private static DefaultLibraryLocalComponentMetadata createComponentMetadata(LibraryBinaryIdentifier id, NativeLibraryBinary library, String projectPath) {

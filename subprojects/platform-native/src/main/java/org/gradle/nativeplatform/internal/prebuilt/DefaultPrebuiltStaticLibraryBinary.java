@@ -16,8 +16,10 @@
 
 package org.gradle.nativeplatform.internal.prebuilt;
 
+import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.internal.component.local.model.DefaultLibraryBinaryIdentifier;
 import org.gradle.nativeplatform.BuildType;
 import org.gradle.nativeplatform.Flavor;
 import org.gradle.nativeplatform.PrebuiltLibrary;
@@ -56,5 +58,10 @@ public class DefaultPrebuiltStaticLibraryBinary extends AbstractPrebuiltLibraryB
     @Override
     public FileCollection getRuntimeFiles() {
         return fileCollectionFactory.empty("Runtime files for " + getDisplayName());
+    }
+
+    @Override
+    public LibraryBinaryIdentifier getId() {
+        return new DefaultLibraryBinaryIdentifier(projectPath, getComponent().getName(), "static");
     }
 }

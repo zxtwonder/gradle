@@ -16,11 +16,8 @@
 
 package org.gradle.nativeplatform.internal.prebuilt;
 
-import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
-import org.gradle.api.internal.file.collections.MinimalFileSet;
-import org.gradle.internal.component.local.model.DefaultLibraryBinaryIdentifier;
 import org.gradle.nativeplatform.BuildType;
 import org.gradle.nativeplatform.Flavor;
 import org.gradle.nativeplatform.NativeLibraryBinary;
@@ -28,12 +25,10 @@ import org.gradle.nativeplatform.PrebuiltLibrary;
 import org.gradle.nativeplatform.platform.NativePlatform;
 
 import java.io.File;
-import java.util.Collections;
-import java.util.Set;
 
 public abstract class AbstractPrebuiltLibraryBinary implements NativeLibraryBinary {
     private final String name;
-    private final String projectPath;
+    protected final String projectPath;
     private final PrebuiltLibrary library;
     private final BuildType buildType;
     private final NativePlatform targetPlatform;
@@ -84,39 +79,6 @@ public abstract class AbstractPrebuiltLibraryBinary implements NativeLibraryBina
     }
 
     protected FileCollection createFileCollection(File file, String fileCollectionDisplayName, String fileDescription) {
-        return fileCollectionFactory.create(new ValidatingFileSet(file, fileCollectionDisplayName, fileDescription));
-    }
-
-    private class ValidatingFileSet implements MinimalFileSet {
-        private final File file;
-        private final String fileCollectionDisplayName;
-        private final String fileDescription;
-
-        private ValidatingFileSet(File file, String fileCollectionDisplayName, String fileDescription) {
-            this.file = file;
-            this.fileCollectionDisplayName = fileCollectionDisplayName;
-            this.fileDescription = fileDescription;
-        }
-
-        @Override
-        public String getDisplayName() {
-            return fileCollectionDisplayName + " for " + AbstractPrebuiltLibraryBinary.this.getDisplayName();
-        }
-
-        @Override
-        public Set<File> getFiles() {
-            if (file == null) {
-                throw new PrebuiltLibraryResolveException(String.format("%s not set for %s.", fileDescription, AbstractPrebuiltLibraryBinary.this.getDisplayName()));
-            }
-            if (!file.exists() || !file.isFile()) {
-                throw new PrebuiltLibraryResolveException(String.format("%s %s does not exist for %s.", fileDescription, file.getAbsolutePath(), AbstractPrebuiltLibraryBinary.this.getDisplayName()));
-            }
-            return Collections.singleton(file);
-        }
-    }
-
-    @Override
-    public LibraryBinaryIdentifier getId() {
-        return new DefaultLibraryBinaryIdentifier(projectPath, library.getName(), getName());
+        return fileCollectionFactory.fixed(fileCollectionDisplayName + " for " + AbstractPrebuiltLibraryBinary.this.getDisplayName(), file);
     }
 }

@@ -30,7 +30,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.Dependen
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.file.FileCollectionFactory;
-import org.gradle.api.internal.file.collections.ListBackedFileSet;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
 import org.gradle.api.internal.resolve.NativeComponentResolveContext;
 import org.gradle.api.internal.resolve.NativeLocalLibraryMetaDataAdapter;
@@ -99,13 +98,7 @@ class ArtifactNativeDependencyResolver implements NativeDependencyResolver {
 
         failOnUnresolvedDependency(target, resolveResult.notFound);
 
-        MinimalFileSet artifactCollection = new ListBackedFileSet(collect(artifacts, new org.gradle.api.Transformer<File, ResolvedArtifact>() {
-            @Override
-            public File transform(ResolvedArtifact resolvedArtifact) {
-                return resolvedArtifact.getFile();
-            }
-        }));
-        return fileCollectionFactory.create(resolveResult.taskDependency, artifactCollection);
+        return fileCollectionFactory.create(resolveResult.taskDependency, new ValidatingFileSet(artifacts, String.format("%s dependencies of %s", usage, target.getDisplayName()), !NativeLocalLibraryMetaDataAdapter.COMPILE.equals(usage)));
     }
 
     private ResolveResult doResolve(NativeBinarySpec target, String project, String library, @Nullable String variant, String usage) {
@@ -117,7 +110,7 @@ class ArtifactNativeDependencyResolver implements NativeDependencyResolver {
         } else {
             dep = new DefaultLibraryBinaryDependencySpec(projectPath, library, variant);
         }
-        NativeComponentResolveContext context = new NativeComponentResolveContext(target, Collections.singleton(dep), usage, "foo");
+        NativeComponentResolveContext context = new NativeComponentResolveContext(target, Collections.singleton(dep), usage, target.getDisplayName());
 
         ResolveResult result = new ResolveResult();
         dependencyResolver.resolve(context, remoteRepositories, globalRules, result, result);
@@ -127,6 +120,37 @@ class ArtifactNativeDependencyResolver implements NativeDependencyResolver {
     private void failOnUnresolvedDependency(NativeBinarySpec target, List<Throwable> notFound) {
         if (!notFound.isEmpty()) {
             throw new LibraryResolveException(String.format("Could not resolve all dependencies for %s in project '%s'.", target.getDisplayName(), target.getProjectPath()), notFound);
+        }
+    }
+
+    private class ValidatingFileSet implements MinimalFileSet {
+        private final Set<ResolvedArtifact> artifacts;
+        private final String displayName;
+        private final boolean validate;
+
+        private ValidatingFileSet(Set<ResolvedArtifact> artifacts, String displayName, boolean validate) {
+            this.artifacts = artifacts;
+            this.displayName = displayName;
+            this.validate = validate;
+        }
+
+        @Override
+        public String getDisplayName() {
+            return displayName;
+        }
+
+        @Override
+        public Set<File> getFiles() {
+            return collect(artifacts, new org.gradle.api.Transformer<File, ResolvedArtifact>() {
+                @Override
+                public File transform(ResolvedArtifact resolvedArtifact) {
+                    File file = resolvedArtifact.getFile();
+                    if (validate && (!file.exists() || !file.isFile())) {
+                        throw new LibraryResolveException(String.format("Artifact %s does not exist for %s when resolving %s.", file.getAbsolutePath(), resolvedArtifact.getId(), displayName));
+                    }
+                    return resolvedArtifact.getFile();
+                }
+            });
         }
     }
 

@@ -256,7 +256,7 @@ model {
         fails "mainExecutable"
 
         then:
-        failure.assertHasDescription("Static library file not set for prebuilt static library 'hello:${NativePlatformsTestFixture.defaultPlatformName}DebugDefaultStatic'.")
+        failure.assertHasDescription("Could not find prebuilt static library 'hello:${NativePlatformsTestFixture.defaultPlatformName}DebugDefaultStatic' (prebuilt static library 'hello:${NativePlatformsTestFixture.defaultPlatformName}DebugDefaultStatic').")
     }
 
     def "produces reasonable error message when prebuilt library output file does not exist"() {
@@ -289,7 +289,7 @@ model {
         fails "mainExecutable"
 
         then:
-        failure.assertHasDescription("Static library file ${file("does_not_exist").absolutePath} does not exist for prebuilt static library 'hello:${NativePlatformsTestFixture.defaultPlatformName}DebugDefaultStatic'.")
+        failure.assertHasDescription("Artifact ${file("does_not_exist").absolutePath} does not exist for does_not_exist (prebuilt static library 'hello:${NativePlatformsTestFixture.defaultPlatformName}DebugDefaultStatic') when resolving link dependencies of executable 'main:executable'.")
     }
 
     def "produces reasonable error message when prebuilt library does not exist"() {
