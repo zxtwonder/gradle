@@ -25,7 +25,6 @@ import org.gradle.internal.component.local.model.LocalComponentMetadata;
 import org.gradle.internal.component.local.model.PublishArtifactLocalArtifactMetadata;
 import org.gradle.language.base.internal.model.DefaultLibraryLocalComponentMetadata;
 import org.gradle.nativeplatform.NativeLibraryBinary;
-import org.gradle.nativeplatform.internal.NativeBinarySpecInternal;
 import org.gradle.platform.base.Binary;
 import org.gradle.platform.base.DependencySpec;
 
@@ -81,12 +80,7 @@ public class NativeLocalLibraryMetaDataAdapter implements LocalLibraryMetaDataAd
 
         // TODO:DAZ For transitive dependency resolution, include dependencies from lib
         Map<String, Iterable<DependencySpec>> dependencies;
-        if (library instanceof NativeBinarySpecInternal) {
-            NativeBinarySpecInternal librarySpec = (NativeBinarySpecInternal)library;
-            dependencies = librarySpec.getDependencySpecs();
-        } else {
-            dependencies = Collections.emptyMap();
-        }
+        dependencies = Collections.emptyMap();
         return newResolvedLibraryMetadata(id, configurations, dependencies, projectPath);
     }
 }
