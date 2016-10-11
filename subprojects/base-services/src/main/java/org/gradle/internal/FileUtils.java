@@ -17,7 +17,6 @@
 package org.gradle.internal;
 
 import org.gradle.api.GradleException;
-import org.gradle.api.UncheckedIOException;
 
 import java.io.File;
 import java.io.IOException;
@@ -111,10 +110,24 @@ public class FileUtils {
      * Canonializes the given file.
      */
     public static File canonicalize(File src) {
-        try {
-            return src.getCanonicalFile();
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
+        return CanonicalFile.of(src);
+    }
+
+    private static class CanonicalFile extends File {
+
+        private static File of(File src) {
+            if (src instanceof CanonicalFile) {
+                return src;
+            }
+            try {
+                return new CanonicalFile(src);
+            } catch (IOException e) {
+                throw UncheckedException.throwAsUncheckedException(e);
+            }
+        }
+
+        private CanonicalFile(File file) throws IOException {
+            super(file.getCanonicalPath());
         }
     }
 }
