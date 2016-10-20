@@ -145,6 +145,8 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationsEventBus;
+import org.gradle.internal.operations.DefaultBuildOperationEventBus;
 import org.gradle.internal.operations.logging.BuildOperationLoggerFactory;
 import org.gradle.internal.operations.logging.DefaultBuildOperationLoggerFactory;
 import org.gradle.internal.reflect.DirectInstantiator;
@@ -204,6 +206,10 @@ public class BuildScopeServices extends DefaultServiceRegistry {
 
     protected ListenerManager createListenerManager(ListenerManager listenerManager) {
         return listenerManager.createChild();
+    }
+
+    protected BuildOperationsEventBus createBuildOperationsEventBus(ListenerManager listenerManager) {
+        return new DefaultBuildOperationEventBus(listenerManager);
     }
 
     protected ClassPathRegistry createClassPathRegistry() {
