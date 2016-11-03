@@ -279,7 +279,6 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
                     if (experimentSpec.listener) {
                         experimentSpec.listener.afterInvocation(info, null, null)
                     }
-                    Thread.sleep(sleepAfterTestRoundMillis)
                 }
             }
         }
