@@ -18,6 +18,7 @@ package org.gradle.performance.fixture
 
 import org.gradle.performance.ResultSpecification
 import org.gradle.performance.results.CrossVersionPerformanceResults
+import org.gradle.performance.results.MeasuredOperationList
 
 class CrossVersionPerformanceTestExecutionTest extends ResultSpecification {
     def CrossVersionPerformanceResults result = new CrossVersionPerformanceResults(testProject: "some-project", tasks: [])
@@ -27,14 +28,22 @@ class CrossVersionPerformanceTestExecutionTest extends ResultSpecification {
         result.baseline("1.0").results.add(operation(totalTime: 110))
         result.baseline("1.0").results.add(operation(totalTime: 100))
         result.baseline("1.0").results.add(operation(totalTime: 90))
+        addMinAndMax(result.baseline("1.0").results)
 
         and:
         result.current.add(operation(totalTime: 90))
         result.current.add(operation(totalTime: 110))
         result.current.add(operation(totalTime: 90))
+        addMinAndMax(result.current)
 
         expect:
         result.assertCurrentVersionHasNotRegressed()
+    }
+
+    // min and max values are ignored in calculations
+    def addMinAndMax(MeasuredOperationList results) {
+        results.add(operation(totalTime: 1, totalMemoryUsed: 1))
+        results.add(operation(totalTime: 999, totalMemoryUsed: 9999))
     }
 
     def "passes when average execution time for current release is within allowed range of average execution time for previous releases"() {
@@ -42,15 +51,18 @@ class CrossVersionPerformanceTestExecutionTest extends ResultSpecification {
         result.baseline("1.0").results << operation(totalTime: 100)
         result.baseline("1.0").results << operation(totalTime: 100)
         result.baseline("1.0").results << operation(totalTime: 100)
+        addMinAndMax(result.baseline("1.0").results)
 
         result.baseline("1.3").results << operation(totalTime: 115)
         result.baseline("1.3").results << operation(totalTime: 105)
         result.baseline("1.3").results << operation(totalTime: 110)
+        addMinAndMax(result.baseline("1.3").results)
 
         and:
         result.current << operation(totalTime: 100)
         result.current << operation(totalTime: 100)
         result.current << operation(totalTime: 100)
+        addMinAndMax(result.current)
 
         expect:
         result.assertCurrentVersionHasNotRegressed()
@@ -61,15 +73,18 @@ class CrossVersionPerformanceTestExecutionTest extends ResultSpecification {
         result.baseline("1.0").results << operation(totalTime: 100)
         result.baseline("1.0").results << operation(totalTime: 100)
         result.baseline("1.0").results << operation(totalTime: 100)
+        addMinAndMax(result.baseline("1.0").results)
 
         result.baseline("1.3").results << operation(totalTime: 110)
         result.baseline("1.3").results << operation(totalTime: 110)
         result.baseline("1.3").results << operation(totalTime: 111)
+        addMinAndMax(result.baseline("1.3").results)
 
         and:
         result.current << operation(totalTime: 110)
         result.current << operation(totalTime: 110)
         result.current << operation(totalTime: 111)
+        addMinAndMax(result.current)
 
         when:
         result.assertCurrentVersionHasNotRegressed()
@@ -86,15 +101,18 @@ class CrossVersionPerformanceTestExecutionTest extends ResultSpecification {
         result.baseline("1.0").results << operation(totalMemoryUsed: 1000)
         result.baseline("1.0").results << operation(totalMemoryUsed: 1000)
         result.baseline("1.0").results << operation(totalMemoryUsed: 1000)
+        addMinAndMax(result.baseline("1.0").results)
 
         result.baseline("1.3").results << operation(totalMemoryUsed: 800)
         result.baseline("1.3").results << operation(totalMemoryUsed: 1000)
         result.baseline("1.3").results << operation(totalMemoryUsed: 1200)
+        addMinAndMax(result.baseline("1.3").results)
 
         and:
         result.current << operation(totalMemoryUsed: 1000)
         result.current << operation(totalMemoryUsed: 1005)
         result.current << operation(totalMemoryUsed: 994)
+        addMinAndMax(result.current)
 
         expect:
         result.assertCurrentVersionHasNotRegressed()
@@ -105,15 +123,18 @@ class CrossVersionPerformanceTestExecutionTest extends ResultSpecification {
         result.baseline("1.0").results << operation(totalMemoryUsed: 1001)
         result.baseline("1.0").results << operation(totalMemoryUsed: 1001)
         result.baseline("1.0").results << operation(totalMemoryUsed: 1001)
+        addMinAndMax(result.baseline("1.0").results)
 
         result.baseline("1.2").results << operation(totalMemoryUsed: 1000)
         result.baseline("1.2").results << operation(totalMemoryUsed: 1000)
         result.baseline("1.2").results << operation(totalMemoryUsed: 1000)
+        addMinAndMax(result.baseline("1.2").results)
 
         and:
         result.current << operation(totalMemoryUsed: 1000)
         result.current << operation(totalMemoryUsed: 1001)
         result.current << operation(totalMemoryUsed: 1001)
+        addMinAndMax(result.current)
 
         when:
         result.assertCurrentVersionHasNotRegressed()
@@ -130,15 +151,18 @@ class CrossVersionPerformanceTestExecutionTest extends ResultSpecification {
         result.baseline("1.0").results << operation(totalMemoryUsed: 1200, totalTime: 150)
         result.baseline("1.0").results << operation(totalMemoryUsed: 1000, totalTime: 100)
         result.baseline("1.0").results << operation(totalMemoryUsed: 1200, totalTime: 150)
+        addMinAndMax(result.baseline("1.0").results)
 
         result.baseline("1.2").results << operation(totalMemoryUsed: 1000, totalTime: 100)
         result.baseline("1.2").results << operation(totalMemoryUsed: 1000, totalTime: 100)
         result.baseline("1.2").results << operation(totalMemoryUsed: 1000, totalTime: 100)
+        addMinAndMax(result.baseline("1.2").results)
 
         and:
         result.current << operation(totalMemoryUsed: 1100, totalTime: 110)
         result.current << operation(totalMemoryUsed: 1100, totalTime: 110)
         result.current << operation(totalMemoryUsed: 1101, totalTime: 111)
+        addMinAndMax(result.current)
 
         when:
         result.assertCurrentVersionHasNotRegressed()
@@ -196,13 +220,16 @@ class CrossVersionPerformanceTestExecutionTest extends ResultSpecification {
         given:
         result.baseline("1.0").results << operation(totalMemoryUsed: 1200, totalTime: 100)
         result.baseline("1.0").results << operation(totalMemoryUsed: 1200, totalTime: 100)
+        addMinAndMax(result.baseline("1.0").results)
 
         result.baseline("1.2").results << operation(totalMemoryUsed: 1000, totalTime: 150)
         result.baseline("1.2").results << operation(totalMemoryUsed: 1000, totalTime: 150)
+        addMinAndMax(result.baseline("1.2").results)
 
         and:
         result.current << operation(totalMemoryUsed: 1100, totalTime: 125)
         result.current << operation(totalMemoryUsed: 1100, totalTime: 125)
+        addMinAndMax(result.current)
 
         when:
         result.assertCurrentVersionHasNotRegressed()
@@ -220,13 +247,16 @@ class CrossVersionPerformanceTestExecutionTest extends ResultSpecification {
         given:
         result.baseline("1.0").results << operation(totalMemoryUsed: 1200, totalTime: 120)
         result.baseline("1.0").results << operation(totalMemoryUsed: 1200, totalTime: 120)
+        addMinAndMax(result.baseline("1.0").results)
 
         result.baseline("1.2").results << operation(totalMemoryUsed: 1100, totalTime: 150)
         result.baseline("1.2").results << operation(totalMemoryUsed: 1100, totalTime: 150)
+        addMinAndMax(result.baseline("1.2").results)
 
         and:
         result.current << operation(totalMemoryUsed: 1300, totalTime: 200)
         result.current << operation(totalMemoryUsed: 1300, totalTime: 200)
+        addMinAndMax(result.current)
 
         when:
         result.assertCurrentVersionHasNotRegressed()

@@ -18,6 +18,9 @@ package org.gradle.performance.measure;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * A collection of measurements of some given units.
@@ -47,16 +50,33 @@ public class DataSeries<Q> extends ArrayList<Amount<Q>> {
             return;
         }
 
-        Amount<Q> total = get(0);
-        Amount<Q> min = get(0);
-        Amount<Q> max = get(0);
-        for (int i = 1; i < size(); i++) {
-            Amount<Q> amount = get(i);
-            total = total.plus(amount);
-            min = min.compareTo(amount) <= 0 ? min : amount;
-            max = max.compareTo(amount) >= 0 ? max : amount;
+        Set<Integer> excludeIndexes;
+        if (size() > 2) {
+            excludeIndexes = resolveIndexesToExcludeFromCalculations();
+        } else {
+            excludeIndexes = Collections.emptySet();
         }
-        average = total.div(size());
+
+        Amount<Q> total = null;
+        Amount<Q> min = null;
+        Amount<Q> max = null;
+        int numberOfEntries = 0;
+        for (int i = 0; i < size(); i++) {
+            if (!excludeIndexes.contains(i)) {
+                Amount<Q> amount = get(i);
+                if (numberOfEntries == 0) {
+                    total = amount;
+                    min = amount;
+                    max = amount;
+                } else {
+                    total = total.plus(amount);
+                    min = min.compareTo(amount) <= 0 ? min : amount;
+                    max = max.compareTo(amount) >= 0 ? max : amount;
+                }
+                numberOfEntries++;
+            }
+        }
+        average = total.div(numberOfEntries);
         this.min = min;
         this.max = max;
 
@@ -64,18 +84,43 @@ public class DataSeries<Q> extends ArrayList<Amount<Q>> {
         Units<Q> baseUnits = average.getUnits().getBaseUnits();
         BigDecimal averageValue = average.toUnits(baseUnits).getValue();
         for (int i = 0; i < size(); i++) {
-            Amount<Q> amount = get(i);
-            BigDecimal diff = amount.toUnits(baseUnits).getValue();
-            diff = diff.subtract(averageValue);
-            diff = diff.multiply(diff);
-            sumSquares = sumSquares.add(diff);
+            if (!excludeIndexes.contains(i)) {
+                Amount<Q> amount = get(i);
+                BigDecimal diff = amount.toUnits(baseUnits).getValue();
+                diff = diff.subtract(averageValue);
+                diff = diff.multiply(diff);
+                sumSquares = sumSquares.add(diff);
+            }
         }
         // This isn't quite right, as we may lose precision when converting to a double
-        BigDecimal result = BigDecimal.valueOf(Math.sqrt(sumSquares.divide(BigDecimal.valueOf(size()), BigDecimal.ROUND_HALF_UP).doubleValue())).setScale(2, BigDecimal.ROUND_HALF_UP);
+        BigDecimal result = BigDecimal.valueOf(Math.sqrt(sumSquares.divide(BigDecimal.valueOf(numberOfEntries), BigDecimal.ROUND_HALF_UP).doubleValue())).setScale(2, BigDecimal.ROUND_HALF_UP);
 
         standardError = Amount.valueOf(result, baseUnits);
-        standardErrorOfMean = standardError.div(BigDecimal.valueOf(Math.sqrt(size())));
+        standardErrorOfMean = standardError.div(BigDecimal.valueOf(Math.sqrt(numberOfEntries)));
     }
+
+    private Set<Integer> resolveIndexesToExcludeFromCalculations() {
+        Set<Integer> excludeIndexes = new HashSet<Integer>();
+        int minIndex = 0;
+        int maxIndex = 0;
+        Amount<Q> min = get(0);
+        Amount<Q> max = get(0);
+        for (int i = 1; i < size(); i++) {
+            Amount<Q> amount = get(i);
+            if (min.compareTo(amount) > 0) {
+                min = amount;
+                minIndex = i;
+            }
+            if (max.compareTo(amount) < 0) {
+                max = amount;
+                maxIndex = i;
+            }
+        }
+        excludeIndexes.add(minIndex);
+        excludeIndexes.add(maxIndex);
+        return excludeIndexes;
+    }
+
 
     public Amount<Q> getAverage() {
         return average;

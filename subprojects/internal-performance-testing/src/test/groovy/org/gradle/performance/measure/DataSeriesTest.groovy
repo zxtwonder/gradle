@@ -20,10 +20,12 @@ import spock.lang.Specification
 
 class DataSeriesTest extends Specification {
     def "can calculate statistics for samples"() {
+        def min = DataAmount.kbytes(1)
         def v1 = DataAmount.kbytes(10)
         def v2 = DataAmount.kbytes(20)
         def v3 = DataAmount.kbytes(30)
-        def series = new DataSeries([v1, v2, v3])
+        def max = DataAmount.kbytes(99)
+        def series = new DataSeries([min, v1, v2, v3, max])
 
         expect:
         series.average == v2
@@ -34,13 +36,15 @@ class DataSeriesTest extends Specification {
     }
 
     def "ignores null values"() {
+        def min = DataAmount.kbytes(1)
         def v1 = DataAmount.kbytes(10)
         def v2 = DataAmount.kbytes(20)
         def v3 = DataAmount.kbytes(30)
-        def series = new DataSeries([v1, v2, null, v3, null])
+        def max = DataAmount.kbytes(99)
+        def series = new DataSeries([v1, v2, null, v3, null, min, max])
 
         expect:
-        series.size() == 3
+        series.size() == 5
         series.average == v2
         series.min == v1
         series.max == v3
