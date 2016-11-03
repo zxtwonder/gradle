@@ -123,7 +123,7 @@ public class BuildExperimentRunner {
     }
 
     // the preparation script can prepare the OS for a next measurement round by flushing OS caches
-    private void runOsPrepareNextTestScript() {
+    public static void runOsPrepareNextTestScript() {
         if (OS_PREPARE_SCRIPT.exists()) {
             try {
                 String scriptPath = OS_PREPARE_SCRIPT.getPath();

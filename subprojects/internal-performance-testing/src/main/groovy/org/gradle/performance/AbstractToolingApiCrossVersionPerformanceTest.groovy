@@ -267,6 +267,7 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
         }
 
         private void warmup(toolingApi, File workingDir) {
+            BuildExperimentRunner.runOsPrepareNextTestScript()
             experimentSpec.with {
                 def count = iterationCount("warmups", warmUpCount)
                 count.times { n ->
