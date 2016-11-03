@@ -35,15 +35,16 @@ import org.gradle.performance.fixture.BuildExperimentRunner
 import org.gradle.performance.fixture.BuildExperimentSpec
 import org.gradle.performance.fixture.CrossVersionPerformanceTestRunner
 import org.gradle.performance.fixture.DefaultBuildExperimentInvocationInfo
+import org.gradle.performance.fixture.DurationMeasurementImpl
 import org.gradle.performance.fixture.Git
 import org.gradle.performance.fixture.InvocationSpec
-import org.gradle.performance.fixture.OperationTimer
 import org.gradle.performance.fixture.PerformanceTestDirectoryProvider
 import org.gradle.performance.fixture.PerformanceTestJvmOptions
 import org.gradle.performance.fixture.TestProjectLocator
 import org.gradle.performance.fixture.TestScenarioSelector
 import org.gradle.performance.measure.DataAmount
 import org.gradle.performance.measure.Duration
+import org.gradle.performance.measure.MeasuredOperation
 import org.gradle.performance.results.BuildDisplayInfo
 import org.gradle.performance.results.CrossVersionPerformanceResults
 import org.gradle.performance.results.CrossVersionResultsStore
@@ -218,7 +219,6 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
         }
 
         private void measure(CrossVersionPerformanceResults results, toolingApi, String version, File workingDir) {
-            OperationTimer timer = new OperationTimer()
             MeasuredOperationList versionResults = 'current' == version ? results.current : results.version(version).results
             experimentSpec.with {
                 def count = iterationCount("runs", invocationCount)
@@ -228,8 +228,18 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
                         experimentSpec.listener.beforeInvocation(info)
                     }
                     println "Run #${n + 1}"
-                    def measuredOperation = timer.measure {
-                        toolingApi.withConnection(action)
+
+                    MeasuredOperation measuredOperation = new MeasuredOperation()
+
+                    try {
+                        toolingApi.withConnection {
+                            action.delegate = delegate
+                            DurationMeasurementImpl.measure(measuredOperation, action)
+                        }
+                    } catch (Exception e) {
+                        measuredOperation.exception = e
+                    } finally {
+                        action.delegate = null
                     }
 
                     measuredOperation.configurationTime = Duration.millis(0)
