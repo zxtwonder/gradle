@@ -101,7 +101,7 @@ class GradleExecuterBackedSession implements GradleSession {
             withArgument('-u').
             inDirectory(invocation.workingDirectory).
             withTasks(invocation.tasksToRun).
-            withOutputCapturing(false)
+            withOutputCapturing(false).withQuietLogging()
 
         executer.withBuildJvmOpts(invocation.jvmOpts)
 
