@@ -179,7 +179,7 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
                     toolingApi.requireIsolatedUserHome()
                     warmup(toolingApi, workingDirProvider.testDirectory)
                     println "Waiting ${experimentSpec.sleepAfterWarmUpMillis}ms before measurements"
-                    sleep(experimentSpec.sleepAfterWarmUpMillis)
+                    Thread.sleep(experimentSpec.sleepAfterWarmUpMillis)
                     measure(results, toolingApi, version, workingDirProvider.testDirectory)
                     toolingApi.daemons.killAll()
                 }
@@ -261,7 +261,7 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
                             logger.error("Discarding invalid operation record " + measuredOperation, measuredOperation.getException())
                         }
                     }
-                    sleep(sleepAfterTestRoundMillis)
+                    Thread.sleep(sleepAfterTestRoundMillis)
                 }
             }
         }
@@ -279,7 +279,7 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
                     if (experimentSpec.listener) {
                         experimentSpec.listener.afterInvocation(info, null, null)
                     }
-                    sleep(sleepAfterTestRoundMillis)
+                    Thread.sleep(sleepAfterTestRoundMillis)
                 }
             }
         }
