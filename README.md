@@ -93,3 +93,4 @@ We recommend using IntelliJ IDEA.
 4. In `Window->Preferences->Groovy->Compiler`, check `Enable Script folder support` and add `**/*.gradle`
 5. Run `./gradlew eclipse` from the root directory
 6. Import all projects using the "Import Existing Projects into Workspace" wizard
+
