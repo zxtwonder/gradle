@@ -147,7 +147,7 @@ class DefaultLenientConfigurationTest extends Specification {
         }
 
         @Override
-        Long getNodeId() {
+        Integer getNodeId() {
             throw new UnsupportedOperationException()
         }
 

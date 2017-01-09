@@ -33,16 +33,16 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class DefaultResolutionResultBuilder {
-    private final Map<Long, DefaultResolvedComponentResult> modules = new HashMap<Long, DefaultResolvedComponentResult>();
+    private final Map<Integer, DefaultResolvedComponentResult> modules = new HashMap<Integer, DefaultResolvedComponentResult>();
     private final CachingDependencyResultFactory dependencyResultFactory = new CachingDependencyResultFactory();
 
     public static ResolutionResult empty(ModuleVersionIdentifier id, ComponentIdentifier componentIdentifier) {
         DefaultResolutionResultBuilder builder = new DefaultResolutionResultBuilder();
-        builder.visitComponent(new DefaultComponentResult(0L, id, VersionSelectionReasons.ROOT, componentIdentifier));
-        return builder.complete(0L);
+        builder.visitComponent(new DefaultComponentResult(0, id, VersionSelectionReasons.ROOT, componentIdentifier));
+        return builder.complete(0);
     }
 
-    public ResolutionResult complete(Long rootId) {
+    public ResolutionResult complete(Integer rootId) {
         return new DefaultResolutionResult(new RootFactory(modules.get(rootId)));
     }
 
@@ -50,7 +50,7 @@ public class DefaultResolutionResultBuilder {
         create(component.getResultId(), component.getModuleVersion(), component.getSelectionReason(), component.getComponentId());
     }
 
-    public void visitOutgoingEdges(Long fromComponent, Collection<? extends DependencyResult> dependencies) {
+    public void visitOutgoingEdges(Integer fromComponent, Collection<? extends DependencyResult> dependencies) {
         for (DependencyResult d : dependencies) {
             DefaultResolvedComponentResult from = modules.get(fromComponent);
             org.gradle.api.artifacts.result.DependencyResult dependency;
@@ -65,7 +65,7 @@ public class DefaultResolutionResultBuilder {
         }
     }
 
-    private void create(Long id, ModuleVersionIdentifier moduleVersion, ComponentSelectionReason selectionReason, ComponentIdentifier componentId) {
+    private void create(Integer id, ModuleVersionIdentifier moduleVersion, ComponentSelectionReason selectionReason, ComponentIdentifier componentId) {
         if (!modules.containsKey(id)) {
             modules.put(id, new DefaultResolvedComponentResult(moduleVersion, selectionReason, componentId));
         }

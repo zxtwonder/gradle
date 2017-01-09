@@ -25,7 +25,7 @@ public interface ComponentResult {
      * Returns a simple id for this component, unique across components in the same graph.
      * This id cannot be used across graphs.
      */
-    Long getResultId();
+    Integer getResultId();
 
     /**
      * Returns the module version for this component.

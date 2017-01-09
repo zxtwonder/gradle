@@ -22,12 +22,12 @@ import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ComponentResult;
 
 public class DefaultComponentResult implements ComponentResult {
-    private final Long resultId;
+    private final Integer resultId;
     private final ModuleVersionIdentifier id;
     private final ComponentSelectionReason reason;
     private final ComponentIdentifier componentIdentifier;
 
-    public DefaultComponentResult(Long resultId, ModuleVersionIdentifier id, ComponentSelectionReason reason, ComponentIdentifier componentIdentifier) {
+    public DefaultComponentResult(Integer resultId, ModuleVersionIdentifier id, ComponentSelectionReason reason, ComponentIdentifier componentIdentifier) {
         this.resultId = resultId;
         this.id = id;
         this.reason = reason;
@@ -35,7 +35,7 @@ public class DefaultComponentResult implements ComponentResult {
     }
 
     @Override
-    public Long getResultId() {
+    public Integer getResultId() {
         return resultId;
     }
 

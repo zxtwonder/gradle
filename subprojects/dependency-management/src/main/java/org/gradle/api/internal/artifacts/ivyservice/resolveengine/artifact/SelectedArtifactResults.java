@@ -25,5 +25,5 @@ public interface SelectedArtifactResults {
     /**
      * Returns the set of artifacts with the given id.
      */
-    ResolvedArtifactSet getArtifacts(long id);
+    ResolvedArtifactSet getArtifacts(int id);
 }

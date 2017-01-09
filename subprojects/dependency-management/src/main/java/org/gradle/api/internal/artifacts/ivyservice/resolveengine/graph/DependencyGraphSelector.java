@@ -26,7 +26,7 @@ public interface DependencyGraphSelector {
      * Returns a simple id for this selector, unique across selectors in the same graph.
      * This id cannot be used across graphs.
      */
-    Long getResultId();
+    Integer getResultId();
 
     /**
      * Returns the requested dependency.

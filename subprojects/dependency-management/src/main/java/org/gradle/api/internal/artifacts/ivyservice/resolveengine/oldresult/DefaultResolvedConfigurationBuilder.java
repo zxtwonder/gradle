@@ -27,7 +27,7 @@ import java.util.Set;
 
 public class DefaultResolvedConfigurationBuilder implements ResolvedConfigurationBuilder {
     private final Set<UnresolvedDependency> unresolvedDependencies = new LinkedHashSet<UnresolvedDependency>();
-    private final Map<Long, ModuleDependency> modulesMap = new HashMap<Long, ModuleDependency>();
+    private final Map<Integer, ModuleDependency> modulesMap = new HashMap<Integer, ModuleDependency>();
     private final TransientConfigurationResultsBuilder builder;
 
     public DefaultResolvedConfigurationBuilder(TransientConfigurationResultsBuilder builder) {
@@ -52,7 +52,7 @@ public class DefaultResolvedConfigurationBuilder implements ResolvedConfiguratio
     }
 
     @Override
-    public void addChild(DependencyGraphNode parent, DependencyGraphNode child, long artifactsId) {
+    public void addChild(DependencyGraphNode parent, DependencyGraphNode child, int artifactsId) {
         builder.parentChildMapping(parent.getNodeId(), child.getNodeId(), artifactsId);
     }
 

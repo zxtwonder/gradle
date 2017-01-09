@@ -32,8 +32,8 @@ import static com.google.common.collect.Maps.newLinkedHashMap;
  */
 public class DefaultResolvedArtifactsBuilder implements DependencyArtifactsVisitor {
     private final boolean buildProjectDependencies;
-    private final Map<Long, ArtifactSet> artifactSets = newLinkedHashMap();
-    private final Set<Long> buildableArtifactSets = new HashSet<Long>();
+    private final Map<Integer, ArtifactSet> artifactSets = newLinkedHashMap();
+    private final Set<Integer> buildableArtifactSets = new HashSet<Integer>();
 
     public DefaultResolvedArtifactsBuilder(boolean buildProjectDependencies) {
         this.buildProjectDependencies = buildProjectDependencies;
@@ -75,9 +75,9 @@ public class DefaultResolvedArtifactsBuilder implements DependencyArtifactsVisit
     }
 
     public VisitedArtifactsResults complete() {
-        Map<Long, ArtifactSet> artifactsById = newLinkedHashMap();
+        Map<Integer, ArtifactSet> artifactsById = newLinkedHashMap();
 
-        for (Map.Entry<Long, ArtifactSet> entry : artifactSets.entrySet()) {
+        for (Map.Entry<Integer, ArtifactSet> entry : artifactSets.entrySet()) {
             ArtifactSet resolvedArtifacts = entry.getValue().snapshot();
             artifactsById.put(entry.getKey(), resolvedArtifacts);
         }

@@ -32,7 +32,7 @@ public interface SelectedFileDependencyResults {
     /**
      * Returns the file dependencies, if any, attached to the given node.
      */
-    ResolvedArtifactSet getFiles(Long node);
+    ResolvedArtifactSet getFiles(Integer node);
 
     /**
      * Returns all file dependencies seen during traversal.

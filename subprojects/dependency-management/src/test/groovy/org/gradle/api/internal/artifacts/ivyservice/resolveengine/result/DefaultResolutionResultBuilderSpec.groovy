@@ -256,12 +256,12 @@ class DefaultResolutionResultBuilderSpec extends Specification {
         new DummyInternalDependencyResult(requested: selector, selected: id(selected), failure: failure)
     }
 
-    private Long id(String module) {
+    private Integer id(String module) {
         return module.hashCode()
     }
 
     class DummyModuleVersionSelection implements ComponentResult {
-        Long resultId
+        Integer resultId
         ModuleVersionIdentifier moduleVersion
         ComponentSelectionReason selectionReason
         ComponentIdentifier componentId
@@ -269,7 +269,7 @@ class DefaultResolutionResultBuilderSpec extends Specification {
 
     class DummyInternalDependencyResult implements DependencyResult {
         ComponentSelector requested
-        Long selected
+        Integer selected
         ModuleVersionResolveException failure
         ComponentSelectionReason reason
     }

@@ -60,7 +60,7 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
     private final Store<ResolvedComponentResult> cache;
     private final ComponentSelectorSerializer componentSelectorSerializer = new ComponentSelectorSerializer();
     private final DependencyResultSerializer dependencyResultSerializer = new DependencyResultSerializer();
-    private final Set<Long> visitedComponents = new HashSet<Long>();
+    private final Set<Integer> visitedComponents = new HashSet<Integer>();
 
     public StreamingResolutionResultBuilder(BinaryStore store, Store<ResolvedComponentResult> cache) {
         this.store = store;
@@ -82,7 +82,7 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
         store.write(new BinaryStore.WriteAction() {
             public void write(Encoder encoder) throws IOException {
                 encoder.writeByte(ROOT);
-                encoder.writeSmallLong(root.getOwner().getResultId());
+                encoder.writeInt(root.getOwner().getResultId());
             }
         });
     }
@@ -106,7 +106,7 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
             @Override
             public void write(Encoder encoder) throws IOException {
                 encoder.writeByte(SELECTOR);
-                encoder.writeSmallLong(selector.getResultId());
+                encoder.writeInt(selector.getResultId());
                 componentSelectorSerializer.write(encoder, selector.getRequested());
             }
         });
@@ -114,13 +114,13 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
 
     @Override
     public void visitEdges(DependencyGraphNode resolvedConfiguration) {
-        final Long fromComponent = resolvedConfiguration.getOwner().getResultId();
+        final Integer fromComponent = resolvedConfiguration.getOwner().getResultId();
         final Set<? extends DependencyGraphEdge> dependencies = resolvedConfiguration.getOutgoingEdges();
         if (!dependencies.isEmpty()) {
             store.write(new BinaryStore.WriteAction() {
                 public void write(Encoder encoder) throws IOException {
                     encoder.writeByte(DEPENDENCY);
-                    encoder.writeSmallLong(fromComponent);
+                    encoder.writeInt(fromComponent);
                     encoder.writeSmallInt(dependencies.size());
                     for (DependencyGraphEdge dependency : dependencies) {
                         dependencyResultSerializer.write(encoder, dependency);
@@ -183,14 +183,14 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
             Timer clock = Timers.startTimer();
             try {
                 DefaultResolutionResultBuilder builder = new DefaultResolutionResultBuilder();
-                Map<Long, ComponentSelector> selectors = new HashMap<Long, ComponentSelector>();
+                Map<Integer, ComponentSelector> selectors = new HashMap<Integer, ComponentSelector>();
                 while (true) {
                     type = decoder.readByte();
                     valuesRead++;
                     switch (type) {
                         case ROOT:
                             // Last entry, complete the result
-                            Long rootId = decoder.readSmallLong();
+                            Integer rootId = decoder.readInt();
                             ResolvedComponentResult root = builder.complete(rootId).getRoot();
                             LOG.debug("Loaded resolution results ({}) from {}", clock.getElapsed(), data);
                             return root;
@@ -199,12 +199,12 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
                             builder.visitComponent(component);
                             break;
                         case SELECTOR:
-                            Long id = decoder.readSmallLong();
+                            Integer id = decoder.readInt();
                             ComponentSelector selector = componentSelectorSerializer.read(decoder);
                             selectors.put(id, selector);
                             break;
                         case DEPENDENCY:
-                            Long fromId = decoder.readSmallLong();
+                            Integer fromId = decoder.readInt();
                             int size = decoder.readSmallInt();
                             List<DependencyResult> deps = new ArrayList<DependencyResult>(size);
                             for (int i = 0; i < size; i++) {

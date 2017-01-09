@@ -35,11 +35,11 @@ class DependencyResultSerializerTest extends Specification {
         def requested = DefaultModuleComponentSelector.newSelector("org", "foo", "1.0")
         def successful = Mock(DependencyGraphEdge) {
             getSelector() >> Stub(DependencyGraphSelector) {
-                getResultId() >> 4L
+                getResultId() >> 4
                 getRequested() >> requested
             }
             getFailure() >> null
-            getSelected() >> 12L
+            getSelected() >> 12
             getReason() >> VersionSelectionReasons.REQUESTED
         }
 
@@ -48,12 +48,12 @@ class DependencyResultSerializerTest extends Specification {
         def encoder = new OutputStreamBackedEncoder(bytes)
         serializer.write(encoder, successful)
         encoder.flush()
-        def out = serializer.read(new InputStreamBackedDecoder(new ByteArrayInputStream(bytes.toByteArray())), [4L: requested], [:])
+        def out = serializer.read(new InputStreamBackedDecoder(new ByteArrayInputStream(bytes.toByteArray())), [4: requested], [:])
 
         then:
         out.requested == requested
         out.failure == null
-        out.selected == 12L
+        out.selected == 12
     }
 
     def "serializes failed dependency result"() {
@@ -62,7 +62,7 @@ class DependencyResultSerializerTest extends Specification {
 
         def failed = Mock(DependencyGraphEdge) {
             getSelector() >> Stub(DependencyGraphSelector) {
-                getResultId() >> 4L
+                getResultId() >> 4
                 getRequested() >> requested
             }
             getFailure() >> failure
@@ -77,7 +77,7 @@ class DependencyResultSerializerTest extends Specification {
         encoder.flush()
         Map<ModuleComponentSelector, ModuleVersionResolveException> map = new HashMap<>()
         map.put(requested, failure)
-        def out = serializer.read(new InputStreamBackedDecoder(new ByteArrayInputStream(bytes.toByteArray())), [4L: requested], map)
+        def out = serializer.read(new InputStreamBackedDecoder(new ByteArrayInputStream(bytes.toByteArray())), [4: requested], map)
 
         then:
         out.requested == requested

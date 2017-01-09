@@ -29,10 +29,10 @@ import static com.google.common.collect.Maps.newLinkedHashMap;
 import static com.google.common.collect.Sets.newLinkedHashSet;
 
 public class DefaultResolvedArtifactResults implements VisitedArtifactsResults {
-    private final Map<Long, ArtifactSet> artifactsById;
-    private final Set<Long> buildableArtifacts;
+    private final Map<Integer, ArtifactSet> artifactsById;
+    private final Set<Integer> buildableArtifacts;
 
-    public DefaultResolvedArtifactResults(Map<Long, ArtifactSet> artifactsById, Set<Long> buildableArtifacts) {
+    public DefaultResolvedArtifactResults(Map<Integer, ArtifactSet> artifactsById, Set<Integer> buildableArtifacts) {
         this.artifactsById = artifactsById;
         this.buildableArtifacts = buildableArtifacts;
     }
@@ -40,9 +40,9 @@ public class DefaultResolvedArtifactResults implements VisitedArtifactsResults {
     @Override
     public SelectedArtifactResults select(Spec<? super ComponentIdentifier> componentFilter, Transformer<HasAttributes, Collection<? extends HasAttributes>> selector) {
         Set<ResolvedArtifactSet> allArtifactSets = newLinkedHashSet();
-        final Map<Long, ResolvedArtifactSet> resolvedArtifactsById = newLinkedHashMap();
+        final Map<Integer, ResolvedArtifactSet> resolvedArtifactsById = newLinkedHashMap();
 
-        for (Map.Entry<Long, ArtifactSet> entry : artifactsById.entrySet()) {
+        for (Map.Entry<Integer, ArtifactSet> entry : artifactsById.entrySet()) {
             ArtifactSet artifactSet = entry.getValue();
             if (!componentFilter.isSatisfiedBy(artifactSet.getComponentIdentifier())) {
                 continue;
@@ -67,9 +67,9 @@ public class DefaultResolvedArtifactResults implements VisitedArtifactsResults {
 
     private static class DefaultSelectedArtifactResults implements SelectedArtifactResults {
         private final ResolvedArtifactSet allArtifacts;
-        private final Map<Long, ResolvedArtifactSet> resolvedArtifactsById;
+        private final Map<Integer, ResolvedArtifactSet> resolvedArtifactsById;
 
-        DefaultSelectedArtifactResults(ResolvedArtifactSet allArtifacts, Map<Long, ResolvedArtifactSet> resolvedArtifactsById) {
+        DefaultSelectedArtifactResults(ResolvedArtifactSet allArtifacts, Map<Integer, ResolvedArtifactSet> resolvedArtifactsById) {
             this.allArtifacts = allArtifacts;
             this.resolvedArtifactsById = resolvedArtifactsById;
         }
@@ -80,7 +80,7 @@ public class DefaultResolvedArtifactResults implements VisitedArtifactsResults {
         }
 
         @Override
-        public ResolvedArtifactSet getArtifacts(long id) {
+        public ResolvedArtifactSet getArtifacts(int id) {
             return resolvedArtifactsById.get(id);
         }
     }

@@ -32,7 +32,7 @@ import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DefaultVariantMetadata;
 import org.gradle.internal.component.model.VariantMetadata;
 import org.gradle.internal.id.IdGenerator;
-import org.gradle.internal.id.LongIdGenerator;
+import org.gradle.internal.id.PositiveIntIdGenerator;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.result.BuildableComponentArtifactsResolveResult;
 import org.gradle.internal.resolve.result.DefaultBuildableComponentArtifactsResolveResult;
@@ -44,8 +44,8 @@ import java.util.Set;
  * Adapts a {@link DependencyArtifactsVisitor} to a {@link DependencyGraphVisitor}. Calculates the artifacts contributed by each edge in the graph and forwards the results to the artifact visitor.
  */
 public class ResolvedArtifactsGraphVisitor implements DependencyGraphVisitor {
-    private final IdGenerator<Long> idGenerator = new LongIdGenerator();
-    private final Map<Long, ArtifactSet> artifactSetsByConfiguration = Maps.newHashMap();
+    private final IdGenerator<Integer> idGenerator = new PositiveIntIdGenerator();
+    private final Map<Integer, ArtifactSet> artifactSetsByConfiguration = Maps.newHashMap();
     private final Map<ComponentArtifactIdentifier, ResolvedArtifact> allResolvedArtifacts = Maps.newHashMap();
     private final ArtifactResolver artifactResolver;
 
@@ -83,7 +83,7 @@ public class ResolvedArtifactsGraphVisitor implements DependencyGraphVisitor {
     }
 
     private ArtifactSet getArtifacts(DependencyGraphEdge dependency, DependencyGraphNode toConfiguration) {
-        long id = idGenerator.generateId();
+        int id = idGenerator.generateId();
         ConfigurationMetadata configuration = toConfiguration.getMetadata();
         ComponentResolveMetadata component = toConfiguration.getOwner().getMetadata();
 

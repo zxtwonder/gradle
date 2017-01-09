@@ -48,10 +48,10 @@ public class DefaultArtifactSet implements ArtifactSet {
     private final Set<? extends VariantMetadata> variants;
     private final ArtifactResolver artifactResolver;
     private final Map<ComponentArtifactIdentifier, ResolvedArtifact> allResolvedArtifacts;
-    private final long id;
+    private final int id;
 
     public DefaultArtifactSet(ComponentIdentifier componentIdentifier, ModuleVersionIdentifier ownerId, ModuleSource moduleSource, ModuleExclusion exclusions, Set<? extends VariantMetadata> variants,
-                              ArtifactResolver artifactResolver, Map<ComponentArtifactIdentifier, ResolvedArtifact> allResolvedArtifacts, long id) {
+                              ArtifactResolver artifactResolver, Map<ComponentArtifactIdentifier, ResolvedArtifact> allResolvedArtifacts, int id) {
         this.componentIdentifier = componentIdentifier;
         this.moduleVersionIdentifier = ownerId;
         this.moduleSource = moduleSource;
@@ -68,7 +68,7 @@ public class DefaultArtifactSet implements ArtifactSet {
     }
 
     @Override
-    public long getId() {
+    public int getId() {
         return id;
     }
 
@@ -112,11 +112,11 @@ public class DefaultArtifactSet implements ArtifactSet {
     }
 
     private static class ArtifactSetSnapshot implements ArtifactSet {
-        private final long id;
+        private final int id;
         private final ComponentIdentifier componentIdentifier;
         private final Set<ResolvedVariant> variants;
 
-        public ArtifactSetSnapshot(long id, ComponentIdentifier componentIdentifier, Set<ResolvedVariant> variants) {
+        public ArtifactSetSnapshot(int id, ComponentIdentifier componentIdentifier, Set<ResolvedVariant> variants) {
             this.id = id;
             this.componentIdentifier = componentIdentifier;
             this.variants = variants;
@@ -128,7 +128,7 @@ public class DefaultArtifactSet implements ArtifactSet {
         }
 
         @Override
-        public long getId() {
+        public int getId() {
             return id;
         }
 

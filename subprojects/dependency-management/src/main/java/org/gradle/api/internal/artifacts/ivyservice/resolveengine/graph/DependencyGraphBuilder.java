@@ -44,7 +44,7 @@ import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DefaultComponentOverrideMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.id.IdGenerator;
-import org.gradle.internal.id.LongIdGenerator;
+import org.gradle.internal.id.PositiveIntIdGenerator;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
@@ -88,7 +88,7 @@ public class DependencyGraphBuilder {
     }
 
     public void resolve(ResolveContext resolveContext, DependencyGraphVisitor modelVisitor) {
-        IdGenerator<Long> idGenerator = new LongIdGenerator();
+        IdGenerator<Integer> idGenerator = new PositiveIntIdGenerator();
         DefaultBuildableComponentResolveResult rootModule = new DefaultBuildableComponentResolveResult();
         moduleResolver.resolve(resolveContext, rootModule);
 
@@ -323,7 +323,7 @@ public class DependencyGraphBuilder {
         }
 
         @Override
-        public Long getSelected() {
+        public Integer getSelected() {
             return selector.getSelected().getResultId();
         }
 
@@ -355,14 +355,14 @@ public class DependencyGraphBuilder {
         private final Map<ResolvedConfigurationIdentifier, ConfigurationNode> nodes = new LinkedHashMap<ResolvedConfigurationIdentifier, ConfigurationNode>();
         private final Map<ModuleVersionSelector, ModuleVersionSelectorResolveState> selectors = new LinkedHashMap<ModuleVersionSelector, ModuleVersionSelectorResolveState>();
         private final RootConfigurationNode root;
-        private final IdGenerator<Long> idGenerator;
+        private final IdGenerator<Integer> idGenerator;
         private final DependencyToComponentIdResolver idResolver;
         private final ComponentMetaDataResolver metaDataResolver;
         private final Set<ConfigurationNode> queued = new HashSet<ConfigurationNode>();
         private final LinkedList<ConfigurationNode> queue = new LinkedList<ConfigurationNode>();
         private final AttributesSchema attributesSchema;
 
-        public ResolveState(IdGenerator<Long> idGenerator, ComponentResolveResult rootResult, String rootConfigurationName, DependencyToComponentIdResolver idResolver,
+        public ResolveState(IdGenerator<Integer> idGenerator, ComponentResolveResult rootResult, String rootConfigurationName, DependencyToComponentIdResolver idResolver,
                             ComponentMetaDataResolver metaDataResolver, Spec<? super DependencyMetadata> edgeFilter, AttributesSchema attributesSchema) {
             this.idGenerator = idGenerator;
             this.idResolver = idResolver;
@@ -465,7 +465,7 @@ public class DependencyGraphBuilder {
      */
     private static class ModuleResolveState implements CandidateModule {
         final ComponentMetaDataResolver metaDataResolver;
-        final IdGenerator<Long> idGenerator;
+        final IdGenerator<Integer> idGenerator;
         final ModuleIdentifier id;
         final Set<DependencyEdge> unattachedDependencies = new LinkedHashSet<DependencyEdge>();
         final Map<ModuleVersionIdentifier, ModuleVersionResolveState> versions = new LinkedHashMap<ModuleVersionIdentifier, ModuleVersionResolveState>();
@@ -473,7 +473,7 @@ public class DependencyGraphBuilder {
         final ResolveState resolveState;
         ModuleVersionResolveState selected;
 
-        private ModuleResolveState(IdGenerator<Long> idGenerator, ModuleIdentifier id, ResolveState resolveState, ComponentMetaDataResolver metaDataResolver) {
+        private ModuleResolveState(IdGenerator<Integer> idGenerator, ModuleIdentifier id, ResolveState resolveState, ComponentMetaDataResolver metaDataResolver) {
             this.idGenerator = idGenerator;
             this.id = id;
             this.resolveState = resolveState;
@@ -557,7 +557,7 @@ public class DependencyGraphBuilder {
         public final ModuleVersionIdentifier id;
         private final ComponentMetaDataResolver resolver;
         private final Set<ConfigurationNode> configurations = new LinkedHashSet<ConfigurationNode>();
-        private final Long resultId;
+        private final Integer resultId;
         private final ModuleResolveState module;
         private ComponentResolveMetadata metaData;
         private ModuleState state = ModuleState.New;
@@ -565,7 +565,7 @@ public class DependencyGraphBuilder {
         private ModuleVersionResolveException failure;
         private ModuleVersionSelectorResolveState firstReference;
 
-        private ModuleVersionResolveState(Long resultId, ModuleResolveState module, ModuleVersionIdentifier id, ComponentMetaDataResolver resolver) {
+        private ModuleVersionResolveState(Integer resultId, ModuleResolveState module, ModuleVersionIdentifier id, ComponentMetaDataResolver resolver) {
             this.resultId = resultId;
             this.module = module;
             this.id = id;
@@ -583,7 +583,7 @@ public class DependencyGraphBuilder {
         }
 
         @Override
-        public Long getResultId() {
+        public Integer getResultId() {
             return resultId;
         }
 
@@ -690,7 +690,7 @@ public class DependencyGraphBuilder {
      * Represents a node in the dependency graph.
      */
     static class ConfigurationNode implements DependencyGraphNode {
-        private final Long resultId;
+        private final Integer resultId;
         public final ModuleVersionResolveState moduleRevision;
         public final Set<DependencyEdge> incomingEdges = new LinkedHashSet<DependencyEdge>();
         public final Set<DependencyEdge> outgoingEdges = new LinkedHashSet<DependencyEdge>();
@@ -700,11 +700,11 @@ public class DependencyGraphBuilder {
         private final ResolveState resolveState;
         private ModuleExclusion previousTraversalExclusions;
 
-        private ConfigurationNode(Long resultId, ResolvedConfigurationIdentifier id, ModuleVersionResolveState moduleRevision, ResolveState resolveState) {
+        private ConfigurationNode(Integer resultId, ResolvedConfigurationIdentifier id, ModuleVersionResolveState moduleRevision, ResolveState resolveState) {
             this(resultId, id, moduleRevision, resolveState, moduleRevision.metaData.getConfiguration(id.getConfiguration()));
         }
 
-        private ConfigurationNode(Long resultId, ResolvedConfigurationIdentifier id, ModuleVersionResolveState moduleRevision, ResolveState resolveState, ConfigurationMetadata md) {
+        private ConfigurationNode(Integer resultId, ResolvedConfigurationIdentifier id, ModuleVersionResolveState moduleRevision, ResolveState resolveState, ConfigurationMetadata md) {
             this.resultId = resultId;
             this.id = id;
             this.moduleRevision = moduleRevision;
@@ -714,7 +714,7 @@ public class DependencyGraphBuilder {
         }
 
         @Override
-        public Long getNodeId() {
+        public Integer getNodeId() {
             return resultId;
         }
 
@@ -877,7 +877,7 @@ public class DependencyGraphBuilder {
     }
 
     private static class RootConfigurationNode extends ConfigurationNode {
-        private RootConfigurationNode(Long resultId, ModuleVersionResolveState moduleRevision, ResolvedConfigurationIdentifier id, ResolveState resolveState) {
+        private RootConfigurationNode(Integer resultId, ModuleVersionResolveState moduleRevision, ResolvedConfigurationIdentifier id, ResolveState resolveState) {
             super(resultId, id, moduleRevision, resolveState);
         }
 
@@ -895,7 +895,7 @@ public class DependencyGraphBuilder {
      * Resolution state for a given module version selector.
      */
     private static class ModuleVersionSelectorResolveState implements DependencyGraphSelector {
-        final Long id;
+        final Integer id;
         final DependencyMetadata dependencyMetadata;
         final DependencyToComponentIdResolver resolver;
         final ResolveState resolveState;
@@ -904,7 +904,7 @@ public class DependencyGraphBuilder {
         ModuleVersionResolveState targetModuleRevision;
         BuildableComponentIdResolveResult idResolveResult;
 
-        private ModuleVersionSelectorResolveState(Long id, DependencyMetadata dependencyMetadata, DependencyToComponentIdResolver resolver, ResolveState resolveState) {
+        private ModuleVersionSelectorResolveState(Integer id, DependencyMetadata dependencyMetadata, DependencyToComponentIdResolver resolver, ResolveState resolveState) {
             this.id = id;
             this.dependencyMetadata = dependencyMetadata;
             this.resolver = resolver;
@@ -913,7 +913,7 @@ public class DependencyGraphBuilder {
         }
 
         @Override
-        public Long getResultId() {
+        public Integer getResultId() {
             return id;
         }
 

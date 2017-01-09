@@ -24,12 +24,12 @@ import org.gradle.internal.resolve.ModuleVersionResolveException;
 public class DefaultDependencyResult implements DependencyResult {
 
     private final ComponentSelector requested;
-    private final Long selected;
+    private final Integer selected;
     private final ComponentSelectionReason reason;
     private ModuleVersionResolveException failure;
 
     public DefaultDependencyResult(ComponentSelector requested,
-                                   Long selected,
+                                   Integer selected,
                                    ComponentSelectionReason reason,
                                    ModuleVersionResolveException failure) {
         assert requested != null;
@@ -45,7 +45,7 @@ public class DefaultDependencyResult implements DependencyResult {
         return requested;
     }
 
-    public Long getSelected() {
+    public Integer getSelected() {
         return selected;
     }
 

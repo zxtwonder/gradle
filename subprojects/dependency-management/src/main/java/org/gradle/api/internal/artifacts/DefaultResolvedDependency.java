@@ -40,14 +40,14 @@ public class DefaultResolvedDependency implements ResolvedDependency, Dependency
     private final Set<DefaultResolvedDependency> children = new LinkedHashSet<DefaultResolvedDependency>();
     private final Set<ResolvedDependency> parents = new LinkedHashSet<ResolvedDependency>();
     private final ListMultimap<ResolvedDependency, ResolvedArtifactSet> parentArtifacts = ArrayListMultimap.create();
-    private final Long id;
+    private final Integer id;
     private final String name;
     private final ResolvedConfigurationIdentifier resolvedConfigId;
     private final Set<ResolvedArtifactSet> moduleArtifacts;
     private final Map<ResolvedDependency, Set<ResolvedArtifact>> allArtifactsCache = new HashMap<ResolvedDependency, Set<ResolvedArtifact>>();
     private Set<ResolvedArtifact> allModuleArtifactsCache;
 
-    public DefaultResolvedDependency(Long id, ResolvedConfigurationIdentifier resolvedConfigurationIdentifier) {
+    public DefaultResolvedDependency(Integer id, ResolvedConfigurationIdentifier resolvedConfigurationIdentifier) {
         this.id = id;
         this.name = String.format("%s:%s:%s", resolvedConfigurationIdentifier.getModuleGroup(), resolvedConfigurationIdentifier.getModuleName(), resolvedConfigurationIdentifier.getModuleVersion());
         this.resolvedConfigId = resolvedConfigurationIdentifier;
@@ -64,7 +64,7 @@ public class DefaultResolvedDependency implements ResolvedDependency, Dependency
     }
 
     @Override
-    public Long getNodeId() {
+    public Integer getNodeId() {
         return id;
     }
 

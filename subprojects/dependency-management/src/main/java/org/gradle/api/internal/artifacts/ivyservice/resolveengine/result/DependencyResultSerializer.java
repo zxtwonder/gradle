@@ -32,13 +32,13 @@ public class DependencyResultSerializer {
     private final static byte FAILED = 1;
     private final ComponentSelectionReasonSerializer componentSelectionReasonSerializer = new ComponentSelectionReasonSerializer();
 
-    public DependencyResult read(Decoder decoder, Map<Long, ComponentSelector> selectors, Map<ComponentSelector, ModuleVersionResolveException> failures) throws IOException {
-        Long selectorId = decoder.readSmallLong();
+    public DependencyResult read(Decoder decoder, Map<Integer, ComponentSelector> selectors, Map<ComponentSelector, ModuleVersionResolveException> failures) throws IOException {
+        Integer selectorId = decoder.readInt();
         ComponentSelector requested = selectors.get(selectorId);
 
         byte resultByte = decoder.readByte();
         if (resultByte == SUCCESSFUL) {
-            Long selectedId = decoder.readSmallLong();
+            Integer selectedId = decoder.readInt();
             return new DefaultDependencyResult(requested, selectedId, null, null);
         } else if (resultByte == FAILED) {
             ComponentSelectionReason reason = componentSelectionReasonSerializer.read(decoder);
@@ -50,10 +50,10 @@ public class DependencyResultSerializer {
     }
 
     public void write(Encoder encoder, DependencyGraphEdge value) throws IOException {
-        encoder.writeSmallLong(value.getSelector().getResultId());
+        encoder.writeInt(value.getSelector().getResultId());
         if (value.getFailure() == null) {
             encoder.writeByte(SUCCESSFUL);
-            encoder.writeSmallLong(value.getSelected());
+            encoder.writeInt(value.getSelected());
         } else {
             encoder.writeByte(FAILED);
             componentSelectionReasonSerializer.write(encoder, value.getReason());

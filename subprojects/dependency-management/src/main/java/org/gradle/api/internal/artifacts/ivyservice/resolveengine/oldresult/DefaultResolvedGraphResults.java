@@ -24,9 +24,9 @@ import java.util.Set;
 
 public class DefaultResolvedGraphResults implements ResolvedGraphResults {
     private final Set<UnresolvedDependency> unresolvedDependencies;
-    private final Map<Long, ModuleDependency> modulesMap;
+    private final Map<Integer, ModuleDependency> modulesMap;
 
-    public DefaultResolvedGraphResults(Set<UnresolvedDependency> unresolvedDependencies, Map<Long, ModuleDependency> modulesMap) {
+    public DefaultResolvedGraphResults(Set<UnresolvedDependency> unresolvedDependencies, Map<Integer, ModuleDependency> modulesMap) {
         this.unresolvedDependencies = unresolvedDependencies;
         this.modulesMap = modulesMap;
     }
@@ -42,7 +42,7 @@ public class DefaultResolvedGraphResults implements ResolvedGraphResults {
     }
 
     @Override
-    public ModuleDependency getModuleDependency(long nodeId) {
+    public ModuleDependency getModuleDependency(int nodeId) {
         ModuleDependency m = modulesMap.get(nodeId);
         if (m == null) {
             throw new IllegalArgumentException("Unable to find module dependency for id: " + nodeId);

@@ -34,7 +34,7 @@ public class ComponentResultSerializer implements Serializer<ComponentResult> {
     private final ComponentIdentifierSerializer componentIdSerializer = new ComponentIdentifierSerializer();
 
     public ComponentResult read(Decoder decoder) throws IOException {
-        long resultId = decoder.readSmallLong();
+        int resultId = decoder.readInt();
         ModuleVersionIdentifier id = idSerializer.read(decoder);
         ComponentSelectionReason reason = reasonSerializer.read(decoder);
         ComponentIdentifier componentId = componentIdSerializer.read(decoder);
@@ -42,7 +42,7 @@ public class ComponentResultSerializer implements Serializer<ComponentResult> {
     }
 
     public void write(Encoder encoder, ComponentResult value) throws IOException {
-        encoder.writeSmallLong(value.getResultId());
+        encoder.writeInt(value.getResultId());
         idSerializer.write(encoder, value.getModuleVersion());
         reasonSerializer.write(encoder, value.getSelectionReason());
         componentIdSerializer.write(encoder, value.getComponentId());

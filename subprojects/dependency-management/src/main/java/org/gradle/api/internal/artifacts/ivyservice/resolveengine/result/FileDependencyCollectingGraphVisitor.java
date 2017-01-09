@@ -40,7 +40,7 @@ import java.util.Map;
 import java.util.Set;
 
 public class FileDependencyCollectingGraphVisitor implements DependencyGraphVisitor, VisitedFileDependencyResults, SelectedFileDependencyResults {
-    private final SetMultimap<Long, ResolvedArtifactSet> filesByConfiguration = LinkedHashMultimap.create();
+    private final SetMultimap<Integer, ResolvedArtifactSet> filesByConfiguration = LinkedHashMultimap.create();
     private Map<FileCollectionDependency, ResolvedArtifactSet> rootFiles;
 
     @Override
@@ -96,7 +96,7 @@ public class FileDependencyCollectingGraphVisitor implements DependencyGraphVisi
     }
 
     @Override
-    public ResolvedArtifactSet getFiles(Long node) {
+    public ResolvedArtifactSet getFiles(Integer node) {
         return CompositeArtifactSet.of(filesByConfiguration.get(node));
     }
 

@@ -32,7 +32,7 @@ public interface DependencyResult {
      * Returns the simple id of the selected component.
      */
     @Nullable
-    Long getSelected();
+    Integer getSelected();
 
     /**
      * Not null only when failure is not null.

@@ -64,46 +64,46 @@ public class TransientConfigurationResultsBuilder {
         this.cache = cache;
     }
 
-    public void resolvedDependency(final Long id, final ResolvedConfigurationIdentifier details) {
+    public void resolvedDependency(final Integer id, final ResolvedConfigurationIdentifier details) {
         binaryStore.write(new BinaryStore.WriteAction() {
             @Override
             public void write(Encoder encoder) throws IOException {
                 encoder.writeByte(NEW_DEP);
-                encoder.writeSmallLong(id);
+                encoder.writeInt(id);
                 resolvedConfigurationIdentifierSerializer.write(encoder, details);
             }
         });
     }
 
-    public void done(final Long id) {
+    public void done(final Integer id) {
         binaryStore.write(new BinaryStore.WriteAction() {
             @Override
             public void write(Encoder encoder) throws IOException {
                 encoder.writeByte(ROOT);
-                encoder.writeSmallLong(id);
+                encoder.writeInt(id);
             }
         });
         LOG.debug("Flushing resolved configuration data in {}. Wrote root {}.", binaryStore, id);
         binaryData = binaryStore.done();
     }
 
-    public void firstLevelDependency(final Long id) {
+    public void firstLevelDependency(final Integer id) {
         binaryStore.write(new BinaryStore.WriteAction() {
             @Override
             public void write(Encoder encoder) throws IOException {
                 encoder.writeByte(FIRST_LVL);
-                encoder.writeSmallLong(id);
+                encoder.writeInt(id);
             }
         });
     }
 
-    public void parentChildMapping(final Long parent, final Long child, final long artifactId) {
+    public void parentChildMapping(final Integer parent, final Integer child, final int artifactId) {
         binaryStore.write(new BinaryStore.WriteAction() {
             public void write(Encoder encoder) throws IOException {
                 encoder.writeByte(PARENT_CHILD);
-                encoder.writeSmallLong(parent);
-                encoder.writeSmallLong(child);
-                encoder.writeSmallLong(artifactId);
+                encoder.writeInt(parent);
+                encoder.writeInt(child);
+                encoder.writeInt(artifactId);
             }
         });
     }
@@ -132,7 +132,7 @@ public class TransientConfigurationResultsBuilder {
 
     private TransientConfigurationResults deserialize(Decoder decoder, ResolvedGraphResults graphResults, SelectedArtifactResults artifactResults) {
         Timer clock = Timers.startTimer();
-        Map<Long, DefaultResolvedDependency> allDependencies = new HashMap<Long, DefaultResolvedDependency>();
+        Map<Integer, DefaultResolvedDependency> allDependencies = new HashMap<Integer, DefaultResolvedDependency>();
         Map<ModuleDependency, DependencyGraphNodeResult> firstLevelDependencies = new LinkedHashMap<ModuleDependency, DependencyGraphNodeResult>();
         DependencyGraphNodeResult root;
         int valuesRead = 0;
@@ -140,16 +140,16 @@ public class TransientConfigurationResultsBuilder {
         try {
             while (true) {
                 type = decoder.readByte();
-                long id;
+                int id;
                 valuesRead++;
                 switch (type) {
                     case NEW_DEP:
-                        id = decoder.readSmallLong();
+                        id = decoder.readInt();
                         ResolvedConfigurationIdentifier details = resolvedConfigurationIdentifierSerializer.read(decoder);
                         allDependencies.put(id, new DefaultResolvedDependency(id, details));
                         break;
                     case ROOT:
-                        id = decoder.readSmallLong();
+                        id = decoder.readInt();
                         root = allDependencies.get(id);
                         if (root == null) {
                             throw new IllegalStateException(String.format("Unexpected root id %s. Seen ids: %s", id, allDependencies.keySet()));
@@ -158,7 +158,7 @@ public class TransientConfigurationResultsBuilder {
                         LOG.debug("Loaded resolved configuration results ({}) from {}", clock.getElapsed(), binaryStore);
                         return new DefaultTransientConfigurationResults(root, firstLevelDependencies);
                     case FIRST_LVL:
-                        id = decoder.readSmallLong();
+                        id = decoder.readInt();
                         DefaultResolvedDependency dependency = allDependencies.get(id);
                         if (dependency == null) {
                             throw new IllegalStateException(String.format("Unexpected first level id %s. Seen ids: %s", id, allDependencies.keySet()));
@@ -166,8 +166,8 @@ public class TransientConfigurationResultsBuilder {
                         firstLevelDependencies.put(graphResults.getModuleDependency(id), dependency);
                         break;
                     case PARENT_CHILD:
-                        long parentId = decoder.readSmallLong();
-                        long childId = decoder.readSmallLong();
+                        int parentId = decoder.readInt();
+                        int childId = decoder.readInt();
                         DefaultResolvedDependency parent = allDependencies.get(parentId);
                         DefaultResolvedDependency child = allDependencies.get(childId);
                         if (parent == null) {
@@ -177,7 +177,7 @@ public class TransientConfigurationResultsBuilder {
                             throw new IllegalStateException(String.format("Unexpected child dependency id %s. Seen ids: %s", childId, allDependencies.keySet()));
                         }
                         parent.addChild(child);
-                        child.addParentSpecificArtifacts(parent, artifactResults.getArtifacts(decoder.readSmallLong()));
+                        child.addParentSpecificArtifacts(parent, artifactResults.getArtifacts(decoder.readInt()));
                         break;
                     default:
                         throw new IOException("Unknown value type read from stream: " + type);
