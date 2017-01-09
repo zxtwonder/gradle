@@ -36,7 +36,9 @@ import org.gradle.internal.id.PositiveIntIdGenerator;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.result.BuildableComponentArtifactsResolveResult;
 import org.gradle.internal.resolve.result.DefaultBuildableComponentArtifactsResolveResult;
+import org.gradle.util.SelfExpandArrayList;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -45,7 +47,7 @@ import java.util.Set;
  */
 public class ResolvedArtifactsGraphVisitor implements DependencyGraphVisitor {
     private final IdGenerator<Integer> idGenerator = new PositiveIntIdGenerator();
-    private final Map<Integer, ArtifactSet> artifactSetsByConfiguration = Maps.newHashMap();
+    private final List<ArtifactSet> artifactSetsByConfiguration = new SelfExpandArrayList<ArtifactSet>();
     private final Map<ComponentArtifactIdentifier, ResolvedArtifact> allResolvedArtifacts = Maps.newHashMap();
     private final ArtifactResolver artifactResolver;
 
@@ -101,7 +103,7 @@ public class ResolvedArtifactsGraphVisitor implements DependencyGraphVisitor {
 
             // Only share an ArtifactSet if the artifacts are not filtered by the dependency
             if (!dependency.getExclusions().mayExcludeArtifacts()) {
-                artifactSetsByConfiguration.put(toConfiguration.getNodeId(), configurationArtifactSet);
+                artifactSetsByConfiguration.set(toConfiguration.getNodeId(), configurationArtifactSet);
             }
         }
 

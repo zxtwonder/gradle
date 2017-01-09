@@ -19,15 +19,15 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.UnresolvedDependency;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
+import org.gradle.util.SelfExpandArrayList;
 
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.LinkedHashSet;
-import java.util.Map;
 import java.util.Set;
 
 public class DefaultResolvedConfigurationBuilder implements ResolvedConfigurationBuilder {
     private final Set<UnresolvedDependency> unresolvedDependencies = new LinkedHashSet<UnresolvedDependency>();
-    private final Map<Integer, ModuleDependency> modulesMap = new HashMap<Integer, ModuleDependency>();
+    private final ArrayList<ModuleDependency> modulesMap = new SelfExpandArrayList<ModuleDependency>();
     private final TransientConfigurationResultsBuilder builder;
 
     public DefaultResolvedConfigurationBuilder(TransientConfigurationResultsBuilder builder) {
@@ -40,10 +40,11 @@ public class DefaultResolvedConfigurationBuilder implements ResolvedConfiguratio
 
     @Override
     public void addFirstLevelDependency(ModuleDependency moduleDependency, DependencyGraphNode dependency) {
-        builder.firstLevelDependency(dependency.getNodeId());
+        int nodeId = dependency.getNodeId();
+        builder.firstLevelDependency(nodeId);
         //we don't serialise the module dependencies at this stage so we need to keep track
         //of the mapping module dependency <-> resolved dependency
-        modulesMap.put(dependency.getNodeId(), moduleDependency);
+        modulesMap.set(nodeId, moduleDependency);
     }
 
     @Override
@@ -63,6 +64,6 @@ public class DefaultResolvedConfigurationBuilder implements ResolvedConfiguratio
 
     @Override
     public ResolvedGraphResults complete() {
-        return new DefaultResolvedGraphResults(unresolvedDependencies, modulesMap);
+        return new DefaultResolvedGraphResults(unresolvedDependencies, modulesMap.toArray(new ModuleDependency[0]));
     }
 }

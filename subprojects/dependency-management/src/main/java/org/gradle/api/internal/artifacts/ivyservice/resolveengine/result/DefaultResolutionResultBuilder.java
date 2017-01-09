@@ -27,13 +27,13 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.Dependen
 import org.gradle.api.internal.artifacts.result.DefaultResolutionResult;
 import org.gradle.api.internal.artifacts.result.DefaultResolvedComponentResult;
 import org.gradle.internal.Factory;
+import org.gradle.util.SelfExpandArrayList;
 
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 
 public class DefaultResolutionResultBuilder {
-    private final Map<Integer, DefaultResolvedComponentResult> modules = new HashMap<Integer, DefaultResolvedComponentResult>();
+    private final List<DefaultResolvedComponentResult> modules = new SelfExpandArrayList<DefaultResolvedComponentResult>();
     private final CachingDependencyResultFactory dependencyResultFactory = new CachingDependencyResultFactory();
 
     public static ResolutionResult empty(ModuleVersionIdentifier id, ComponentIdentifier componentIdentifier) {
@@ -66,8 +66,8 @@ public class DefaultResolutionResultBuilder {
     }
 
     private void create(Integer id, ModuleVersionIdentifier moduleVersion, ComponentSelectionReason selectionReason, ComponentIdentifier componentId) {
-        if (!modules.containsKey(id)) {
-            modules.put(id, new DefaultResolvedComponentResult(moduleVersion, selectionReason, componentId));
+        if (modules.get(id) == null) {
+            modules.set(id, new DefaultResolvedComponentResult(moduleVersion, selectionReason, componentId));
         }
     }
 

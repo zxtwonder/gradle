@@ -16,38 +16,41 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
+import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
 import org.gradle.internal.component.local.model.LocalConfigurationMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-
-import static com.google.common.collect.Maps.newLinkedHashMap;
+import java.util.BitSet;
+import java.util.List;
 
 /**
  * Collects all artifacts and their build dependencies.
  */
 public class DefaultResolvedArtifactsBuilder implements DependencyArtifactsVisitor {
     private final boolean buildProjectDependencies;
-    private final Map<Integer, ArtifactSet> artifactSets = newLinkedHashMap();
-    private final Set<Integer> buildableArtifactSets = new HashSet<Integer>();
+    private final List<ArtifactSet> artifactSets = Lists.newArrayList();
+    private final BitSet buildableArtifactSets = new BitSet();
 
+    private int maxId;
     public DefaultResolvedArtifactsBuilder(boolean buildProjectDependencies) {
         this.buildProjectDependencies = buildProjectDependencies;
     }
 
     @Override
     public void visitArtifacts(DependencyGraphNode from, DependencyGraphNode to, ArtifactSet artifacts) {
-        artifactSets.put(artifacts.getId(), artifacts);
+        int id = artifacts.getId();
+        if (id>maxId) {
+            maxId = id;
+        }
+        artifactSets.add(artifacts);
 
         // Don't collect build dependencies if not required
         if (!buildProjectDependencies) {
             return;
         }
-        if (buildableArtifactSets.contains(artifacts.getId())) {
+        if (buildableArtifactSets.get(id)) {
             return;
         }
 
@@ -67,7 +70,7 @@ public class DefaultResolvedArtifactsBuilder implements DependencyArtifactsVisit
             }
         }
 
-        buildableArtifactSets.add(artifacts.getId());
+        buildableArtifactSets.set(id);
     }
 
     @Override
@@ -75,11 +78,10 @@ public class DefaultResolvedArtifactsBuilder implements DependencyArtifactsVisit
     }
 
     public VisitedArtifactsResults complete() {
-        Map<Integer, ArtifactSet> artifactsById = newLinkedHashMap();
-
-        for (Map.Entry<Integer, ArtifactSet> entry : artifactSets.entrySet()) {
-            ArtifactSet resolvedArtifacts = entry.getValue().snapshot();
-            artifactsById.put(entry.getKey(), resolvedArtifacts);
+        ArtifactSet[] artifactsById = new ArtifactSet[maxId+1];
+        for (ArtifactSet artifactSet : artifactSets) {
+            ArtifactSet resolvedArtifacts = artifactSet.snapshot();
+            artifactsById[artifactSet.getId()] = resolvedArtifacts;
         }
 
         return new DefaultResolvedArtifactResults(artifactsById, buildableArtifactSets);

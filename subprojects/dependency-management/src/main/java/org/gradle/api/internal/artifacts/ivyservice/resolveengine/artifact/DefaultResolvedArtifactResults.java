@@ -21,18 +21,17 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.specs.Spec;
 
+import java.util.BitSet;
 import java.util.Collection;
-import java.util.Map;
 import java.util.Set;
 
-import static com.google.common.collect.Maps.newLinkedHashMap;
 import static com.google.common.collect.Sets.newLinkedHashSet;
 
 public class DefaultResolvedArtifactResults implements VisitedArtifactsResults {
-    private final Map<Integer, ArtifactSet> artifactsById;
-    private final Set<Integer> buildableArtifacts;
+    private final ArtifactSet[] artifactsById;
+    private final BitSet buildableArtifacts;
 
-    public DefaultResolvedArtifactResults(Map<Integer, ArtifactSet> artifactsById, Set<Integer> buildableArtifacts) {
+    public DefaultResolvedArtifactResults(ArtifactSet[] artifactsById, BitSet buildableArtifacts) {
         this.artifactsById = artifactsById;
         this.buildableArtifacts = buildableArtifacts;
     }
@@ -40,26 +39,28 @@ public class DefaultResolvedArtifactResults implements VisitedArtifactsResults {
     @Override
     public SelectedArtifactResults select(Spec<? super ComponentIdentifier> componentFilter, Transformer<HasAttributes, Collection<? extends HasAttributes>> selector) {
         Set<ResolvedArtifactSet> allArtifactSets = newLinkedHashSet();
-        final Map<Integer, ResolvedArtifactSet> resolvedArtifactsById = newLinkedHashMap();
+        final ResolvedArtifactSet[] resolvedArtifactsById = new ResolvedArtifactSet[artifactsById.length];
 
-        for (Map.Entry<Integer, ArtifactSet> entry : artifactsById.entrySet()) {
-            ArtifactSet artifactSet = entry.getValue();
-            if (!componentFilter.isSatisfiedBy(artifactSet.getComponentIdentifier())) {
-                continue;
-            }
-            Set<? extends ResolvedVariant> variants = artifactSet.getVariants();
-            ResolvedVariant selected = (ResolvedVariant) selector.transform(variants);
-            ResolvedArtifactSet resolvedArtifacts;
-            if (selected == null) {
-                resolvedArtifacts = ResolvedArtifactSet.EMPTY;
-            } else {
-                resolvedArtifacts = selected.getArtifacts();
-                if (!buildableArtifacts.contains(artifactSet.getId())) {
-                    resolvedArtifacts = NoBuildDependenciesArtifactSet.of(resolvedArtifacts);
+        for (int i = 0; i < artifactsById.length; i++) {
+            ArtifactSet artifactSet = artifactsById[i];
+            if (artifactSet != null) {
+                if (!componentFilter.isSatisfiedBy(artifactSet.getComponentIdentifier())) {
+                    continue;
                 }
-                allArtifactSets.add(resolvedArtifacts);
+                Set<? extends ResolvedVariant> variants = artifactSet.getVariants();
+                ResolvedVariant selected = (ResolvedVariant) selector.transform(variants);
+                ResolvedArtifactSet resolvedArtifacts;
+                if (selected == null) {
+                    resolvedArtifacts = ResolvedArtifactSet.EMPTY;
+                } else {
+                    resolvedArtifacts = selected.getArtifacts();
+                    if (!buildableArtifacts.get(artifactSet.getId())) {
+                        resolvedArtifacts = NoBuildDependenciesArtifactSet.of(resolvedArtifacts);
+                    }
+                    allArtifactSets.add(resolvedArtifacts);
+                }
+                resolvedArtifactsById[i] = resolvedArtifacts;
             }
-            resolvedArtifactsById.put(entry.getKey(), resolvedArtifacts);
         }
 
         return new DefaultSelectedArtifactResults(CompositeArtifactSet.of(allArtifactSets), resolvedArtifactsById);
@@ -67,9 +68,9 @@ public class DefaultResolvedArtifactResults implements VisitedArtifactsResults {
 
     private static class DefaultSelectedArtifactResults implements SelectedArtifactResults {
         private final ResolvedArtifactSet allArtifacts;
-        private final Map<Integer, ResolvedArtifactSet> resolvedArtifactsById;
+        private final ResolvedArtifactSet[] resolvedArtifactsById;
 
-        DefaultSelectedArtifactResults(ResolvedArtifactSet allArtifacts, Map<Integer, ResolvedArtifactSet> resolvedArtifactsById) {
+        DefaultSelectedArtifactResults(ResolvedArtifactSet allArtifacts, ResolvedArtifactSet[] resolvedArtifactsById) {
             this.allArtifacts = allArtifacts;
             this.resolvedArtifactsById = resolvedArtifactsById;
         }
@@ -81,7 +82,7 @@ public class DefaultResolvedArtifactResults implements VisitedArtifactsResults {
 
         @Override
         public ResolvedArtifactSet getArtifacts(int id) {
-            return resolvedArtifactsById.get(id);
+            return resolvedArtifactsById[id];
         }
     }
 }

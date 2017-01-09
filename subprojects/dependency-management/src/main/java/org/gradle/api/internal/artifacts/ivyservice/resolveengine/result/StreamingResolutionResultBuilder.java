@@ -40,8 +40,8 @@ import org.gradle.internal.time.Timers;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -60,7 +60,7 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
     private final Store<ResolvedComponentResult> cache;
     private final ComponentSelectorSerializer componentSelectorSerializer = new ComponentSelectorSerializer();
     private final DependencyResultSerializer dependencyResultSerializer = new DependencyResultSerializer();
-    private final Set<Integer> visitedComponents = new HashSet<Integer>();
+    private final BitSet visitedComponents = new BitSet();
 
     public StreamingResolutionResultBuilder(BinaryStore store, Store<ResolvedComponentResult> cache) {
         this.store = store;
@@ -90,7 +90,9 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
     @Override
     public void visitNode(DependencyGraphNode resolvedConfiguration) {
         final DependencyGraphComponent component = resolvedConfiguration.getOwner();
-        if (visitedComponents.add(component.getResultId())) {
+        Integer resultId = component.getResultId();
+        if (!visitedComponents.get(resultId)) {
+            visitedComponents.set(resultId);
             store.write(new BinaryStore.WriteAction() {
                 public void write(Encoder encoder) throws IOException {
                     encoder.writeByte(COMPONENT);
