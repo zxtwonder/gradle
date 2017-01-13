@@ -561,7 +561,7 @@ public class DefaultCacheAccess implements CacheCoordinator {
         }
 
         private void checkCompatibleKeySerializer(Collection<String> faultMessages, Serializer keySerializer) {
-            if (!Objects.equal(keySerializer, parameters.getKeySerializer())) {
+            if (!Objects.equal(keySerializer.getClass(), parameters.getKeySerializer().getClass())) {
                 faultMessages.add(
                     String.format(" * Requested key serializer type (%s) doesn't match current cache type (%s)",
                         keySerializer.getClass().getCanonicalName(),
@@ -570,7 +570,7 @@ public class DefaultCacheAccess implements CacheCoordinator {
         }
 
         private void checkCompatibleValueSerializer(Collection<String> faultMessages, Serializer valueSerializer) {
-            if (!Objects.equal(valueSerializer, parameters.getValueSerializer())) {
+            if (!Objects.equal(valueSerializer.getClass(), parameters.getValueSerializer().getClass())) {
                 faultMessages.add(
                     String.format(" * Requested value serializer type (%s) doesn't match current cache type (%s)",
                         valueSerializer.getClass().getCanonicalName(),
