@@ -16,16 +16,15 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 
-import com.google.common.base.Objects;
 import org.gradle.internal.component.model.ModuleSource;
-import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.DefaultSerializer;
 import org.gradle.internal.serialize.Encoder;
+import org.gradle.internal.serialize.Serializer;
 
 import java.math.BigInteger;
 
-class ModuleMetadataCacheEntrySerializer extends AbstractSerializer<ModuleMetadataCacheEntry> {
+class ModuleMetadataCacheEntrySerializer implements Serializer<ModuleMetadataCacheEntry> {
     private final DefaultSerializer<ModuleSource> moduleSourceSerializer = new DefaultSerializer<ModuleSource>(ModuleSource.class.getClassLoader());
 
     public void write(Encoder encoder, ModuleMetadataCacheEntry value) throws Exception {
@@ -62,20 +61,5 @@ class ModuleMetadataCacheEntrySerializer extends AbstractSerializer<ModuleMetada
             default:
                 throw new IllegalArgumentException("Don't know how to deserialize meta-data entry of type " + type);
         }
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (!super.equals(obj)) {
-            return false;
-        }
-
-        ModuleMetadataCacheEntrySerializer rhs = (ModuleMetadataCacheEntrySerializer) obj;
-        return Objects.equal(moduleSourceSerializer, rhs.moduleSourceSerializer);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hashCode(super.hashCode(), moduleSourceSerializer);
     }
 }

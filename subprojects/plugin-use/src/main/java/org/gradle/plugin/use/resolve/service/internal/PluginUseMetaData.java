@@ -16,7 +16,6 @@
 
 package org.gradle.plugin.use.resolve.service.internal;
 
-import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.BaseSerializerFactory;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
@@ -84,7 +83,7 @@ public class PluginUseMetaData {
         return result;
     }
 
-    public static class Serializer extends AbstractSerializer<PluginUseMetaData> {
+    public static class Serializer implements org.gradle.internal.serialize.Serializer<PluginUseMetaData> {
         public PluginUseMetaData read(Decoder decoder) throws Exception {
             return new PluginUseMetaData(
                     decoder.readString(),

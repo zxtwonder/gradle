@@ -16,7 +16,6 @@
 
 package org.gradle.plugin.use.resolve.service.internal;
 
-import com.google.common.base.Objects;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.cache.PersistentCache;
@@ -24,7 +23,6 @@ import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.CompositeStoppable;
-import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
@@ -124,7 +122,7 @@ public class PersistentCachingPluginResolutionServiceClient implements PluginRes
         CompositeStoppable.stoppable(delegate, cacheAccess).stop();
     }
 
-    private static class ResponseSerializer<T> extends AbstractSerializer<Response<T>> {
+    private static class ResponseSerializer<T> implements Serializer<Response<T>> {
 
         private final Serializer<T> payloadSerializer;
 
@@ -151,21 +149,6 @@ public class PersistentCachingPluginResolutionServiceClient implements PluginRes
             encoder.writeSmallInt(value.getStatusCode());
             encoder.writeString(value.getUrl());
             encoder.writeNullableString(value.getClientStatusChecksum());
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            if (!super.equals(obj)) {
-                return false;
-            }
-
-            ResponseSerializer rhs = (ResponseSerializer) obj;
-            return Objects.equal(payloadSerializer, rhs.payloadSerializer);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hashCode(super.hashCode(), payloadSerializer);
         }
     }
 
@@ -207,7 +190,7 @@ public class PersistentCachingPluginResolutionServiceClient implements PluginRes
             return result;
         }
 
-        private static class Serializer extends AbstractSerializer<PluginRequestKey> {
+        private static class Serializer implements org.gradle.internal.serialize.Serializer<PluginRequestKey> {
 
             public PluginRequestKey read(Decoder decoder) throws Exception {
                 return new PluginRequestKey(decoder.readString(), decoder.readString(), decoder.readString());
@@ -230,7 +213,7 @@ public class PersistentCachingPluginResolutionServiceClient implements PluginRes
             this.portalUrl = portalUrl;
         }
 
-        public static class Serializer extends AbstractSerializer<ClientStatusKey> {
+        public static class Serializer implements org.gradle.internal.serialize.Serializer<ClientStatusKey> {
             public ClientStatusKey read(Decoder decoder) throws Exception {
                 return new ClientStatusKey(decoder.readString());
             }

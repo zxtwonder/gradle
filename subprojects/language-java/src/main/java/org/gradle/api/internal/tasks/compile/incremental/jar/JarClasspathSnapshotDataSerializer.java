@@ -16,13 +16,12 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.jar;
 
-import com.google.common.base.Objects;
 import com.google.common.hash.HashCode;
-import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.HashCodeSerializer;
 import org.gradle.internal.serialize.MapSerializer;
+import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.serialize.SetSerializer;
 
 import java.io.File;
@@ -32,7 +31,7 @@ import java.util.Set;
 import static org.gradle.internal.serialize.BaseSerializerFactory.FILE_SERIALIZER;
 import static org.gradle.internal.serialize.BaseSerializerFactory.STRING_SERIALIZER;
 
-public class JarClasspathSnapshotDataSerializer extends AbstractSerializer<JarClasspathSnapshotData> {
+public class JarClasspathSnapshotDataSerializer implements Serializer<JarClasspathSnapshotData> {
     private final MapSerializer<File, HashCode> mapSerializer = new MapSerializer<File, HashCode>(FILE_SERIALIZER, new HashCodeSerializer());
     private final SetSerializer<String> setSerializer = new SetSerializer<String>(STRING_SERIALIZER, false);
 
@@ -47,20 +46,5 @@ public class JarClasspathSnapshotDataSerializer extends AbstractSerializer<JarCl
     public void write(Encoder encoder, JarClasspathSnapshotData value) throws Exception {
         setSerializer.write(encoder, value.getDuplicateClasses());
         mapSerializer.write(encoder, value.getJarHashes());
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (!super.equals(obj)) {
-            return false;
-        }
-
-        JarClasspathSnapshotDataSerializer rhs = (JarClasspathSnapshotDataSerializer) obj;
-        return Objects.equal(mapSerializer, rhs.mapSerializer) && Objects.equal(setSerializer, rhs.setSerializer);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hashCode(super.hashCode(), mapSerializer, setSerializer);
     }
 }

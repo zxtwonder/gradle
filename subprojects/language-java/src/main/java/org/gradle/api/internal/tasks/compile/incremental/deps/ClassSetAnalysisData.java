@@ -19,7 +19,6 @@ package org.gradle.api.internal.tasks.compile.incremental.deps;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
-import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.SetSerializer;
@@ -80,7 +79,7 @@ public class ClassSetAnalysisData {
         return children == null ? Collections.<String>emptySet() : children;
     }
 
-    public static class Serializer extends AbstractSerializer<ClassSetAnalysisData> {
+    public static class Serializer implements org.gradle.internal.serialize.Serializer<ClassSetAnalysisData> {
         private static final SetSerializer<Integer> INTEGER_SET_SERIALIZER = new SetSerializer<Integer>(INTEGER_SERIALIZER, false);
 
         @Override

@@ -16,18 +16,17 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import com.google.common.base.Objects;
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.HashCodeSerializer;
+import org.gradle.internal.serialize.Serializer;
 
 import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-public class SnapshotMapSerializer extends AbstractSerializer<Map<String, NormalizedFileSnapshot>> {
+public class SnapshotMapSerializer implements Serializer<Map<String, NormalizedFileSnapshot>> {
     private static final byte DIR_SNAPSHOT = 1;
     private static final byte MISSING_FILE_SNAPSHOT = 2;
     private static final byte REGULAR_FILE_SNAPSHOT = 3;
@@ -98,21 +97,6 @@ public class SnapshotMapSerializer extends AbstractSerializer<Map<String, Normal
             NormalizedFileSnapshot snapshot = value.get(key);
             writeSnapshot(encoder, snapshot);
         }
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (!super.equals(obj)) {
-            return false;
-        }
-
-        SnapshotMapSerializer rhs = (SnapshotMapSerializer) obj;
-        return Objects.equal(hashCodeSerializer, rhs.hashCodeSerializer);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hashCode(super.hashCode(), hashCodeSerializer);
     }
 
     private void writeSnapshot(Encoder encoder, NormalizedFileSnapshot value) throws IOException {
