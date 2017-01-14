@@ -32,6 +32,7 @@ import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.CachingFileHasher;
 import org.gradle.api.internal.changedetection.state.InMemoryTaskArtifactCache;
 import org.gradle.api.internal.changedetection.state.NonPersistentCacheFileTimestampInspector;
+import org.gradle.api.internal.changedetection.state.TaskExecutionListSerializer;
 import org.gradle.api.internal.classpath.DefaultModuleRegistry;
 import org.gradle.api.internal.classpath.DefaultPluginModuleRegistry;
 import org.gradle.api.internal.classpath.ModuleRegistry;
@@ -414,5 +415,9 @@ public class GlobalScopeServices {
 
     MemoryManager createMemoryManager(MemoryInfo memoryInfo, ListenerManager listenerManager, ExecutorFactory executorFactory) {
         return new DefaultMemoryManager(memoryInfo, listenerManager, executorFactory, 0.1D);
+    }
+
+    TaskExecutionListSerializer createTaskExecutionListSerializer(StringInterner stringInterner) {
+        return new TaskExecutionListSerializer(stringInterner);
     }
 }

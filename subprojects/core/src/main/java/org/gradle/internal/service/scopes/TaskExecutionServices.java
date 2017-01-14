@@ -44,6 +44,7 @@ import org.gradle.api.internal.changedetection.state.InMemoryTaskArtifactCache;
 import org.gradle.api.internal.changedetection.state.JvmClassHasher;
 import org.gradle.api.internal.changedetection.state.OutputFilesSnapshotter;
 import org.gradle.api.internal.changedetection.state.PersistentCacheFileTimestampInspector;
+import org.gradle.api.internal.changedetection.state.TaskExecutionListSerializer;
 import org.gradle.api.internal.changedetection.state.TaskHistoryRepository;
 import org.gradle.api.internal.changedetection.state.TaskHistoryStore;
 import org.gradle.api.internal.file.FileCollectionFactory;
@@ -198,7 +199,9 @@ public class TaskExecutionServices {
         return new DefaultFileCollectionSnapshotterRegistry(snapshotters);
     }
 
-    TaskArtifactStateRepository createTaskArtifactStateRepository(Instantiator instantiator, TaskHistoryStore cacheAccess, StartParameter startParameter, StringInterner stringInterner, FileCollectionFactory fileCollectionFactory, ClassLoaderHierarchyHasher classLoaderHierarchyHasher, FileCollectionSnapshotterRegistry fileCollectionSnapshotterRegistry) {
+    TaskArtifactStateRepository createTaskArtifactStateRepository(Instantiator instantiator, TaskHistoryStore cacheAccess, StartParameter startParameter, StringInterner stringInterner,
+                                                                  FileCollectionFactory fileCollectionFactory, ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
+                                                                  FileCollectionSnapshotterRegistry fileCollectionSnapshotterRegistry, TaskExecutionListSerializer serializer) {
         OutputFilesSnapshotter outputFilesSnapshotter = new OutputFilesSnapshotter();
 
         SerializerRegistry serializerRegistry = new DefaultSerializerRegistry();
@@ -210,6 +213,7 @@ public class TaskExecutionServices {
             new CacheBackedFileSnapshotRepository(cacheAccess,
                 serializerRegistry.build(FileCollectionSnapshot.class),
                 new RandomLongIdGenerator()),
+            serializer,
             stringInterner);
 
         return new ShortCircuitTaskArtifactStateRepository(
