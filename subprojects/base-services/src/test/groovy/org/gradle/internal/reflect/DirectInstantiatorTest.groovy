@@ -69,14 +69,14 @@ class DirectInstantiatorTest extends Specification {
         then:
         ObjectInstantiationException e = thrown()
         e.cause instanceof IllegalArgumentException
-        e.cause.message == "Found multiple public constructors for ${TypeWithAmbiguousConstructor} which accept parameters [param]."
+        e.cause.message == "Found multiple public constructors for ${TypeWithAmbiguousConstructor} which accept parameters [java.lang.String]."
 
         when:
         instantiator.newInstance(TypeWithAmbiguousConstructor, true)
 
         then:
         e = thrown()
-        e.cause.message == "Found multiple public constructors for ${TypeWithAmbiguousConstructor} which accept parameters [true]."
+        e.cause.message == "Found multiple public constructors for ${TypeWithAmbiguousConstructor} which accept parameters [java.lang.Boolean]."
     }
 
     def "fails when target class has no matching public constructor"() {
