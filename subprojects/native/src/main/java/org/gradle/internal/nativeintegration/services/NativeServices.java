@@ -34,6 +34,7 @@ import org.gradle.internal.nativeintegration.console.NativePlatformConsoleDetect
 import org.gradle.internal.nativeintegration.console.NoOpConsoleDetector;
 import org.gradle.internal.nativeintegration.console.WindowsConsoleDetector;
 import org.gradle.internal.nativeintegration.filesystem.FileMetadataAccessor;
+import org.gradle.internal.nativeintegration.filesystem.FileMetadataSnapshot;
 import org.gradle.internal.nativeintegration.filesystem.services.FallbackFileMetadataAccessor;
 import org.gradle.internal.nativeintegration.filesystem.services.FileSystemServices;
 import org.gradle.internal.nativeintegration.filesystem.services.NativePlatformBackedFileMetadataAccessor;
@@ -52,6 +53,7 @@ import java.io.File;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.net.URI;
 
 /**
  * Provides various native platform integration services.
@@ -218,19 +220,20 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
     }
 
     protected FileMetadataAccessor createFileMetadataAccessor(OperatingSystem operatingSystem) {
+        FileMetadataAccessor delegate = null;
         if (operatingSystem.isMacOsX() && useNativeIntegrations) {
             try {
-                return new NativePlatformBackedFileMetadataAccessor(net.rubygrapefruit.platform.Native.get(Files.class));
+                delegate = new NativePlatformBackedFileMetadataAccessor(net.rubygrapefruit.platform.Native.get(Files.class));
             } catch (NativeIntegrationUnavailableException e) {
                 LOGGER.debug("Native-platform files integration is not available. Continuing with fallback.");
             }
+        } else if (JavaVersion.current().isJava7Compatible()) {
+            delegate = JavaReflectionUtil.newInstanceOrFallback("org.gradle.internal.nativeintegration.filesystem.jdk7.Jdk7FileMetadataAccessor", NativeServices.class.getClassLoader(), FallbackFileMetadataAccessor.class);
+        } else {
+            delegate = new FallbackFileMetadataAccessor();
         }
 
-        if (JavaVersion.current().isJava7Compatible()) {
-            return JavaReflectionUtil.newInstanceOrFallback("org.gradle.internal.nativeintegration.filesystem.jdk7.Jdk7FileMetadataAccessor", NativeServices.class.getClassLoader(), FallbackFileMetadataAccessor.class);
-        }
-
-        return new FallbackFileMetadataAccessor();
+        return new CachingFileMetadataAccessor(delegate);
     }
 
     private <T> T notAvailable(Class<T> type) {
@@ -258,6 +261,49 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
         @Override
         public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
             throw new org.gradle.internal.nativeintegration.NativeIntegrationUnavailableException(String.format("%s is not supported on this operating system.", type));
+        }
+    }
+
+    public static class CachedFile extends File {
+        private FileMetadataSnapshot snapshot;
+
+        public CachedFile(String pathname) {
+            super(pathname);
+        }
+
+        public CachedFile(String parent, String child) {
+            super(parent, child);
+        }
+
+        public CachedFile(File parent, String child) {
+            super(parent, child);
+        }
+
+        public CachedFile(URI uri) {
+            super(uri);
+        }
+
+        public FileMetadataSnapshot getSnapshot(FileMetadataAccessor accessor) {
+            if (snapshot == null) {
+                snapshot = accessor.stat(this);
+            }
+            return snapshot;
+        }
+    }
+
+    private static class CachingFileMetadataAccessor implements FileMetadataAccessor {
+        private final FileMetadataAccessor delegate;
+
+        public CachingFileMetadataAccessor(FileMetadataAccessor delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public FileMetadataSnapshot stat(File f) {
+            if (f instanceof CachedFile) {
+                return ((CachedFile) f).getSnapshot(delegate);
+            }
+            return delegate.stat(f);
         }
     }
 }

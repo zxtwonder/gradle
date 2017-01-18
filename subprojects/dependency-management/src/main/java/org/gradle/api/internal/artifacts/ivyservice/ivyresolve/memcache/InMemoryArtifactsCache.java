@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentArtifacts;
+import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 import org.gradle.internal.resolve.result.BuildableComponentArtifactsResolveResult;
@@ -47,7 +48,8 @@ class InMemoryArtifactsCache {
 
     public void newArtifact(ComponentArtifactIdentifier id, BuildableArtifactResolveResult result) {
         if (result.isSuccessful()) {
-            artifacts.put(id, result.getResult());
+            File resolvedFile = result.getResult();
+            artifacts.put(id, new NativeServices.CachedFile(resolvedFile.getAbsolutePath()));
         }
     }
 
