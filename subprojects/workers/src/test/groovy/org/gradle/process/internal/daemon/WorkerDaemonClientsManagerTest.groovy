@@ -25,10 +25,10 @@ class WorkerDaemonClientsManagerTest extends ConcurrentSpecification {
     def workingDir = new File("some-dir")
 
     def options = Stub(DaemonForkOptions)
-    def starter = Stub(WorkerDaemonStarter)
+    def starter = Stub(DefaultWorkerDaemonStarter)
     def serverImpl = Stub(WorkerDaemonProtocol)
 
-    @Subject manager = new WorkerDaemonClientsManager(starter)
+    @Subject manager = new WorkerDaemonClientsManager()
 
     def "does not reserve idle client when no clients"() {
         expect:
@@ -59,7 +59,7 @@ class WorkerDaemonClientsManagerTest extends ConcurrentSpecification {
         starter.startDaemon(serverImpl.class, workingDir, options) >> newClient
 
         when:
-        def client = manager.reserveNewClient(serverImpl.class, workingDir, options)
+        def client = manager.reserveNewClient(serverImpl.class, workingDir, options, starter)
 
         then:
         newClient == client
@@ -71,8 +71,8 @@ class WorkerDaemonClientsManagerTest extends ConcurrentSpecification {
         starter.startDaemon(serverImpl.class, workingDir, options) >>> [client1, client2]
 
         when:
-        manager.reserveNewClient(serverImpl.class, workingDir, options)
-        manager.reserveNewClient(serverImpl.class, workingDir, options)
+        manager.reserveNewClient(serverImpl.class, workingDir, options, starter)
+        manager.reserveNewClient(serverImpl.class, workingDir, options, starter)
         manager.stop()
 
         then:
@@ -85,7 +85,7 @@ class WorkerDaemonClientsManagerTest extends ConcurrentSpecification {
         starter.startDaemon(serverImpl.class, workingDir, options) >> client
 
         when:
-        manager.reserveNewClient(serverImpl.class, workingDir, options)
+        manager.reserveNewClient(serverImpl.class, workingDir, options, starter)
 
         then:
         manager.reserveIdleClient(options) == null
@@ -110,7 +110,7 @@ class WorkerDaemonClientsManagerTest extends ConcurrentSpecification {
         }
 
         when:
-        3.times { manager.reserveNewClient(serverImpl.class, workingDir, options) }
+        3.times { manager.reserveNewClient(serverImpl.class, workingDir, options, starter) }
         [client1, client2, client3].each { manager.release(it) }
         manager.selectIdleClientsToStop(stopMostPreferredClient)
 
@@ -140,7 +140,7 @@ class WorkerDaemonClientsManagerTest extends ConcurrentSpecification {
         }
 
         when:
-        3.times { manager.reserveNewClient(serverImpl.class, workingDir, options) }
+        3.times { manager.reserveNewClient(serverImpl.class, workingDir, options, starter) }
         manager.release(client3)
         manager.selectIdleClientsToStop(stopAll)
 

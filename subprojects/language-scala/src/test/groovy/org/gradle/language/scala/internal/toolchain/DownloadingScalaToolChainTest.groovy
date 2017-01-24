@@ -22,16 +22,16 @@ import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ResolveException
 import org.gradle.api.artifacts.dsl.DependencyHandler
-import org.gradle.process.internal.daemon.WorkerDaemonManager
 import org.gradle.api.internal.tasks.scala.ScalaCompileSpec
 import org.gradle.internal.text.TreeFormatter
 import org.gradle.language.scala.ScalaPlatform
+import org.gradle.process.internal.daemon.SessionWorkerDaemonManager
 import spock.lang.Specification
 
 class DownloadingScalaToolChainTest extends Specification {
 
     ConfigurationContainer configurationContainer = Mock()
-    WorkerDaemonManager compilerDaemonManager = Mock()
+    SessionWorkerDaemonManager compilerDaemonManager = Mock()
     DependencyHandler dependencyHandler = Mock()
     File gradleUserHome = Mock()
     File rootProjectDir = Mock()

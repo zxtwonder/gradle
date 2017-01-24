@@ -21,12 +21,12 @@ import org.gradle.api.internal.tasks.DefaultJavaToolChain;
 import org.gradle.api.internal.tasks.compile.DefaultJavaCompilerFactory;
 import org.gradle.api.internal.tasks.compile.JavaCompilerFactory;
 import org.gradle.api.internal.tasks.compile.JavaHomeBasedJavaCompilerFactory;
-import org.gradle.process.internal.daemon.WorkerDaemonManager;
 import org.gradle.internal.Factory;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
 import org.gradle.jvm.internal.toolchain.JavaToolChainInternal;
 import org.gradle.process.internal.ExecActionFactory;
+import org.gradle.process.internal.daemon.SessionWorkerDaemonManager;
 
 import javax.tools.JavaCompiler;
 
@@ -60,7 +60,7 @@ public class JavaToolChainServiceRegistry implements PluginServiceRegistry {
     }
 
     private static class ProjectScopeCompileServices {
-        JavaCompilerFactory createJavaCompilerFactory(GradleInternal gradle, WorkerDaemonManager compilerDaemonManager, Factory<JavaCompiler> javaHomeBasedJavaCompilerFactory) {
+        JavaCompilerFactory createJavaCompilerFactory(GradleInternal gradle, SessionWorkerDaemonManager compilerDaemonManager, Factory<JavaCompiler> javaHomeBasedJavaCompilerFactory) {
             return new DefaultJavaCompilerFactory(gradle.getRootProject().getProjectDir(), compilerDaemonManager, javaHomeBasedJavaCompilerFactory);
         }
 

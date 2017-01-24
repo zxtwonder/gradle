@@ -16,19 +16,16 @@
 package org.gradle.process.internal.daemon;
 
 import org.gradle.internal.concurrent.Stoppable;
-import org.gradle.internal.operations.BuildOperationWorkerRegistry;
 import org.gradle.process.internal.health.memory.JvmMemoryStatus;
 import org.gradle.process.internal.worker.WorkerProcess;
 
-class WorkerDaemonClient implements WorkerDaemon, Stoppable {
-    private final BuildOperationWorkerRegistry buildOperationWorkerRegistry;
+public class WorkerDaemonClient implements WorkerDaemon, Stoppable {
     private final DaemonForkOptions forkOptions;
     private final WorkerDaemonWorker workerDaemonWorker;
     private final WorkerProcess workerProcess;
     private int uses;
 
-    public WorkerDaemonClient(BuildOperationWorkerRegistry buildOperationWorkerRegistry, DaemonForkOptions forkOptions, WorkerDaemonWorker workerDaemonWorker, WorkerProcess workerProcess) {
-        this.buildOperationWorkerRegistry = buildOperationWorkerRegistry;
+    public WorkerDaemonClient(DaemonForkOptions forkOptions, WorkerDaemonWorker workerDaemonWorker, WorkerProcess workerProcess) {
         this.forkOptions = forkOptions;
         this.workerDaemonWorker = workerDaemonWorker;
         this.workerProcess = workerProcess;
@@ -38,13 +35,8 @@ class WorkerDaemonClient implements WorkerDaemon, Stoppable {
     public <T extends WorkSpec> WorkerDaemonResult execute(WorkerDaemonAction<T> action, T spec) {
         // currently we just allow a single compilation thread at a time (per compiler daemon)
         // one problem to solve when allowing multiple threads is how to deal with memory requirements specified by compile tasks
-        BuildOperationWorkerRegistry.Completion workerLease = buildOperationWorkerRegistry.getCurrent().operationStart();
-        try {
-            uses++;
-            return workerDaemonWorker.execute(action, spec);
-        } finally {
-            workerLease.operationFinish();
-        }
+        uses++;
+        return workerDaemonWorker.execute(action, spec);
     }
 
     public boolean isCompatibleWith(DaemonForkOptions required) {

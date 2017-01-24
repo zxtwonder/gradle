@@ -50,7 +50,8 @@ class WorkerDaemonExpirationTest extends Specification {
             }
         }
     }
-    def clientsManager = new WorkerDaemonClientsManager(daemonStarter)
+
+    def clientsManager = new WorkerDaemonClientsManager()
     def expiration = new WorkerDaemonExpiration(clientsManager, MemoryAmount.ofGigaBytes(OS_MEMORY_GB).bytes)
 
     def "expires least recently used idle worker daemon to free system memory when requested to release some memory"() {
@@ -187,7 +188,7 @@ class WorkerDaemonExpirationTest extends Specification {
     }
 
     private WorkerDaemonClient reserveNewClient(DaemonForkOptions forkOptions) {
-        return clientsManager.reserveNewClient(WorkerDaemonServer, workingDir, forkOptions)
+        return clientsManager.reserveNewClient(WorkerDaemonServer, workingDir, forkOptions, daemonStarter)
     }
 
     private WorkerDaemonClient reserveIdleClient(DaemonForkOptions forkOptions) {

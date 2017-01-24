@@ -22,6 +22,7 @@ import org.gradle.process.internal.daemon.DaemonForkOptions;
 import org.gradle.api.tasks.compile.BaseForkOptions;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.play.internal.spec.PlayCompileSpec;
+import org.gradle.process.internal.daemon.WorkerDaemonStarter;
 
 import java.io.File;
 import java.util.Collections;

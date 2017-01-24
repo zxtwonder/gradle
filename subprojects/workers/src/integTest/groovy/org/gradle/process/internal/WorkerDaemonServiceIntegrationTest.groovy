@@ -176,6 +176,26 @@ class WorkerDaemonServiceIntegrationTest extends AbstractWorkerDaemonServiceInte
         assertSameDaemonWasUsed("runInDaemon", "reuseDaemon")
     }
 
+    def "re-uses an existing compatible daemon across separate builds" () {
+        executer.requireDaemon()
+        executer.requireIsolatedDaemons()
+
+        withRunnableClassInBuildSrc()
+
+        buildFile << """
+            task runInDaemon(type: DaemonTask)
+            
+            task reuseDaemon(type: DaemonTask)
+        """
+
+        when:
+        succeeds("runInDaemon")
+        succeeds("reuseDaemon")
+
+        then:
+        assertSameDaemonWasUsed("runInDaemon", "reuseDaemon")
+    }
+
     def "throws if used from a thread with no current build operation"() {
         given:
         withRunnableClassInBuildSrc()

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,10 @@
 
 package org.gradle.process.internal.daemon;
 
-import java.io.File;
-
-public interface WorkerDaemonManager {
-    WorkerDaemon getDaemon(Class<? extends WorkerDaemonProtocol> serverImplementationClass, File workingDir, DaemonForkOptions forkOptions, WorkerDaemonStarter workerDaemonStarter);
+/**
+ * This is a marker interface to distinguish these classes from other
+ * {@link WorkerDaemonFactory} instances that might be in a service registry
+ * such as InProcessCompilerDaemonFactory.
+ */
+public interface SessionWorkerDaemonManager extends WorkerDaemonFactory {
 }

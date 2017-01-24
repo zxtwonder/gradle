@@ -39,7 +39,7 @@ import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.language.base.internal.compile.Compiler;
-import org.gradle.process.internal.daemon.WorkerDaemonManager;
+import org.gradle.process.internal.daemon.SessionWorkerDaemonManager;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
@@ -67,7 +67,7 @@ public class GroovyCompile extends AbstractCompile {
     private Compiler<GroovyJavaJointCompileSpec> getCompiler(GroovyJavaJointCompileSpec spec) {
         if (compiler == null) {
             ProjectInternal projectInternal = (ProjectInternal) getProject();
-            WorkerDaemonManager compilerDaemonManager = getServices().get(WorkerDaemonManager.class);
+            SessionWorkerDaemonManager compilerDaemonManager = getServices().get(SessionWorkerDaemonManager.class);
             InProcessCompilerDaemonFactory inProcessCompilerDaemonFactory = getServices().get(InProcessCompilerDaemonFactory.class);
             JavaCompilerFactory javaCompilerFactory = getServices().get(JavaCompilerFactory.class);
             GroovyCompilerFactory groovyCompilerFactory = new GroovyCompilerFactory(projectInternal, javaCompilerFactory, compilerDaemonManager, inProcessCompilerDaemonFactory);

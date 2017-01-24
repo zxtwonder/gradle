@@ -26,6 +26,7 @@ import org.gradle.process.internal.daemon.WorkerDaemonResult;
 import org.gradle.process.internal.daemon.WorkerDaemon;
 import org.gradle.process.internal.daemon.WorkerDaemonFactory;
 import org.gradle.process.internal.daemon.WorkerDaemonServer;
+import org.gradle.process.internal.daemon.WorkerDaemonStarter;
 
 import java.io.File;
 
@@ -89,6 +90,11 @@ public abstract class AbstractDaemonCompiler<T extends CompileSpec> implements C
         @Override
         public <T extends WorkSpec> WorkerDaemonResult execute(WorkerDaemonAction<T> action, T spec) {
             return super.execute(action, spec);
+        }
+
+        @Override
+        public String toString() {
+            return "CompilerDaemonServer{}";
         }
     }
 }

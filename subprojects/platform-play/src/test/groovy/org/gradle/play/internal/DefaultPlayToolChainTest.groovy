@@ -23,7 +23,7 @@ import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ResolveException
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.internal.file.FileResolver
-import org.gradle.process.internal.daemon.WorkerDaemonManager
+import org.gradle.process.internal.daemon.DefaultWorkerDaemonManager
 import org.gradle.internal.text.TreeFormatter
 import org.gradle.language.scala.ScalaPlatform
 import org.gradle.play.internal.toolchain.DefaultPlayToolChain
@@ -35,7 +35,7 @@ import spock.lang.Unroll
 
 class DefaultPlayToolChainTest extends Specification {
     FileResolver fileResolver = Mock()
-    WorkerDaemonManager compilerDaemonManager = Mock()
+    DefaultWorkerDaemonManager compilerDaemonManager = Mock()
     ConfigurationContainer configurationContainer = Mock()
     DependencyHandler dependencyHandler = Mock()
     PlayPlatform playPlatform = Stub(PlayPlatform)

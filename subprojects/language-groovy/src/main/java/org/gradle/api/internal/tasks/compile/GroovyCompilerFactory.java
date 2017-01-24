@@ -19,20 +19,20 @@ package org.gradle.api.internal.tasks.compile;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.process.internal.daemon.WorkerDaemonFactory;
-import org.gradle.process.internal.daemon.WorkerDaemonManager;
 import org.gradle.api.internal.tasks.compile.daemon.DaemonGroovyCompiler;
 import org.gradle.api.internal.tasks.compile.daemon.InProcessCompilerDaemonFactory;
 import org.gradle.api.tasks.compile.GroovyCompileOptions;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.base.internal.compile.CompilerFactory;
+import org.gradle.process.internal.daemon.SessionWorkerDaemonManager;
 
 public class GroovyCompilerFactory implements CompilerFactory<GroovyJavaJointCompileSpec> {
     private final ProjectInternal project;
     private final JavaCompilerFactory javaCompilerFactory;
-    private final WorkerDaemonManager compilerDaemonFactory;
+    private final SessionWorkerDaemonManager compilerDaemonFactory;
     private final InProcessCompilerDaemonFactory inProcessCompilerDaemonFactory;
 
-    public GroovyCompilerFactory(ProjectInternal project, JavaCompilerFactory javaCompilerFactory, WorkerDaemonManager compilerDaemonManager,
+    public GroovyCompilerFactory(ProjectInternal project, JavaCompilerFactory javaCompilerFactory, SessionWorkerDaemonManager compilerDaemonManager,
                                  InProcessCompilerDaemonFactory inProcessCompilerDaemonFactory) {
         this.project = project;
         this.javaCompilerFactory = javaCompilerFactory;

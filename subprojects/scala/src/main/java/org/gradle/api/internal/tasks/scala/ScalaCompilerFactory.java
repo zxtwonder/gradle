@@ -20,6 +20,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.process.internal.daemon.WorkerDaemonFactory;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.base.internal.compile.CompilerFactory;
+import org.gradle.process.internal.daemon.WorkerDaemonStarter;
 
 import java.io.File;
 import java.util.Set;

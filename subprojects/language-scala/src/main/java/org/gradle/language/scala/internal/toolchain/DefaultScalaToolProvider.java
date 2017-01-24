@@ -16,7 +16,6 @@
 
 package org.gradle.language.scala.internal.toolchain;
 
-import org.gradle.process.internal.daemon.WorkerDaemonManager;
 import org.gradle.api.internal.tasks.scala.DaemonScalaCompiler;
 import org.gradle.api.internal.tasks.scala.NormalizingScalaCompiler;
 import org.gradle.api.internal.tasks.scala.ScalaJavaJointCompileSpec;
@@ -24,6 +23,7 @@ import org.gradle.api.internal.tasks.scala.ZincScalaCompiler;
 import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.platform.base.internal.toolchain.ToolProvider;
+import org.gradle.process.internal.daemon.SessionWorkerDaemonManager;
 import org.gradle.util.TreeVisitor;
 
 import java.io.File;
@@ -34,11 +34,11 @@ public class DefaultScalaToolProvider implements ToolProvider {
 
     private final File gradleUserHomeDir;
     private final File rootProjectDir;
-    private final WorkerDaemonManager compilerDaemonManager;
+    private final SessionWorkerDaemonManager compilerDaemonManager;
     private final Set<File> resolvedScalaClasspath;
     private final Set<File> resolvedZincClasspath;
 
-    public DefaultScalaToolProvider(File gradleUserHomeDir, File rootProjectDir, WorkerDaemonManager compilerDaemonManager, Set<File> resolvedScalaClasspath, Set<File> resolvedZincClasspath) {
+    public DefaultScalaToolProvider(File gradleUserHomeDir, File rootProjectDir, SessionWorkerDaemonManager compilerDaemonManager, Set<File> resolvedScalaClasspath, Set<File> resolvedZincClasspath) {
         this.gradleUserHomeDir = gradleUserHomeDir;
         this.rootProjectDir = rootProjectDir;
         this.compilerDaemonManager = compilerDaemonManager;
