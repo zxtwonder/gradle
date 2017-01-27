@@ -16,6 +16,8 @@
 package org.gradle.api.internal.tasks.compile;
 
 import org.gradle.api.internal.tasks.compile.daemon.AbstractDaemonCompiler;
+import org.gradle.api.tasks.WorkResult;
+import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.process.internal.daemon.WorkerDaemonFactory;
 import org.gradle.process.internal.daemon.DaemonForkOptions;
 import org.gradle.api.tasks.compile.ForkOptions;
@@ -26,9 +28,11 @@ import java.util.Collections;
 
 public class DaemonJavaCompiler extends AbstractDaemonCompiler<JavaCompileSpec> {
     private static final Iterable<String> SHARED_PACKAGES = Collections.singleton("com.sun.tools.javac");
+    private final CachedClasspathTransformer cachedClasspathTransformer;
 
-    public DaemonJavaCompiler(File daemonWorkingDir, Compiler<JavaCompileSpec> delegate, WorkerDaemonFactory compilerDaemonFactory) {
+    public DaemonJavaCompiler(File daemonWorkingDir, Compiler<JavaCompileSpec> delegate, WorkerDaemonFactory compilerDaemonFactory, CachedClasspathTransformer cachedClasspathTransformer) {
         super(daemonWorkingDir, delegate, compilerDaemonFactory);
+        this.cachedClasspathTransformer = cachedClasspathTransformer;
     }
 
     @Override
@@ -37,5 +41,10 @@ public class DaemonJavaCompiler extends AbstractDaemonCompiler<JavaCompileSpec> 
         return new DaemonForkOptions(
                 forkOptions.getMemoryInitialSize(), forkOptions.getMemoryMaximumSize(), forkOptions.getJvmArgs(),
                 Collections.<File>emptyList(), SHARED_PACKAGES);
+    }
+
+    @Override
+    public WorkResult execute(JavaCompileSpec spec) {
+        return super.execute(new CachedClasspathJavaCompileSpec(spec, cachedClasspathTransformer));
     }
 }
