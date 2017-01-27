@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import org.gradle.testing.performance.generator.DependencyGenerator
 import org.gradle.testing.performance.generator.tasks.JvmProjectGeneratorTask
 import org.gradle.testing.performance.generator.tasks.KtsProjectGeneratorTask
 import org.gradle.testing.performance.generator.tasks.MonolithicNativeProjectGeneratorTask
@@ -26,6 +25,12 @@ task small(type: JvmProjectGeneratorTask, description: 'Generates a small projec
 
 task largeSrc(type: JvmProjectGeneratorTask, description: 'Generates a single project with lots of source files') {
     sourceFiles = 50000
+    linesOfCodePerSourceFile = 20
+//    subProjectTemplates << 'plain-ant-compile'
+}
+
+task mediumSrc(type: JvmProjectGeneratorTask, description: 'Generates a single project with lots of source files') {
+    sourceFiles = 5000
     linesOfCodePerSourceFile = 20
 //    subProjectTemplates << 'plain-ant-compile'
 }
@@ -105,14 +110,32 @@ task lotDependencies(type: JvmProjectGeneratorTask, description: 'Generates a sm
     }
 }
 
+class Helper {
+    static int to(n, seed) { n>1 ? Math.floor(Math.log(n)/Math.log(seed)) : n }
+    static Set<Integer> dependencies(int n) {
+        (Math.max(1, n-5)..<n).collect { int it ->
+            to(it, 1.3d)
+        }.findAll { it < n }
+    }
+}
+
 task lotProjectDependencies(type: JvmProjectGeneratorTask, description: 'Generates a large multi-project build with a large Dependency Graph and plenty of project dependencies') {
     projects = 100
-    sourceFiles = 1
+    sourceFiles = 500
     templateArgs = [resolveDependenciesTask: true, projectDependencies: true]
-
     dependencyGraph {
-        size = 400
+        size = 10
         depth = 6
+    }
+
+    createExtendsAndImplementsClause = { testProject, prefix, fileNumber ->
+        def pid = (testProject.name - 'project').toInteger()
+        def projectDependencies = Helper.dependencies(pid) as List
+        if (projectDependencies) {
+            def dep = projectDependencies.get(fileNumber % (projectDependencies.size()))
+            return "extends org.gradle.test.performance${dep}_${(int) (fileNumber / filesPerPackage) + 1}.Production${dep}_${1+fileNumber}"
+        }
+        ''
     }
 }
 

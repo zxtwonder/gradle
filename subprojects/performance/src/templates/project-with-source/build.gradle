@@ -2,6 +2,15 @@ apply plugin: 'java'
 apply plugin: 'eclipse'
 apply plugin: 'idea'
 
+<%
+static int to(n, seed) { n>1 ? Math.floor(Math.log(n)/Math.log(seed)) : n }
+static Set<Integer> dependencies(int n) {
+    (Math.max(1, n-5)..<n).collect { int it ->
+        to(it, 1.3d)
+    }.findAll { it < n }
+}
+%>
+
 repositories {
 <% if (repository) { %>
     maven {
@@ -39,9 +48,9 @@ dependencies {
     <% if (dependencies) { dependencies.each { %>
     compile "${it.shortNotation()}" <% } %>
     <% } %>
-    <% if (binding.hasVariable("projectDependencies") && subprojectNumber > 1) { (1..<subprojectNumber).each { %>
-    projectsConfiguration project(":project${it}") <% } %>
-    <% } %>
+    <% if (binding.hasVariable("projectDependencies") && subprojectNumber > 1) { dependencies(subprojectNumber).each { %>
+        projectsConfiguration project(":project${it}") <% } %>
+        <% } %>
 }
 
 test {

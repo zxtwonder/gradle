@@ -1,5 +1,13 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <%
+    static int to(n, seed) { n>1 ? Math.floor(Math.log(n)/Math.log(seed)) : n }
+    static Set<Integer> dependencies(int n) {
+    (Math.max(1, n-5)..<n).collect { int it ->
+    to(it, 1.3d)
+    }.findAll { it < n }
+    }
+    %>
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.gradle</groupId>
     <artifactId>${projectName}</artifactId>
@@ -9,7 +17,7 @@
     <repositories>
         <repository>
           <id>local-repo</id>
-          <url>${repository.getUri()}</url>
+          <url>file:mavenRepo/</url>
         </repository>
       </repositories>
     <% } %>
@@ -57,6 +65,15 @@
             <artifactId>${dep.artifactId}</artifactId>
             <version>${dep.version}</version>
         </dependency> <% } %>  <% } %>
+
+        <% if (binding.hasVariable("projectDependencies") && subprojectNumber > 1) { dependencies(subprojectNumber).each { %>
+        <dependency>
+            <groupId>org.gradle</groupId>
+            <artifactId>project${it}</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency> <% } %>
+        <% } %>
+
     </dependencies>
     <build>
         <plugins>
