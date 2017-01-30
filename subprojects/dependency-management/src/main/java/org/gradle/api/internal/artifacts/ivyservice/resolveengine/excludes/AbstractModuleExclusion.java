@@ -23,6 +23,8 @@ import java.util.Collection;
 abstract class AbstractModuleExclusion implements ModuleExclusion {
     private static final String WILDCARD = "*";
 
+    private int hashCode = -1;
+
     protected static boolean isWildcard(String attribute) {
         return WILDCARD.equals(attribute);
     }
@@ -67,6 +69,7 @@ abstract class AbstractModuleExclusion implements ModuleExclusion {
 
     /**
      * Possibly unpack a composite spec into it's constituent parts, if those parts are applied as an intersection.
+     * @param specs
      */
     protected void unpackIntersection(Collection<AbstractModuleExclusion> specs) {
         specs.add(this);
@@ -94,7 +97,11 @@ abstract class AbstractModuleExclusion implements ModuleExclusion {
 
     @Override
     public final int hashCode() {
-        return doHashCode();
+        if (hashCode != -1) {
+            return hashCode;
+        }
+        hashCode = doHashCode();
+        return hashCode;
     }
 
     protected abstract int doHashCode();

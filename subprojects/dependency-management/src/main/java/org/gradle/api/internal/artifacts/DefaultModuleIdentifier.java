@@ -16,13 +16,18 @@
 
 package org.gradle.api.internal.artifacts;
 
+import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.ModuleIdentifier;
 
+import java.util.Map;
+
 public class DefaultModuleIdentifier implements ModuleIdentifier {
+    private static final Map<String, Map<String, DefaultModuleIdentifier>> CACHE = Maps.newConcurrentMap();
+
     private final String group;
     private final String name;
 
-    public DefaultModuleIdentifier(String group, String name) {
+    private DefaultModuleIdentifier(String group, String name) {
         assert group != null : "group cannot be null";
         assert name != null : "name cannot be null";
         this.group = group;
@@ -30,7 +35,18 @@ public class DefaultModuleIdentifier implements ModuleIdentifier {
     }
 
     public static ModuleIdentifier newId(String group, String name) {
-        return new DefaultModuleIdentifier(group, name);
+        Map<String, DefaultModuleIdentifier> byGroupId = CACHE.get(group);
+        if (byGroupId == null) {
+            byGroupId = Maps.newConcurrentMap();
+            CACHE.put(group, byGroupId);
+        }
+        DefaultModuleIdentifier id = byGroupId.get(name);
+        if (id != null) {
+            return id;
+        }
+        id = new DefaultModuleIdentifier(group, name);
+        byGroupId.put(name, id);
+        return id;
     }
 
     public String getGroup() {
@@ -66,6 +82,6 @@ public class DefaultModuleIdentifier implements ModuleIdentifier {
 
     @Override
     public int hashCode() {
-        return group.hashCode() ^ name.hashCode();
+        return 31 * group.hashCode() + name.hashCode();
     }
 }

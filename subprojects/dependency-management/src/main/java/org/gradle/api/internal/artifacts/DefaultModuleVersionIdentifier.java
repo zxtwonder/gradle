@@ -21,20 +21,24 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 
 public class DefaultModuleVersionIdentifier implements ModuleVersionIdentifier {
 
-    private final DefaultModuleIdentifier id;
+    private final ModuleIdentifier id;
     private final String version;
 
     public DefaultModuleVersionIdentifier(String group, String name, String version) {
         assert group != null : "group cannot be null";
         assert name != null : "name cannot be null";
         assert version != null : "version cannot be null";
-        this.id = new DefaultModuleIdentifier(group, name);
+        this.id = DefaultModuleIdentifier.newId(group, name);
         this.version = version;
     }
 
     public DefaultModuleVersionIdentifier(ModuleIdentifier id, String version) {
-        this.id = new DefaultModuleIdentifier(id.getGroup(), id.getName());
+        this.id = asImmutable(id);
         this.version = version;
+    }
+
+    private static ModuleIdentifier asImmutable(ModuleIdentifier id) {
+        return id instanceof DefaultModuleIdentifier ? id : DefaultModuleIdentifier.newId(id.getGroup(), id.getName());
     }
 
     public String getGroup() {

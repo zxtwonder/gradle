@@ -343,16 +343,7 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
                 if (allExcludes.isEmpty()) {
                     configurationExclude = ModuleExclusions.excludeNone();
                 } else {
-                    List<Exclude> filtered = Lists.newArrayList();
-                    for (Exclude exclude : allExcludes) {
-                        for (String config : exclude.getConfigurations()) {
-                            if (hierarchy.contains(config)) {
-                                filtered.add(exclude);
-                                break;
-                            }
-                        }
-                    }
-                    configurationExclude = ModuleExclusions.excludeAny(filtered);
+                    configurationExclude = ModuleExclusions.excludeAny(allExcludes, hierarchy);
                 }
             }
             return configurationExclude;

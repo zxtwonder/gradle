@@ -77,4 +77,36 @@ public class DefaultExclude implements Exclude {
     public String getMatcher() {
         return patternMatcher;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        DefaultExclude that = (DefaultExclude) o;
+
+        if (!moduleId.equals(that.moduleId)) {
+            return false;
+        }
+        if (!artifact.equals(that.artifact)) {
+            return false;
+        }
+        if (!configurations.equals(that.configurations)) {
+            return false;
+        }
+        return patternMatcher.equals(that.patternMatcher);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = moduleId.hashCode();
+        result = 31 * result + artifact.hashCode();
+        result = 31 * result + configurations.hashCode();
+        result = 31 * result + patternMatcher.hashCode();
+        return result;
+    }
 }
