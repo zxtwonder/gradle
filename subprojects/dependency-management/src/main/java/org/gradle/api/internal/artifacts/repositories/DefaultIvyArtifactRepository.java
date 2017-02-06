@@ -111,9 +111,10 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
 
     private IvyResolver createResolver(RepositoryTransport transport) {
         return new IvyResolver(
-                getName(), transport,
-                locallyAvailableResourceFinder,
-                metaDataProvider.dynamicResolve, artifactFileStore, ivyContextManager, moduleIdentifierFactory);
+            getName(), transport,
+            locallyAvailableResourceFinder,
+            createDynamicVersionSupplier(),
+            metaDataProvider.dynamicResolve, artifactFileStore, ivyContextManager, moduleIdentifierFactory);
     }
 
     public URI getUrl() {

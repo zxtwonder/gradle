@@ -17,9 +17,12 @@ package org.gradle.api.internal.artifacts.repositories;
 
 import org.gradle.api.NamedDomainObjectCollection;
 import org.gradle.api.artifacts.repositories.ArtifactRepository;
+import org.gradle.api.artifacts.repositories.DynamicVersionSupplier;
 
 public interface ArtifactRepositoryInternal extends ArtifactRepository {
 
     void onAddToContainer(NamedDomainObjectCollection<ArtifactRepository> container);
+
+    Class<? extends DynamicVersionSupplier> getDynamicVersionSupplier();
 
 }

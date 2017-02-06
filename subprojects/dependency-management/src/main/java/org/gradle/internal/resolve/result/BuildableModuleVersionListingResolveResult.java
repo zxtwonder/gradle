@@ -17,6 +17,7 @@
 package org.gradle.internal.resolve.result;
 
 import org.gradle.api.Nullable;
+import org.gradle.api.artifacts.repositories.VersionListingBuilder;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 
 import java.util.Collection;
@@ -25,7 +26,7 @@ import java.util.Set;
 /**
  * The result of attempting to resolve the list of versions for a particular module.
  */
-public interface BuildableModuleVersionListingResolveResult extends ResourceAwareResolveResult, ResolveResult {
+public interface BuildableModuleVersionListingResolveResult extends ResourceAwareResolveResult, ResolveResult, VersionListingBuilder {
 
     static enum State {
         Listed, Failed, Unknown

@@ -19,6 +19,7 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.artifacts.repositories.DynamicVersionSupplier;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepositoryAccess;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.DescriptorParseContext;
@@ -66,15 +67,16 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
 
     public MavenResolver(String name, URI rootUri, RepositoryTransport transport,
                          LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
+                         DynamicVersionSupplier dynamicVersionSupplier,
                          FileStore<ModuleComponentArtifactIdentifier> artifactFileStore,
                          MetaDataParser<MutableMavenModuleResolveMetadata> pomParser,
                          ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
         super(name, transport.isLocal(),
-                transport.getRepository(),
-                transport.getResourceAccessor(),
-                new ChainedVersionLister(new MavenVersionLister(transport.getRepository()), new ResourceVersionLister(transport.getRepository())),
-                locallyAvailableResourceFinder,
-                artifactFileStore, moduleIdentifierFactory);
+            transport.getRepository(),
+            transport.getResourceAccessor(),
+            new ChainedVersionLister(new MavenVersionLister(transport.getRepository()), new ResourceVersionLister(transport.getRepository())),
+            dynamicVersionSupplier, locallyAvailableResourceFinder,
+            artifactFileStore, moduleIdentifierFactory);
         this.metaDataParser = pomParser;
         this.mavenMetaDataLoader = new MavenMetadataLoader(transport.getRepository());
         this.root = rootUri;
@@ -286,8 +288,8 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
 
     private MavenUniqueSnapshotComponentIdentifier composeSnapshotIdentifier(ModuleComponentIdentifier moduleComponentIdentifier, MavenUniqueSnapshotModuleSource uniqueSnapshotVersion) {
         return new MavenUniqueSnapshotComponentIdentifier(moduleComponentIdentifier.getGroup(),
-                moduleComponentIdentifier.getModule(),
-                moduleComponentIdentifier.getVersion(),
-                uniqueSnapshotVersion.getTimestamp());
+            moduleComponentIdentifier.getModule(),
+            moduleComponentIdentifier.getVersion(),
+            uniqueSnapshotVersion.getTimestamp());
     }
 }

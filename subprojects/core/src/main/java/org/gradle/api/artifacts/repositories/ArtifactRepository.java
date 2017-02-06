@@ -43,4 +43,6 @@ public interface ArtifactRepository {
      * @throws IllegalStateException If the name is set after it has been added to the container.
      */
     void setName(String name);
+
+    void dynamicVersionSupplier(Class<? extends DynamicVersionSupplier> supplierClass);
 }

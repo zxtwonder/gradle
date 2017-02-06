@@ -18,11 +18,14 @@ package org.gradle.api.internal.artifacts.repositories;
 
 import org.gradle.api.NamedDomainObjectCollection;
 import org.gradle.api.artifacts.repositories.ArtifactRepository;
+import org.gradle.api.artifacts.repositories.DynamicVersionSupplier;
+import org.gradle.internal.UncheckedException;
 
 public abstract class AbstractArtifactRepository implements ArtifactRepositoryInternal {
 
     private String name;
     private boolean isPartOfContainer;
+    private Class<? extends DynamicVersionSupplier> dynamicVersionSupplierClass;
 
     public void onAddToContainer(NamedDomainObjectCollection<ArtifactRepository> container) {
         isPartOfContainer = true;
@@ -37,5 +40,28 @@ public abstract class AbstractArtifactRepository implements ArtifactRepositoryIn
             throw new IllegalStateException("The name of an ArtifactRepository cannot be changed after it has been added to a repository container. You should set the name when creating the repository.");
         }
         this.name = name;
+    }
+
+    @Override
+    public Class<? extends DynamicVersionSupplier> getDynamicVersionSupplier() {
+        return dynamicVersionSupplierClass;
+    }
+
+    @Override
+    public void dynamicVersionSupplier(Class<? extends DynamicVersionSupplier> supplierClass) {
+        dynamicVersionSupplierClass = supplierClass;
+    }
+
+    protected DynamicVersionSupplier createDynamicVersionSupplier() {
+        if (dynamicVersionSupplierClass != null) {
+            try {
+                return dynamicVersionSupplierClass.newInstance();
+            } catch (InstantiationException e) {
+                throw UncheckedException.throwAsUncheckedException(e);
+            } catch (IllegalAccessException e) {
+                throw UncheckedException.throwAsUncheckedException(e);
+            }
+        }
+        return null;
     }
 }

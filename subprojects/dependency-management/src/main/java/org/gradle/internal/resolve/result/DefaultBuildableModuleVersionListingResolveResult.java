@@ -18,6 +18,7 @@ package org.gradle.internal.resolve.result;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -50,6 +51,13 @@ public class DefaultBuildableModuleVersionListingResolveResult extends DefaultRe
     public ModuleVersionResolveException getFailure() {
         assertHasResult();
         return failure;
+    }
+
+    @Override
+    public void listed(String singleVersion) {
+        reset(State.Listed);
+        this.versions = Collections.singleton(singleVersion);
+        this.authoritative = true;
     }
 
     public void listed(Collection<String> versions) {

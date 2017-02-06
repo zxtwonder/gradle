@@ -114,7 +114,7 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
 
     private MavenResolver createResolver(URI rootUri) {
         RepositoryTransport transport = getTransport(rootUri.getScheme());
-        return new MavenResolver(getName(), rootUri, transport, locallyAvailableResourceFinder, artifactFileStore, pomParser, moduleIdentifierFactory);
+        return new MavenResolver(getName(), rootUri, transport, locallyAvailableResourceFinder, createDynamicVersionSupplier(), artifactFileStore, pomParser, moduleIdentifierFactory);
     }
 
     public MetaDataParser<MutableMavenModuleResolveMetadata> getPomParser() {

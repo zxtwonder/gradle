@@ -17,6 +17,7 @@ package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.artifacts.repositories.DynamicVersionSupplier;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.IvyContextManager;
 import org.gradle.api.internal.artifacts.ivyservice.IvyContextualMetaDataParser;
@@ -54,9 +55,12 @@ public class IvyResolver extends ExternalResourceResolver<IvyModuleResolveMetada
 
     public IvyResolver(String name, RepositoryTransport transport,
                        LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
-                       boolean dynamicResolve, FileStore<ModuleComponentArtifactIdentifier> artifactFileStore, IvyContextManager ivyContextManager,
+                       DynamicVersionSupplier dynamicVersionSupplier,
+                       boolean dynamicResolve,
+                       FileStore<ModuleComponentArtifactIdentifier> artifactFileStore,
+                       IvyContextManager ivyContextManager,
                        ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
-        super(name, transport.isLocal(), transport.getRepository(), transport.getResourceAccessor(), new ResourceVersionLister(transport.getRepository()), locallyAvailableResourceFinder, artifactFileStore, moduleIdentifierFactory);
+        super(name, transport.isLocal(), transport.getRepository(), transport.getResourceAccessor(), new ResourceVersionLister(transport.getRepository()), dynamicVersionSupplier, locallyAvailableResourceFinder, artifactFileStore, moduleIdentifierFactory);
         this.metaDataParser = new IvyContextualMetaDataParser<MutableIvyModuleResolveMetadata>(ivyContextManager, new DownloadedIvyModuleDescriptorParser(new IvyModuleDescriptorConverter(moduleIdentifierFactory), moduleIdentifierFactory));
         this.dynamicResolve = dynamicResolve;
         this.moduleIdentifierFactory = moduleIdentifierFactory;

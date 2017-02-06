@@ -127,6 +127,7 @@ class ResolveIvyFactoryTest extends Specification {
                     externalResourceRepository,
                     cacheAwareExternalResourceAccessor,
                     versionLister,
+                    null,
                     locallyAvailableResourceFinder,
                     fileStore,
                     moduleIdentifierFactory

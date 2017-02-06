@@ -50,7 +50,7 @@ class ExternalResourceResolverTest extends Specification {
 
     def setup() {
         //We use a spy here to avoid dealing with all the overhead ivys basicresolver brings in here.
-        resolver = Spy(ExternalResourceResolver, constructorArgs: [name, true, repository, resourceAccessor, versionLister, locallyAvailableResourceFinder, fileStore, moduleIdentifierFactory])
+        resolver = Spy(ExternalResourceResolver, constructorArgs: [name, true, repository, resourceAccessor, versionLister, null, locallyAvailableResourceFinder, fileStore, moduleIdentifierFactory])
     }
 
     def reportsNotFoundArtifactResolveResult() {
