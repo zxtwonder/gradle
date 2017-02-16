@@ -20,7 +20,6 @@ import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
-import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.test.fixtures.server.http.RepositoryHttpServer
@@ -94,9 +93,9 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         resolveCompileA.children == [configureB]
     }
 
-    @LeaksFileHandles
     def "generates events for downloading artifacts"() {
         given:
+        toolingApi.requireIsolatedToolingApi()
         toolingApi.requireIsolatedUserHome()
 
         def projectB = mavenHttpRepo.module('group', 'projectB', '1.0').publish()
@@ -174,15 +173,6 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         resolveArtifactA.children.isEmpty()
         resolveArtifactB.children == [downloadBArtifact]
         resolveArtifactC.children == [downloadCArtifact]
-
-        cleanup:
-        try {
-            toolingApi.getDaemons().killAll()
-        } catch (RuntimeException ex) {
-            //TODO once we figured out why pid from logfile can be null we should remove this again
-            LOGGER.warn("Unable to kill daemon(s)", ex);
-        }
-
     }
 
     MavenHttpRepository getMavenHttpRepo() {
