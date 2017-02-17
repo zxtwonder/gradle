@@ -20,7 +20,6 @@ import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import org.gradle.performance.ResultSpecification
-import org.gradle.performance.measure.DataAmount
 import org.gradle.performance.measure.Duration
 import org.gradle.performance.results.DataReporter
 import org.gradle.performance.results.MeasuredOperationList
@@ -315,44 +314,27 @@ class CrossVersionPerformanceTestRunnerTest extends ResultSpecification {
         noExceptionThrown()
     }
 
-    def "a performance regression is identified in memory but we only check for speed"() {
+
+    def "fails on inconclusive results"() {
         given:
         def runner = runner()
         runner.targetVersions = ['last']
 
         when:
-        System.setProperty('org.gradle.performance.execution.checks', 'speed')
         1 * experimentRunner.run(_, _) >> { BuildExperimentSpec spec, MeasuredOperationList result ->
             result.add(operation(totalTime: Duration.seconds(10)))
+            result.add(operation(totalTime: Duration.seconds(50)))
+            result.add(operation(totalTime: Duration.seconds(500)))
         }
         1 * experimentRunner.run(_, _) >> { BuildExperimentSpec spec, MeasuredOperationList result ->
-            result.add(operation(totalTime: Duration.seconds(10), totalMemoryUsed: DataAmount.kbytes(5)))
+            result.add(operation(totalTime: Duration.seconds(500)))
         }
         def results = runner.run()
         results.assertCurrentVersionHasNotRegressed()
 
-        then: "test passes"
-        noExceptionThrown()
-    }
-
-    def "a performance regression is identified in memory but we only check for nothing"() {
-        given:
-        def runner = runner()
-        runner.targetVersions = ['last']
-
-        when:
-        System.setProperty('org.gradle.performance.execution.checks', 'none')
-        1 * experimentRunner.run(_, _) >> { BuildExperimentSpec spec, MeasuredOperationList result ->
-            result.add(operation(totalTime: Duration.seconds(10)))
-        }
-        1 * experimentRunner.run(_, _) >> { BuildExperimentSpec spec, MeasuredOperationList result ->
-            result.add(operation(totalTime: Duration.seconds(10), totalMemoryUsed: DataAmount.kbytes(5)))
-        }
-        def results = runner.run()
-        results.assertCurrentVersionHasNotRegressed()
-
-        then: "test passes"
-        noExceptionThrown()
+        then:
+        def e = thrown(IllegalStateException)
+        e.message.contains("inconclusive")
     }
 
     def "fails when build under test fails"() {

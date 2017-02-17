@@ -24,14 +24,14 @@ class CrossVersionPerformanceTestExecutionTest extends ResultSpecification {
 
     def "passes when average execution time for current release is smaller than average execution time for previous releases"() {
         given:
-        result.baseline("1.0").results.add(operation(totalTime: 110))
-        result.baseline("1.0").results.add(operation(totalTime: 100))
-        result.baseline("1.0").results.add(operation(totalTime: 90))
+        result.baseline("1.0").results.add(operation(totalTime: 91))
+        result.baseline("1.0").results.add(operation(totalTime: 93))
+        result.baseline("1.0").results.add(operation(totalTime: 95))
 
         and:
-        result.current.add(operation(totalTime: 90))
-        result.current.add(operation(totalTime: 110))
-        result.current.add(operation(totalTime: 90))
+        result.current.add(operation(totalTime: 91))
+        result.current.add(operation(totalTime: 92))
+        result.current.add(operation(totalTime: 93))
 
         expect:
         result.assertCurrentVersionHasNotRegressed()
