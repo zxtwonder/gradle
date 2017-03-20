@@ -109,8 +109,7 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
 
         ResolveContextToComponentResolver requestResolver = createResolveContextConverter();
         ConflictHandler conflictHandler = createConflictHandler(resolutionStrategy, globalRules);
-
-        return new DependencyGraphBuilder(componentIdResolver, componentMetaDataResolver, requestResolver, conflictHandler, edgeFilter, attributesSchema, moduleIdentifierFactory, moduleExclusions, cacheLockingManager, buildOperationProcessor, buildOperationWorkerRegistry, buildOperationExecutor);
+        return new DependencyGraphBuilder(componentIdResolver, componentMetaDataResolver, requestResolver, conflictHandler, edgeFilter, attributesSchema, moduleIdentifierFactory, moduleExclusions, cacheLockingManager, buildOperationProcessor);
     }
 
     private ComponentResolversChain createResolvers(ResolveContext resolveContext, List<? extends ResolutionAwareRepository> repositories, GlobalDependencyResolutionRules metadataHandler) {
