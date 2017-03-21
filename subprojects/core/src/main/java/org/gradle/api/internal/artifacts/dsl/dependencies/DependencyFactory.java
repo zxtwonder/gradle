@@ -25,7 +25,11 @@ import java.util.Map;
 public interface DependencyFactory {
     //for gradle distribution specific dependencies
     enum ClassPathNotation {
-        GRADLE_API("Gradle API"), GRADLE_TEST_KIT("Gradle TestKit"), LOCAL_GROOVY("Local Groovy");
+        GRADLE_API("Gradle API"),
+        GRADLE_PUBLIC_API("Gradle Public API"),
+        GRADLE_INTERNAL_API("Gradle Internal API"),
+        GRADLE_TEST_KIT("Gradle TestKit"),
+        LOCAL_GROOVY("Local Groovy");
 
         public final String displayName;
 

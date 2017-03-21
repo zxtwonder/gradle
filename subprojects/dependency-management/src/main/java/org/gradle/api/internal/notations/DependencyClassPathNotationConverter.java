@@ -20,12 +20,16 @@ import org.gradle.api.artifacts.SelfResolvingDependency;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.artifacts.dependencies.DefaultSelfResolvingDependency;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
+import org.gradle.api.internal.classpathfilter.ClasspathFilter;
+import org.gradle.api.internal.classpathfilter.ClasspathFilteredJarFactory;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.FileCollectionAdapter;
 import org.gradle.api.internal.file.collections.SingletonFileSet;
 import org.gradle.api.internal.runtimeshaded.RuntimeShadedJarFactory;
 import org.gradle.api.internal.runtimeshaded.RuntimeShadedJarType;
+import org.gradle.api.specs.Spec;
+import org.gradle.configuration.ImportsReader;
 import org.gradle.internal.component.local.model.OpaqueComponentIdentifier;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.internal.installation.CurrentGradleInstallation;
@@ -33,6 +37,7 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationConvertResult;
 import org.gradle.internal.typeconversion.NotationConverter;
 import org.gradle.internal.typeconversion.TypeConversionException;
+import org.gradle.util.CollectionUtils;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -50,6 +55,8 @@ public class DependencyClassPathNotationConverter implements NotationConverter<D
     private final Instantiator instantiator;
     private final FileResolver fileResolver;
     private final RuntimeShadedJarFactory runtimeShadedJarFactory;
+    private final ClasspathFilteredJarFactory classpathFilteredJarFactory;
+    private final ImportsReader importsReader;
     private final CurrentGradleInstallation currentGradleInstallation;
     private final Map<DependencyFactory.ClassPathNotation, SelfResolvingDependency> internCache = Maps.newEnumMap(DependencyFactory.ClassPathNotation.class);
     private final Lock internCacheWriteLock = new ReentrantLock();
@@ -59,11 +66,15 @@ public class DependencyClassPathNotationConverter implements NotationConverter<D
         ClassPathRegistry classPathRegistry,
         FileResolver fileResolver,
         RuntimeShadedJarFactory runtimeShadedJarFactory,
+        ClasspathFilteredJarFactory classpathFilteredJarFactory,
+        ImportsReader importsReader,
         CurrentGradleInstallation currentGradleInstallation) {
         this.instantiator = instantiator;
         this.classPathRegistry = classPathRegistry;
         this.fileResolver = fileResolver;
         this.runtimeShadedJarFactory = runtimeShadedJarFactory;
+        this.classpathFilteredJarFactory = classpathFilteredJarFactory;
+        this.importsReader = importsReader;
         this.currentGradleInstallation = currentGradleInstallation;
     }
 
@@ -94,6 +105,10 @@ public class DependencyClassPathNotationConverter implements NotationConverter<D
             FileCollectionInternal files;
             if (runningFromInstallation && notation.equals(GRADLE_API)) {
                 files = gradleApiFileCollection(classpath);
+            } else if (runningFromInstallation && notation.equals(GRADLE_PUBLIC_API)) {
+                files = gradlePublicApiFileCollection(classpath);
+            } else if (runningFromInstallation && notation.equals(GRADLE_INTERNAL_API)) {
+                files = gradleInternalApiFileCollection(classpath);
             } else if (runningFromInstallation && notation.equals(GRADLE_TEST_KIT)) {
                 files = gradleTestKitFileCollection(classpath);
             } else {
@@ -115,6 +130,66 @@ public class DependencyClassPathNotationConverter implements NotationConverter<D
 
         return (FileCollectionInternal) relocatedDepsJar(apiClasspath, "gradleApi()", RuntimeShadedJarType.API)
             .plus(fileResolver.resolveFiles(groovyImpl, installationBeacon));
+    }
+
+    private FileCollectionInternal gradlePublicApiFileCollection(Collection<File> apiClasspath) {
+        // Don't inline the Groovy jar as the Groovy “tools locator” searches for it by name
+        List<File> groovyImpl = classPathRegistry.getClassPath(LOCAL_GROOVY.name()).getAsFiles();
+        List<File> installationBeacon = classPathRegistry.getClassPath("GRADLE_INSTALLATION_BEACON").getAsFiles();
+        apiClasspath.removeAll(groovyImpl);
+        apiClasspath.removeAll(installationBeacon);
+        removeGradleScriptKotlin(apiClasspath);
+
+        File gradleImplDepsJar = classpathFilteredJarFactory.get(RuntimeShadedJarType.PUBLIC_API, apiClasspath, new GradlePublicApiClasspathFilter(true));
+        FileCollectionAdapter adapter = new FileCollectionAdapter(new SingletonFileSet(gradleImplDepsJar, "gradlePublicApi()"));
+        return (FileCollectionInternal) adapter.plus(fileResolver.resolveFiles(groovyImpl, installationBeacon));
+    }
+
+    private FileCollectionInternal gradleInternalApiFileCollection(Collection<File> apiClasspath) {
+        // Don't inline the Groovy jar as the Groovy “tools locator” searches for it by name
+        List<File> groovyImpl = classPathRegistry.getClassPath(LOCAL_GROOVY.name()).getAsFiles();
+        List<File> installationBeacon = classPathRegistry.getClassPath("GRADLE_INSTALLATION_BEACON").getAsFiles();
+        apiClasspath.removeAll(groovyImpl);
+        apiClasspath.removeAll(installationBeacon);
+        removeGradleScriptKotlin(apiClasspath);
+
+        File gradleImplDepsJar = classpathFilteredJarFactory.get(RuntimeShadedJarType.INTERNAL_API, apiClasspath, new GradlePublicApiClasspathFilter(false));
+        FileCollectionAdapter adapter = new FileCollectionAdapter(new SingletonFileSet(gradleImplDepsJar, "gradleInternalApi()"));
+        return (FileCollectionInternal) adapter.plus(fileResolver.resolveFiles(groovyImpl, installationBeacon));
+    }
+
+    private class GradlePublicApiClasspathFilter implements ClasspathFilter {
+
+        private final boolean includeOnMatch;
+        private final Map<String, List<String>> publicApiMapping;
+
+        public GradlePublicApiClasspathFilter(boolean includeOnMatch) {
+            this.includeOnMatch = includeOnMatch;
+            this.publicApiMapping = importsReader.getSimpleNameToFullClassNamesMapping();
+        }
+
+        @Override
+        public boolean include(final String fullyQualifiedClassName) {
+            String className = fullyQualifiedClassName.substring(fullyQualifiedClassName.lastIndexOf(".") + 1, fullyQualifiedClassName.length());
+            int innerClassNameSeparator = className.indexOf("$");
+            String classNameWithoutInnerClass = className.substring(0, innerClassNameSeparator != -1 ? innerClassNameSeparator : className.length());
+
+            if (publicApiMapping.containsKey(classNameWithoutInnerClass)) {
+                List<String> matchingPublicApis = publicApiMapping.get(classNameWithoutInnerClass);
+
+                boolean match = CollectionUtils.any(matchingPublicApis, new Spec<String>() {
+                    @Override
+                    public boolean isSatisfiedBy(String element) {
+                        System.out.println(fullyQualifiedClassName + " startsWith " + element);
+                        return fullyQualifiedClassName.startsWith(element);
+                    }
+                });
+
+                return match && includeOnMatch;
+            }
+
+            return false;
+        }
     }
 
     /**

@@ -27,10 +27,10 @@ import org.gradle.api.artifacts.dsl.ComponentModuleMetadataHandler;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.query.ArtifactResolutionQuery;
 import org.gradle.api.artifacts.transform.VariantTransform;
-import org.gradle.api.internal.artifacts.VariantTransformRegistry;
 import org.gradle.api.attributes.AttributeMatchingStrategy;
 import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.attributes.CompatibilityRuleChain;
+import org.gradle.api.internal.artifacts.VariantTransformRegistry;
 import org.gradle.api.internal.artifacts.query.ArtifactResolutionQueryFactory;
 import org.gradle.internal.metaobject.InvokeMethodResult;
 import org.gradle.internal.metaobject.MethodAccess;
@@ -138,6 +138,16 @@ public class DefaultDependencyHandler extends GroovyObjectSupport implements Dep
     @Override
     public Dependency gradleApi() {
         return dependencyFactory.createDependency(DependencyFactory.ClassPathNotation.GRADLE_API);
+    }
+
+    @Override
+    public Dependency gradlePublicApi() {
+        return dependencyFactory.createDependency(DependencyFactory.ClassPathNotation.GRADLE_PUBLIC_API);
+    }
+
+    @Override
+    public Dependency gradleInternalApi() {
+        return dependencyFactory.createDependency(DependencyFactory.ClassPathNotation.GRADLE_INTERNAL_API);
     }
 
     @Override

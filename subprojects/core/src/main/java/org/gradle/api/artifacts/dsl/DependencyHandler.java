@@ -321,6 +321,22 @@ public interface DependencyHandler {
     Dependency gradleApi();
 
     /**
+     * Creates a dependency on the public API of the current version of Gradle.
+     *
+     * @return The dependency.
+     * @since 4.0
+     */
+    Dependency gradlePublicApi();
+
+    /**
+     * Creates a dependency on the internal API of the current version of Gradle.
+     *
+     * @return The dependency.
+     * @since 4.0
+     */
+    Dependency gradleInternalApi();
+
+    /**
      * Creates a dependency on the <a href="https://docs.gradle.org/current/userguide/test_kit.html" target="_top">Gradle test-kit</a> API.
      *
      * @return The dependency.

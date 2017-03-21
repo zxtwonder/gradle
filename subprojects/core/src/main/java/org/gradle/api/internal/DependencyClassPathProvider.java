@@ -23,10 +23,12 @@ import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
 
 import java.util.Arrays;
+import java.util.List;
 
 import static org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory.ClassPathNotation.*;
 
 public class DependencyClassPathProvider implements ClassPathProvider {
+    private static final List<String> CORE_MODULES_WITHOUT_PLUGINS = Arrays.asList("gradle-core", "gradle-workers", "gradle-dependency-management", "gradle-plugin-use", "gradle-tooling-api");
     private final ModuleRegistry moduleRegistry;
     private final PluginModuleRegistry pluginModuleRegistry;
 
@@ -39,6 +41,12 @@ public class DependencyClassPathProvider implements ClassPathProvider {
         if (name.equals(GRADLE_API.name())) {
             return gradleApi();
         }
+        if (name.equals(GRADLE_PUBLIC_API.name())) {
+            return gradleApiWithoutDependencies();
+        }
+        if (name.equals(GRADLE_INTERNAL_API.name())) {
+            return gradleApiWithoutDependencies();
+        }
         if (name.equals(GRADLE_TEST_KIT.name())) {
             return gradleTestKit();
         }
@@ -50,13 +58,24 @@ public class DependencyClassPathProvider implements ClassPathProvider {
 
     private ClassPath gradleApi() {
         ClassPath classpath = new DefaultClassPath();
-        for (String moduleName : Arrays.asList("gradle-core", "gradle-workers", "gradle-dependency-management", "gradle-plugin-use", "gradle-tooling-api")) {
+        for (String moduleName : CORE_MODULES_WITHOUT_PLUGINS) {
             for (Module module : moduleRegistry.getModule(moduleName).getAllRequiredModules()) {
                 classpath = classpath.plus(module.getClasspath());
             }
         }
         for (Module pluginModule : pluginModuleRegistry.getPluginModules()) {
             classpath = classpath.plus(pluginModule.getClasspath());
+        }
+        return classpath;
+    }
+
+    private ClassPath gradleApiWithoutDependencies() {
+        ClassPath classpath = new DefaultClassPath();
+        for (String moduleName : CORE_MODULES_WITHOUT_PLUGINS) {
+            classpath = classpath.plus(moduleRegistry.getModule(moduleName).getImplementationClasspath());
+        }
+        for (Module pluginModule : pluginModuleRegistry.getPluginModules()) {
+            classpath = classpath.plus(pluginModule.getImplementationClasspath());
         }
         return classpath;
     }

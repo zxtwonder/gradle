@@ -65,6 +65,7 @@ import org.gradle.api.internal.artifacts.mvnsettings.MavenSettingsProvider;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.cache.GeneratedGradleJarCache;
+import org.gradle.api.internal.classpathfilter.ClasspathFilteredJarFactory;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.file.TmpDirTemporaryFileProvider;
@@ -76,8 +77,9 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.api.internal.runtimeshaded.RuntimeShadedJarFactory;
 import org.gradle.cache.internal.CacheScopeMapping;
-import org.gradle.cache.internal.VersionStrategy;
 import org.gradle.cache.internal.ProducerGuard;
+import org.gradle.cache.internal.VersionStrategy;
+import org.gradle.configuration.ImportsReader;
 import org.gradle.initialization.BuildIdentity;
 import org.gradle.initialization.DefaultBuildIdentity;
 import org.gradle.initialization.ProjectAccessListener;
@@ -133,7 +135,9 @@ class DependencyManagementBuildScopeServices {
             ClassPathRegistry classPathRegistry,
             CurrentGradleInstallation currentGradleInstallation,
             FileLookup fileLookup,
-            RuntimeShadedJarFactory runtimeShadedJarFactory
+            RuntimeShadedJarFactory runtimeShadedJarFactory,
+            ClasspathFilteredJarFactory classpathFilteredJarFactory,
+            ImportsReader importsReader
     ) {
         DefaultProjectDependencyFactory factory = new DefaultProjectDependencyFactory(
             projectAccessListener, instantiator, startParameter.isBuildProjectDependencies());
@@ -141,13 +145,17 @@ class DependencyManagementBuildScopeServices {
         ProjectDependencyFactory projectDependencyFactory = new ProjectDependencyFactory(factory);
 
         return new DefaultDependencyFactory(
-            DependencyNotationParser.parser(instantiator, factory, classPathRegistry, fileLookup, runtimeShadedJarFactory, currentGradleInstallation),
+            DependencyNotationParser.parser(instantiator, factory, classPathRegistry, fileLookup, runtimeShadedJarFactory, classpathFilteredJarFactory, importsReader, currentGradleInstallation),
             new ClientModuleNotationParserFactory(instantiator).create(),
             projectDependencyFactory);
     }
 
     RuntimeShadedJarFactory createRuntimeShadedJarFactory(GeneratedGradleJarCache jarCache, ProgressLoggerFactory progressLoggerFactory) {
         return new RuntimeShadedJarFactory(jarCache, progressLoggerFactory);
+    }
+
+    ClasspathFilteredJarFactory createClasspathFilteredJarFactory(GeneratedGradleJarCache jarCache, ProgressLoggerFactory progressLoggerFactory) {
+        return new ClasspathFilteredJarFactory(jarCache, progressLoggerFactory);
     }
 
     BuildCommencedTimeProvider createBuildTimeProvider() {

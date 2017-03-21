@@ -29,6 +29,29 @@ import static org.gradle.util.TextUtil.normaliseFileSeparators
 
 class GradleImplDepsCompatibilityIntegrationTest extends BaseGradleImplDepsIntegrationTest {
 
+    def "Gradle public API artifact"() {
+        given:
+        buildFile << """
+            configurations {
+                gradlePublicApi
+            }
+
+            dependencies {
+                gradlePublicApi gradlePublicApi(), gradleInternalApi()
+            }
+
+            task resolveDependencyArtifacts {
+                doLast {
+                    def resolvedGradlePublicApiArtifacts = configurations.gradlePublicApi.resolve()
+                    assert resolvedGradlePublicApiArtifacts != null
+                }
+            }
+        """
+
+        expect:
+        succeeds 'resolveDependencyArtifacts'
+    }
+
     def "TestKit dependency artifacts contain Gradle API artifact"() {
         given:
         buildFile << """

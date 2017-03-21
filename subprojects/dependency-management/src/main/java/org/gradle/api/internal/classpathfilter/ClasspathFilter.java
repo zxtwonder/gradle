@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,22 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.runtimeshaded;
+package org.gradle.api.internal.classpathfilter;
 
-public enum RuntimeShadedJarType {
+public interface ClasspathFilter {
 
-    API("api"),
-    PUBLIC_API("public-api"),
-    INTERNAL_API("internal-api"),
-    TEST_KIT("test-kit");
-
-    private final String identifier;
-
-    RuntimeShadedJarType(String identifier) {
-        this.identifier = identifier;
-    }
-
-    public String getIdentifier() {
-        return identifier;
-    }
+    boolean include(String fullyQualifiedClassName);
 }
