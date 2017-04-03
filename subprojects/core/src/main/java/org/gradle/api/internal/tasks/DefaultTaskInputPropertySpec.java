@@ -204,24 +204,6 @@ public class DefaultTaskInputPropertySpec extends AbstractTaskPropertyBuilder im
     }
 
     @Override
-    @Deprecated
-    public TaskInputs source(Object... paths) {
-        return getTaskInputs("source(Object...)").source(paths);
-    }
-
-    @Override
-    @Deprecated
-    public TaskInputs source(Object path) {
-        return getTaskInputs("source(Object)").source(path);
-    }
-
-    @Override
-    @Deprecated
-    public TaskInputs sourceDir(Object path) {
-        return getTaskInputs("sourceDir(Object)").sourceDir(path);
-    }
-
-    @Override
     public int compareTo(TaskPropertySpec o) {
         return getPropertyName().compareTo(o.getPropertyName());
     }

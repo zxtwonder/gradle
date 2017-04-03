@@ -177,31 +177,4 @@ public interface TaskInputFilePropertyBuilder extends TaskFilePropertyBuilder, T
     @Deprecated
     @Override
     FileCollection getSourceFiles();
-
-    /**
-     * {@inheritDoc}
-     *
-     * @deprecated Use {@link TaskInputs#source(Object...)} directly instead.
-     */
-    @Deprecated
-    @Override
-    TaskInputs source(Object... paths);
-
-    /**
-     * {@inheritDoc}
-     *
-     * @deprecated Use {@link TaskInputs#source(Object)} directly instead.
-     */
-    @Deprecated
-    @Override
-    TaskInputs source(Object path);
-
-    /**
-     * {@inheritDoc}
-     *
-     * @deprecated Use {@link TaskInputs#sourceDir(Object)} directly instead.
-     */
-    @Deprecated
-    @Override
-    TaskInputs sourceDir(Object path);
 }
