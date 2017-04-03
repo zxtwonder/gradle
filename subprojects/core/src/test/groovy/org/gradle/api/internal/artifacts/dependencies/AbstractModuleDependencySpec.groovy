@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 package org.gradle.api.internal.artifacts.dependencies
+
 import org.gradle.api.InvalidUserDataException
-import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.DependencyArtifact
 import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.artifacts.ModuleDependency
