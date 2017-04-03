@@ -29,7 +29,7 @@ import org.gradle.internal.HasInternalProtocol;
  * <p>You can obtain a {@code TaskOutputs} instance using {@link org.gradle.api.Task#getOutputs()}.</p>
  */
 @HasInternalProtocol
-public interface TaskOutputs extends CompatibilityAdapterForTaskOutputs {
+public interface TaskOutputs {
     /**
      * <p>Adds a predicate to determine whether the outputs of this task are up-to-date. The given closure is executed
      * at task execution time. The closure is passed the task as a parameter. If the closure returns false, the task
@@ -86,22 +86,6 @@ public interface TaskOutputs extends CompatibilityAdapterForTaskOutputs {
      */
     @Incubating
     void cacheIf(String cachingEnabledReason, final Spec<? super Task> spec);
-
-    /**
-     /**
-     * <p>Disable caching the results of the task if the given spec is satisfied. The spec will be evaluated at task execution time, not
-     * during configuration. If the spec is not satisfied, the results of the task will be cached according to {@link #cacheIf(Spec)}.</p>
-     *
-     * <p>You may add multiple such predicates. The results of the task are not cached if any of the predicates return {@code true},
-     * or if any of the predicates passed to {@link #cacheIf(String, Spec)} returns {@code false}.</p>
-     *
-     * @param spec specifies if the results of the task should not be cached.
-     *
-     * @deprecated Use {@link #doNotCacheIf(String, Spec)} to give a reason for not caching.
-     * @since 3.3
-     */
-    @Deprecated
-    void doNotCacheIf(Spec<? super Task> spec);
 
     /**
      * <p>Disable caching the results of the task if the given spec is satisfied. The spec will be evaluated at task execution time, not

@@ -77,14 +77,6 @@ public class TaskStateInternal implements TaskState {
         return taskOutputCaching == null ?  DefaultTaskOutputCachingState.DISABLED : taskOutputCaching;
     }
 
-    /**
-     * @deprecated Use {@link #getTaskOutputCaching()} instead.
-     */
-    @Deprecated
-    public boolean isCacheable() {
-        return getTaskOutputCaching().isEnabled();
-    }
-
     public Throwable getFailure() {
         return failure;
     }

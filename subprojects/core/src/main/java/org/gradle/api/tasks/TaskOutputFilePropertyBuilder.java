@@ -16,11 +16,7 @@
 
 package org.gradle.api.tasks;
 
-import groovy.lang.Closure;
 import org.gradle.api.Incubating;
-import org.gradle.api.Task;
-import org.gradle.api.file.FileCollection;
-import org.gradle.api.specs.Spec;
 import org.gradle.internal.HasInternalProtocol;
 
 /**
@@ -54,67 +50,4 @@ public interface TaskOutputFilePropertyBuilder extends TaskFilePropertyBuilder, 
      */
     @Override
     TaskOutputFilePropertyBuilder withPathSensitivity(PathSensitivity sensitivity);
-
-    /**
-     * {@inheritDoc}
-     *
-     * @deprecated Use {@link TaskOutputs#upToDateWhen(Closure)} instead.
-     */
-    @Deprecated
-    @Override
-    void upToDateWhen(Closure upToDateClosure);
-
-    /**
-     * {@inheritDoc}
-     *
-     * @deprecated Use {@link TaskOutputs#upToDateWhen(Spec)} instead.
-     */
-    @Deprecated
-    @Override
-    void upToDateWhen(Spec<? super Task> upToDateSpec);
-
-    /**
-     * {@inheritDoc}
-     *
-     * @deprecated Use {@link TaskOutputs#getHasOutput()} instead.
-     */
-    @Deprecated
-    @Override
-    boolean getHasOutput();
-
-    /**
-     * {@inheritDoc}
-     *
-     * @deprecated Use {@link TaskOutputs#getFiles()} instead.
-     */
-    @Deprecated
-    @Override
-    FileCollection getFiles();
-
-    /**
-     * {@inheritDoc}
-     *
-     * @deprecated Use {@link TaskOutputs#files(Object...)} instead.
-     */
-    @Deprecated
-    @Override
-    TaskOutputFilePropertyBuilder files(Object... paths);
-
-    /**
-     * {@inheritDoc}
-     *
-     * @deprecated Use {@link TaskOutputs#file(Object)} instead.
-     */
-    @Deprecated
-    @Override
-    TaskOutputFilePropertyBuilder file(Object path);
-
-    /**
-     * {@inheritDoc}
-     *
-     * @deprecated Use {@link TaskOutputs#dir(Object)} instead.
-     */
-    @Deprecated
-    @Override
-    TaskOutputFilePropertyBuilder dir(Object path);
 }
