@@ -300,28 +300,6 @@ class DefaultTaskOutputsTest extends Specification {
         !outputs.cachingState.enabled
     }
 
-    def "can turn caching off via doNotCacheIf()"() {
-        outputs.dir("someDir")
-
-        expect:
-        !outputs.cachingState.enabled
-
-        when:
-        outputs.doNotCacheIf { false }
-        then:
-        !outputs.cachingState.enabled
-
-        when:
-        outputs.cacheIf { true }
-        then:
-        outputs.cachingState.enabled
-
-        when:
-        outputs.doNotCacheIf { true }
-        then:
-        !outputs.cachingState.enabled
-    }
-
     def "first reason for not caching is reported"() {
         expect:
         !outputs.cachingState.enabled
