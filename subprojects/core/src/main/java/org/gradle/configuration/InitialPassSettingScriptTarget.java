@@ -17,8 +17,6 @@
 package org.gradle.configuration;
 
 import org.gradle.api.internal.SettingsInternal;
-import org.gradle.groovy.scripts.BasicScript;
-import org.gradle.initialization.InitialPassSettingsScript;
 
 public class InitialPassSettingScriptTarget extends SettingScriptTarget {
     public InitialPassSettingScriptTarget(SettingsInternal target) {
@@ -28,10 +26,5 @@ public class InitialPassSettingScriptTarget extends SettingScriptTarget {
     @Override
     public boolean getSupportsPluginRepositoriesBlock() {
         return true;
-    }
-
-    @Override
-    public Class<? extends BasicScript> getScriptClass() {
-        return InitialPassSettingsScript.class;
     }
 }
