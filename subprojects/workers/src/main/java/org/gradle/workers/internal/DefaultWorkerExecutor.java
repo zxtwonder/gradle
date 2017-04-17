@@ -29,6 +29,7 @@ import org.gradle.internal.classloader.FilteringClassLoader;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
+import org.gradle.internal.logging.progress.OperationIdentifierRegistry;
 import org.gradle.internal.operations.BuildOperationWorkerRegistry;
 import org.gradle.internal.operations.BuildOperationWorkerRegistry.Operation;
 import org.gradle.internal.progress.BuildOperationExecutor;
@@ -75,7 +76,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
         // Serialize parameters in this thread prior to starting work in a separate thread
         ActionExecutionSpec spec;
         try {
-            spec = new ActionExecutionSpec(actionClass, description, configuration.getParams());
+            spec = new ActionExecutionSpec(actionClass, description, configuration.getParams(), OperationIdentifierRegistry.getCurrentOperationId());
         } catch (Throwable t) {
             throw new WorkExecutionException(description, t);
         }
