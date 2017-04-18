@@ -33,6 +33,8 @@ import org.slf4j.LoggerFactory;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
+import static org.gradle.internal.logging.events.LogEventType.BUILD_OPERATION;
+
 public class DefaultBuildOperationExecutor implements BuildOperationExecutor {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultBuildOperationExecutor.class);
@@ -101,7 +103,7 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor {
             try {
                 ProgressLogger progressLogger;
                 if (operationDetails.getProgressDisplayName() != null) {
-                    progressLogger = progressLoggerFactory.newOperation(DefaultBuildOperationExecutor.class);
+                    progressLogger = progressLoggerFactory.newOperation(BUILD_OPERATION, DefaultBuildOperationExecutor.class);
                     progressLogger.setDescription(operationDetails.getDisplayName());
                     progressLogger.setShortDescription(operationDetails.getProgressDisplayName());
                     progressLogger.started();

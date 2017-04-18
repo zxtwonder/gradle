@@ -27,6 +27,8 @@ import org.gradle.internal.progress.LoggerProvider;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.gradle.internal.logging.events.LogEventType.TASK_EXECUTION;
+
 /**
  * A listener which logs the execution of tasks.
  */
@@ -44,7 +46,7 @@ public class TaskExecutionLogger implements TaskExecutionListener {
     public void beforeExecute(Task task) {
         assert !currentTasks.containsKey(task);
 
-        ProgressLogger currentTask = progressLoggerFactory.newOperation(TaskExecutionLogger.class, parentLoggerProvider.getLogger());
+        ProgressLogger currentTask = progressLoggerFactory.newOperation(TASK_EXECUTION, TaskExecutionLogger.class, parentLoggerProvider.getLogger());
         String displayName = getDisplayName((TaskInternal) task);
         currentTask.setDescription("Execute ".concat(displayName));
         currentTask.setShortDescription(displayName);

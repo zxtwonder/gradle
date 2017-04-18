@@ -15,6 +15,7 @@
  */
 package org.gradle.internal.progress;
 
+import org.gradle.internal.logging.events.LogEventType;
 import org.gradle.internal.logging.progress.ProgressLogger;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 
@@ -27,7 +28,7 @@ public class ProgressLoggerProvider {
         this.loggerClazz = loggerClazz;
     }
 
-    public ProgressLogger start(String description, String shortDescription) {
-        return progressLoggerFactory.newOperation(loggerClazz).start(description, shortDescription);
+    public ProgressLogger start(LogEventType logEventType, String description, String shortDescription) {
+        return progressLoggerFactory.newOperation(logEventType, loggerClazz).start(description, shortDescription);
     }
 }

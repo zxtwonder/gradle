@@ -29,6 +29,8 @@ import java.io.Closeable;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import static org.gradle.internal.logging.events.LogEventType.MISC;
+
 public class SynchronizedToolingImplementationLoader implements ToolingImplementationLoader, Closeable {
     private final Lock lock = new ReentrantLock();
     private final ToolingImplementationLoader delegate;
@@ -45,7 +47,7 @@ public class SynchronizedToolingImplementationLoader implements ToolingImplement
                 lock.unlock();
             }
         }
-        ProgressLogger logger = progressLoggerFactory.newOperation(SynchronizedToolingImplementationLoader.class);
+        ProgressLogger logger = progressLoggerFactory.newOperation(MISC, SynchronizedToolingImplementationLoader.class);
         logger.setDescription("Wait for the other thread to finish acquiring the distribution");
         logger.started();
         lock.lock();

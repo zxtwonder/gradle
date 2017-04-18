@@ -84,7 +84,7 @@ class DaemonMessageSerializerTest extends SerializerSpec {
 
     def "can serialize ProgressStartEvent messages"() {
         expect:
-        def event = new ProgressStartEvent(new OperationIdentifier(1234L), new OperationIdentifier(5678L), 321L, "category", "description", "short", "header", "status")
+        def event = new ProgressStartEvent(new OperationIdentifier(1234L), new OperationIdentifier(5678L), LogEventType.TASK_EXECUTION, 321L, "category", "description", "short", "header", "status")
         def result = serialize(event, serializer)
         result instanceof ProgressStartEvent
         result.operationId == new OperationIdentifier(1234L)
@@ -96,7 +96,7 @@ class DaemonMessageSerializerTest extends SerializerSpec {
         result.loggingHeader == "header"
         result.status == "status"
 
-        def event2 = new ProgressStartEvent(new OperationIdentifier(1234L), null, 321L, "category", "description", null, null, "")
+        def event2 = new ProgressStartEvent(new OperationIdentifier(1234L), null, LogEventType.TASK_EXECUTION, 321L, "category", "description", null, null, "")
         def result2 = serialize(event2, serializer)
         result2 instanceof ProgressStartEvent
         result2.operationId == new OperationIdentifier(1234L)

@@ -58,6 +58,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.gradle.internal.logging.events.LogEventType.MISC;
+
 /**
  * Executes two Gradle builds (that can be the same build) with specified versions and compares the outcomes.
  *
@@ -228,7 +230,7 @@ public class CompareGradleBuilds extends DefaultTask implements VerificationTask
         ComparableGradleBuildExecuter targetBuildExecuter = new ComparableGradleBuildExecuter(targetBuild);
 
         Logger logger = getLogger();
-        ProgressLogger progressLogger = getProgressLoggerFactory().newOperation(getClass());
+        ProgressLogger progressLogger = getProgressLoggerFactory().newOperation(MISC, getClass());
         progressLogger.setDescription("Gradle Build Comparison");
         progressLogger.setShortDescription(getName());
 

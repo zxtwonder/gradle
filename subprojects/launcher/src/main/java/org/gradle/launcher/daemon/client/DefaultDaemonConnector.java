@@ -51,6 +51,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import static java.lang.Thread.sleep;
+import static org.gradle.internal.logging.events.LogEventType.DAEMON;
 import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State.Canceled;
 import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State.Idle;
 
@@ -203,7 +204,7 @@ public class DefaultDaemonConnector implements DaemonConnector {
     }
 
     public DaemonClientConnection startDaemon(ExplainingSpec<DaemonContext> constraint) {
-        ProgressLogger progressLogger = progressLoggerFactory.newOperation(DefaultDaemonConnector.class)
+        ProgressLogger progressLogger = progressLoggerFactory.newOperation(DAEMON, DefaultDaemonConnector.class)
             .start("Starting Gradle Daemon", "Starting Daemon");
         final DaemonStartupInfo startupInfo = daemonStarter.startDaemon();
         LOGGER.debug("Started Gradle daemon {}", startupInfo);
@@ -248,7 +249,7 @@ public class DefaultDaemonConnector implements DaemonConnector {
     }
 
     private DaemonClientConnection connectToDaemon(DaemonConnectDetails daemon, DaemonClientConnection.StaleAddressDetector staleAddressDetector) throws ConnectException {
-        ProgressLogger progressLogger = progressLoggerFactory.newOperation(DefaultDaemonConnector.class)
+        ProgressLogger progressLogger = progressLoggerFactory.newOperation(DAEMON, DefaultDaemonConnector.class)
             .start("Connecting to Gradle Daemon", "Connecting to Daemon");
         RemoteConnection<Message> connection;
         try {

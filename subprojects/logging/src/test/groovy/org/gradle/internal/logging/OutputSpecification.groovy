@@ -68,9 +68,10 @@ abstract class OutputSpecification extends Specification {
 
     ProgressStartEvent start(Map args) {
         OperationIdentifier parentId = args.containsKey("parentId") ? args.parentId : new OperationIdentifier(counter)
+        LogEventType logEventType = args.containsKey("logEventType") ? args.logEventType : null
         long id = ++counter
         String category = args.containsKey("category") ? args.category : 'category'
-        return new ProgressStartEvent(new OperationIdentifier(id), parentId, tenAm, category, args.description, args.shortDescription, args.loggingHeader, args.status)
+        return new ProgressStartEvent(new OperationIdentifier(id), parentId, logEventType, tenAm, category, args.description, args.shortDescription, args.loggingHeader, args.status)
     }
 
     ProgressEvent progress(String status) {

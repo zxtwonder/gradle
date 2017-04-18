@@ -16,6 +16,7 @@
 
 package org.gradle.internal.logging.serializer;
 
+import org.gradle.internal.logging.events.LogEventType;
 import org.gradle.internal.logging.events.OperationIdentifier;
 import org.gradle.internal.logging.events.ProgressStartEvent;
 import org.gradle.internal.serialize.Decoder;
@@ -32,6 +33,7 @@ public class ProgressStartEventSerializer implements Serializer<ProgressStartEve
             encoder.writeBoolean(true);
             encoder.writeSmallLong(event.getParentId().getId());
         }
+        encoder.writeString(event.getLogEventType().name());
         encoder.writeLong(event.getTimestamp());
         encoder.writeString(event.getCategory());
         encoder.writeString(event.getDescription());
@@ -44,12 +46,13 @@ public class ProgressStartEventSerializer implements Serializer<ProgressStartEve
     public ProgressStartEvent read(Decoder decoder) throws Exception {
         OperationIdentifier id = new OperationIdentifier(decoder.readSmallLong());
         OperationIdentifier parentId = decoder.readBoolean() ? new OperationIdentifier(decoder.readSmallLong()) : null;
+        LogEventType logEventType = LogEventType.valueOf(decoder.readString());
         long timestamp = decoder.readLong();
         String category = decoder.readString();
         String description = decoder.readString();
         String shortDescription = decoder.readNullableString();
         String loggingHeader = decoder.readNullableString();
         String status = decoder.readString();
-        return new ProgressStartEvent(id, parentId, timestamp, category, description, shortDescription, loggingHeader, status);
+        return new ProgressStartEvent(id, parentId, logEventType, timestamp, category, description, shortDescription, loggingHeader, status);
     }
 }

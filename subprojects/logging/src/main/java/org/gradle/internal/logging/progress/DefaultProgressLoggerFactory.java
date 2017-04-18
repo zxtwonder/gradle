@@ -16,6 +16,7 @@
 
 package org.gradle.internal.logging.progress;
 
+import org.gradle.internal.logging.events.LogEventType;
 import org.gradle.internal.logging.events.OperationIdentifier;
 import org.gradle.internal.logging.events.ProgressCompleteEvent;
 import org.gradle.internal.logging.events.ProgressEvent;
@@ -36,29 +37,30 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
         this.timeProvider = timeProvider;
     }
 
-    public ProgressLogger newOperation(Class loggerCategory) {
-        return newOperation(loggerCategory.getName());
+    public ProgressLogger newOperation(LogEventType logEventType, Class loggerCategory) {
+        return newOperation(logEventType, loggerCategory.getName());
     }
 
-    public ProgressLogger newOperation(String loggerCategory) {
-        return init(loggerCategory, null);
+    public ProgressLogger newOperation(LogEventType logEventType, String loggerCategory) {
+        return init(logEventType, loggerCategory, null);
     }
 
-    public ProgressLogger newOperation(Class loggerClass, ProgressLogger parent) {
-        return init(loggerClass.toString(), parent);
+    public ProgressLogger newOperation(LogEventType logEventType, Class loggerClass, ProgressLogger parent) {
+        return init(logEventType, loggerClass.toString(), parent);
     }
 
-    private ProgressLogger init(String loggerCategory, ProgressLogger parentOperation) {
+    private ProgressLogger init(LogEventType logEventType, String loggerCategory, ProgressLogger parentOperation) {
         if (parentOperation != null && !(parentOperation instanceof ProgressLoggerImpl)) {
             throw new IllegalArgumentException("Unexpected parent logger.");
         }
-        return new ProgressLoggerImpl((ProgressLoggerImpl) parentOperation, nextId.getAndIncrement(), loggerCategory, progressListener, timeProvider);
+        return new ProgressLoggerImpl((ProgressLoggerImpl) parentOperation, nextId.getAndIncrement(), logEventType, loggerCategory, progressListener, timeProvider);
     }
 
     private enum State { idle, started, completed }
 
     private class ProgressLoggerImpl implements ProgressLogger {
         private final OperationIdentifier id;
+        private final LogEventType logEventType;
         private final String category;
         private final ProgressListener listener;
         private final TimeProvider timeProvider;
@@ -68,9 +70,10 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
         private String loggingHeader;
         private State state = State.idle;
 
-        public ProgressLoggerImpl(ProgressLoggerImpl parent, long id, String category, ProgressListener listener, TimeProvider timeProvider) {
+        public ProgressLoggerImpl(ProgressLoggerImpl parent, long id, LogEventType logEventType, String category, ProgressListener listener, TimeProvider timeProvider) {
             this.parent = parent;
             this.id = new OperationIdentifier(id);
+            this.logEventType = logEventType;
             this.category = category;
             this.listener = listener;
             this.timeProvider = timeProvider;
@@ -135,7 +138,7 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
             }
             current.set(this);
             OperationIdentifierRegistry.setCurrentOperationId(id);
-            listener.started(new ProgressStartEvent(id, parent == null ? null : parent.id, timeProvider.getCurrentTime(), category, description, shortDescription, loggingHeader, toStatus(status)));
+            listener.started(new ProgressStartEvent(id, parent == null ? null : parent.id, logEventType, timeProvider.getCurrentTime(), category, description, shortDescription, loggingHeader, toStatus(status)));
         }
 
         public void progress(String status) {
