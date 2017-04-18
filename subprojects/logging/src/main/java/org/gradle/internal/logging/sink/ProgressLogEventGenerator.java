@@ -32,7 +32,7 @@ import static org.gradle.internal.logging.text.StyledTextOutput.Style;
  * An {@code org.gradle.logging.internal.OutputEventListener} implementation which generates output events to log the
  * progress of operations.
  */
-public class ProgressLogEventGenerator implements OutputEventListener {
+public class ProgressLogEventGenerator extends BatchOutputEventListener {
     private static final String EOL = SystemProperties.getInstance().getLineSeparator();
 
     private final OutputEventListener listener;
@@ -141,7 +141,7 @@ public class ProgressLogEventGenerator implements OutputEventListener {
             switch (state) {
                 case None:
                     if (hasLoggingHeader) {
-                        listener.onOutput(new StyledTextOutputEvent(startTime, category, LogLevel.LIFECYCLE, operationId, loggingHeader + EOL));
+                        listener.onOutput(new StyledTextOutputEvent(startTime, category, LogLevel.LIFECYCLE, operationId, getFormattedLoggingHeader() + EOL));
                     }
                     break;
                 case HeaderStarted:
@@ -153,6 +153,14 @@ public class ProgressLogEventGenerator implements OutputEventListener {
                     throw new IllegalStateException("state is " + state);
             }
             state = State.HeaderCompleted;
+        }
+
+        private String getFormattedLoggingHeader() {
+            StringBuilder formattedLoggingHeader = new StringBuilder();
+            formattedLoggingHeader.append("[");
+            formattedLoggingHeader.append(loggingHeader);
+            formattedLoggingHeader.append("]");
+            return formattedLoggingHeader.toString();
         }
 
         public void complete() {
