@@ -16,6 +16,7 @@
 
 package org.gradle.internal.logging.console;
 
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import org.gradle.internal.logging.events.BatchOutputEventListener;
 import org.gradle.internal.logging.events.EndOutputEvent;
@@ -26,8 +27,7 @@ import org.gradle.internal.logging.events.ProgressCompleteEvent;
 import org.gradle.internal.logging.events.ProgressStartEvent;
 import org.gradle.internal.logging.events.RenderableOutputEvent;
 
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executors;
@@ -41,8 +41,8 @@ public class GroupedBuildOperationRenderer extends BatchOutputEventListener {
     private final BatchOutputEventListener listener;
     private final ScheduledExecutorService executor;
     private final Object lock = new Object();
-    private final Map<OperationIdentifier, List<OutputEvent>> groupedTaskBuildOperations = new HashMap<OperationIdentifier, List<OutputEvent>>();
-    private final List<OperationIdentifier> currentlyRendered = new ArrayList<OperationIdentifier>();
+    private final Map<OperationIdentifier, List<OutputEvent>> groupedTaskBuildOperations = new LinkedHashMap<OperationIdentifier, List<OutputEvent>>();
+    private OperationIdentifier currentlyRendered = null;
 
     public GroupedBuildOperationRenderer(BatchOutputEventListener listener) {
         this.listener = listener;
@@ -58,7 +58,7 @@ public class GroupedBuildOperationRenderer extends BatchOutputEventListener {
                     for (Map.Entry<OperationIdentifier, List<OutputEvent>> groupedEvents : groupedTaskBuildOperations.entrySet()) {
                         List<OutputEvent> originalOutputEvents = groupedEvents.getValue();
 
-                        if (currentlyRendered.contains(groupedEvents.getKey())) {
+                        if (isCurrentlyRendered(groupedEvents.getKey())) {
                             List<OutputEvent> outputEventsWithoutHeader = originalOutputEvents.subList(1, originalOutputEvents.size());
                             forwardBatchedEvents(outputEventsWithoutHeader);
                         } else {
@@ -68,8 +68,10 @@ public class GroupedBuildOperationRenderer extends BatchOutputEventListener {
                         for (int i = 1; i <= groupedEvents.getValue().size(); i++) {
                             originalOutputEvents.remove(i);
                         }
+                    }
 
-                        currentlyRendered.add(groupedEvents.getKey());
+                    if (!groupedTaskBuildOperations.isEmpty()) {
+                        setCurrentlyRendered(Iterables.getLast(groupedTaskBuildOperations.keySet()));
                     }
                 }
             }
@@ -99,7 +101,7 @@ public class GroupedBuildOperationRenderer extends BatchOutputEventListener {
                 if (groupedTaskBuildOperations.containsKey(operationId)) {
                     List<OutputEvent> outputEvents = groupedTaskBuildOperations.get(operationId);
 
-                    if (currentlyRendered.contains(operationId)) {
+                    if (isCurrentlyRendered(operationId)) {
                         List<OutputEvent> outputEventsWithoutHeader = outputEvents.subList(1, outputEvents.size());
                         forwardBatchedEvents(outputEventsWithoutHeader);
                     } else {
@@ -108,7 +110,7 @@ public class GroupedBuildOperationRenderer extends BatchOutputEventListener {
 
                     forwardEvent(event);
                     groupedTaskBuildOperations.remove(operationId);
-                    currentlyRendered.remove(operationId);
+                    clearCurrentlyRendered();
                 } else {
                     forwardEvent(event);
                 }
@@ -126,13 +128,25 @@ public class GroupedBuildOperationRenderer extends BatchOutputEventListener {
                 forwardEvent(event);
                 executor.shutdown();
                 groupedTaskBuildOperations.clear();
-                currentlyRendered.clear();
+                clearCurrentlyRendered();
             }
         }
     }
 
     private boolean isTaskExecutionProgressStartEvent(ProgressStartEvent event) {
         return event.getLogEventType() == LogEventType.TASK_EXECUTION;
+    }
+
+    private void setCurrentlyRendered(OperationIdentifier operationId) {
+        currentlyRendered = operationId;
+    }
+
+    private boolean isCurrentlyRendered(OperationIdentifier operationId) {
+        return currentlyRendered != null && currentlyRendered.equals(operationId);
+    }
+
+    private void clearCurrentlyRendered() {
+        currentlyRendered = null;
     }
 
     private void forwardEvent(OutputEvent event) {
