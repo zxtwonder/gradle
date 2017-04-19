@@ -45,9 +45,16 @@ public class GroupedBuildOperationRenderer extends BatchOutputEventListener {
     private final RenderState renderState = new RenderState();
 
     public GroupedBuildOperationRenderer(BatchOutputEventListener listener) {
+        this(listener, true);
+    }
+
+    GroupedBuildOperationRenderer(BatchOutputEventListener listener, boolean enabledScheduler) {
         this.listener = listener;
         executor = Executors.newSingleThreadScheduledExecutor();
-        scheduleTimedEventForwarding();
+
+        if (enabledScheduler) {
+            scheduleTimedEventForwarding();
+        }
     }
 
     private void scheduleTimedEventForwarding() {

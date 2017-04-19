@@ -31,7 +31,7 @@ class GroupedBuildOperationRendererTest extends Specification {
 
     public static final OperationIdentifier DEFAULT_OPERATION_ID = new OperationIdentifier(123)
     def listener = Mock(BatchOutputEventListener)
-    def renderer = new GroupedBuildOperationRenderer(listener)
+    def renderer = new GroupedBuildOperationRenderer(listener, false)
 
     def "end output events are forwarded and clear the queue"() {
         given:
