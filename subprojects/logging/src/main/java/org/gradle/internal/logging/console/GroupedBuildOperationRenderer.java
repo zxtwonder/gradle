@@ -42,7 +42,7 @@ public class GroupedBuildOperationRenderer extends BatchOutputEventListener {
     private final ScheduledExecutorService executor;
     private final Object lock = new Object();
     private final Map<OperationIdentifier, List<OutputEvent>> groupedTaskBuildOperations = new LinkedHashMap<OperationIdentifier, List<OutputEvent>>();
-    private OperationIdentifier currentlyRendered = null;
+    private final RenderState renderState = new RenderState();
 
     public GroupedBuildOperationRenderer(BatchOutputEventListener listener) {
         this.listener = listener;
@@ -58,7 +58,7 @@ public class GroupedBuildOperationRenderer extends BatchOutputEventListener {
                     for (Map.Entry<OperationIdentifier, List<OutputEvent>> groupedEvents : groupedTaskBuildOperations.entrySet()) {
                         List<OutputEvent> originalOutputEvents = groupedEvents.getValue();
 
-                        if (isCurrentlyRendered(groupedEvents.getKey())) {
+                        if (renderState.isCurrentlyRendered(groupedEvents.getKey())) {
                             List<OutputEvent> outputEventsWithoutHeader = originalOutputEvents.subList(1, originalOutputEvents.size());
                             forwardBatchedEvents(outputEventsWithoutHeader);
                         } else {
@@ -71,7 +71,7 @@ public class GroupedBuildOperationRenderer extends BatchOutputEventListener {
                     }
 
                     if (!groupedTaskBuildOperations.isEmpty()) {
-                        setCurrentlyRendered(Iterables.getLast(groupedTaskBuildOperations.keySet()));
+                        renderState.setCurrentlyRendered(Iterables.getLast(groupedTaskBuildOperations.keySet()));
                     }
                 }
             }
@@ -101,7 +101,7 @@ public class GroupedBuildOperationRenderer extends BatchOutputEventListener {
                 if (groupedTaskBuildOperations.containsKey(operationId)) {
                     List<OutputEvent> outputEvents = groupedTaskBuildOperations.get(operationId);
 
-                    if (isCurrentlyRendered(operationId)) {
+                    if (renderState.isCurrentlyRendered(operationId)) {
                         List<OutputEvent> outputEventsWithoutHeader = outputEvents.subList(1, outputEvents.size());
                         forwardBatchedEvents(outputEventsWithoutHeader);
                     } else {
@@ -110,7 +110,7 @@ public class GroupedBuildOperationRenderer extends BatchOutputEventListener {
 
                     forwardEvent(event);
                     groupedTaskBuildOperations.remove(operationId);
-                    clearCurrentlyRendered();
+                    renderState.clearCurrentlyRendered();
                 } else {
                     forwardEvent(event);
                 }
@@ -128,7 +128,7 @@ public class GroupedBuildOperationRenderer extends BatchOutputEventListener {
                 forwardEvent(event);
                 executor.shutdown();
                 groupedTaskBuildOperations.clear();
-                clearCurrentlyRendered();
+                renderState.clearCurrentlyRendered();
             }
         }
     }
@@ -137,23 +137,27 @@ public class GroupedBuildOperationRenderer extends BatchOutputEventListener {
         return event.getLogEventType() == LogEventType.TASK_EXECUTION;
     }
 
-    private void setCurrentlyRendered(OperationIdentifier operationId) {
-        currentlyRendered = operationId;
-    }
-
-    private boolean isCurrentlyRendered(OperationIdentifier operationId) {
-        return currentlyRendered != null && currentlyRendered.equals(operationId);
-    }
-
-    private void clearCurrentlyRendered() {
-        currentlyRendered = null;
-    }
-
     private void forwardEvent(OutputEvent event) {
         listener.onOutput(event);
     }
 
     private void forwardBatchedEvents(Iterable<OutputEvent> events) {
         listener.onOutput(events);
+    }
+
+    private static class RenderState {
+        private OperationIdentifier currentlyRendered = null;
+
+        private void setCurrentlyRendered(OperationIdentifier operationId) {
+            currentlyRendered = operationId;
+        }
+
+        private boolean isCurrentlyRendered(OperationIdentifier operationId) {
+            return currentlyRendered != null && currentlyRendered.equals(operationId);
+        }
+
+        private void clearCurrentlyRendered() {
+            currentlyRendered = null;
+        }
     }
 }
