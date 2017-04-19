@@ -18,7 +18,7 @@ package org.gradle.internal.logging.events;
 
 import org.gradle.api.logging.LogLevel;
 
-public class ProgressCompleteEvent extends CategorisedOutputEvent implements BuildOperationAwareEvent {
+public class ProgressCompleteEvent extends CategorisedOutputEvent {
     private final String status;
     private final String description;
     private OperationIdentifier operationId;

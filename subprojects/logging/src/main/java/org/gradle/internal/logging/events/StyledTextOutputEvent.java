@@ -26,7 +26,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-public class StyledTextOutputEvent extends RenderableOutputEvent implements BuildOperationAwareEvent {
+public class StyledTextOutputEvent extends RenderableOutputEvent {
     private final List<Span> spans;
 
     public StyledTextOutputEvent(long timestamp, String category, String text) {

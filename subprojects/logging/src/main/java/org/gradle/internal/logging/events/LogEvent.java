@@ -20,7 +20,7 @@ import org.gradle.api.Nullable;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.logging.text.StyledTextOutput;
 
-public class LogEvent extends RenderableOutputEvent implements BuildOperationAwareEvent {
+public class LogEvent extends RenderableOutputEvent {
     private final String message;
     private final Throwable throwable;
 

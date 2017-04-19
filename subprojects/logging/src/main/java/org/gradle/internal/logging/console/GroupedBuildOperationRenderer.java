@@ -18,13 +18,13 @@ package org.gradle.internal.logging.console;
 
 import com.google.common.collect.Lists;
 import org.gradle.internal.logging.events.BatchOutputEventListener;
-import org.gradle.internal.logging.events.BuildOperationAwareEvent;
 import org.gradle.internal.logging.events.EndOutputEvent;
 import org.gradle.internal.logging.events.LogEventType;
 import org.gradle.internal.logging.events.OperationIdentifier;
 import org.gradle.internal.logging.events.OutputEvent;
 import org.gradle.internal.logging.events.ProgressCompleteEvent;
 import org.gradle.internal.logging.events.ProgressStartEvent;
+import org.gradle.internal.logging.events.RenderableOutputEvent;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -98,7 +98,6 @@ public class GroupedBuildOperationRenderer extends BatchOutputEventListener {
 
                 if (groupedTaskBuildOperations.containsKey(operationId)) {
                     List<OutputEvent> outputEvents = groupedTaskBuildOperations.get(operationId);
-                    outputEvents.add(event);
 
                     if (currentlyRendered.contains(operationId)) {
                         List<OutputEvent> outputEventsWithoutHeader = outputEvents.subList(1, outputEvents.size());
@@ -107,14 +106,15 @@ public class GroupedBuildOperationRenderer extends BatchOutputEventListener {
                         forwardBatchedEvents(outputEvents);
                     }
 
+                    forwardEvent(event);
                     groupedTaskBuildOperations.remove(operationId);
                     currentlyRendered.remove(operationId);
                 } else {
                     forwardEvent(event);
                 }
-            } else if (event instanceof BuildOperationAwareEvent) {
-                BuildOperationAwareEvent buildOperationAwareEvent = (BuildOperationAwareEvent) event;
-                OperationIdentifier operationId = buildOperationAwareEvent.getOperationId();
+            } else if (event instanceof RenderableOutputEvent) {
+                RenderableOutputEvent renderableOutputEvent = (RenderableOutputEvent) event;
+                OperationIdentifier operationId = renderableOutputEvent.getOperationId();
 
                 if (groupedTaskBuildOperations.containsKey(operationId)) {
                     List<OutputEvent> outputEvents = groupedTaskBuildOperations.get(operationId);
