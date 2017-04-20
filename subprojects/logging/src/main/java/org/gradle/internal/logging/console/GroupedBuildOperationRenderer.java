@@ -151,7 +151,7 @@ public class GroupedBuildOperationRenderer extends BatchOutputEventListener {
     }
 
     private static class RenderState {
-        private OperationIdentifier currentlyRendered = null;
+        private OperationIdentifier currentlyRendered;
 
         public OperationIdentifier getCurrentlyRendered() {
             return currentlyRendered;
