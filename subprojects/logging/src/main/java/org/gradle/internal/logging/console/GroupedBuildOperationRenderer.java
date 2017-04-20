@@ -64,15 +64,15 @@ public class GroupedBuildOperationRenderer extends BatchOutputEventListener {
                 synchronized (lock) {
                     for (Map.Entry<OperationIdentifier, List<OutputEvent>> groupedEvents : groupedTaskBuildOperations.entrySet()) {
                         List<OutputEvent> originalOutputEvents = groupedEvents.getValue();
+                        List<OutputEvent> outputEventsWithoutHeader = getOutputEventsWithoutHeader(originalOutputEvents);
 
                         if (renderState.isCurrentlyRendered(groupedEvents.getKey())) {
-                            List<OutputEvent> outputEventsWithoutHeader = getOutputEventsWithoutHeader(originalOutputEvents);
                             forwardBatchedEvents(outputEventsWithoutHeader);
                         } else {
                             forwardBatchedEvents(originalOutputEvents);
                         }
 
-                        getOutputEventsWithoutHeader(originalOutputEvents).clear();
+                        outputEventsWithoutHeader.clear();
                     }
 
                     if (!groupedTaskBuildOperations.isEmpty()) {
