@@ -20,8 +20,6 @@ import com.google.common.annotations.VisibleForTesting;
 import org.gradle.internal.logging.progress.ProgressLogger;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 
-import static org.gradle.internal.logging.events.LogEventType.BUILD_LIFECYCLE;
-
 public class BuildProgressLogger implements LoggerProvider {
     public static final String INITIALIZATION_PHASE_DESCRIPTION = "INITIALIZATION PHASE";
     public static final String INITIALIZATION_PHASE_SHORT_DESCRIPTION = "INITIALIZING";
@@ -51,7 +49,7 @@ public class BuildProgressLogger implements LoggerProvider {
 
     public void buildStarted() {
         buildProgressFormatter = newProgressBar(INITIALIZATION_PHASE_SHORT_DESCRIPTION, 1);
-        buildProgress = loggerProvider.start(BUILD_LIFECYCLE, INITIALIZATION_PHASE_DESCRIPTION, buildProgressFormatter.getProgress());
+        buildProgress = loggerProvider.start(INITIALIZATION_PHASE_DESCRIPTION, buildProgressFormatter.getProgress());
     }
 
     public void settingsEvaluated() {
@@ -60,7 +58,7 @@ public class BuildProgressLogger implements LoggerProvider {
 
     public void projectsLoaded(int totalProjects) {
         buildProgressFormatter = newProgressBar(CONFIGURATION_PHASE_SHORT_DESCRIPTION, totalProjects);
-        buildProgress = loggerProvider.start(BUILD_LIFECYCLE, CONFIGURATION_PHASE_DESCRIPTION, buildProgressFormatter.getProgress());
+        buildProgress = loggerProvider.start(CONFIGURATION_PHASE_DESCRIPTION, buildProgressFormatter.getProgress());
     }
 
     public void beforeEvaluate(String projectPath) {}
@@ -75,7 +73,7 @@ public class BuildProgressLogger implements LoggerProvider {
         taskGraphPopulated = true;
         buildProgress.completed();
         buildProgressFormatter = newProgressBar(EXECUTION_PHASE_SHORT_DESCRIPTION, totalTasks);
-        buildProgress = loggerProvider.start(BUILD_LIFECYCLE, EXECUTION_PHASE_DESCRIPTION, buildProgressFormatter.getProgress());
+        buildProgress = loggerProvider.start(EXECUTION_PHASE_DESCRIPTION, buildProgressFormatter.getProgress());
     }
 
     public void beforeExecute() {}

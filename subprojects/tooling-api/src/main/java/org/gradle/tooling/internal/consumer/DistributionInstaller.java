@@ -46,8 +46,6 @@ import java.util.List;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static org.gradle.internal.logging.events.LogEventType.MISC;
-
 public class DistributionInstaller {
     private static final String APP_NAME = "Gradle Tooling API";
     private static final InternalBuildProgressListener NO_OP = new NoOpListener();
@@ -110,7 +108,7 @@ public class DistributionInstaller {
     }
 
     private void withProgressLogging(URI address, File destination, OperationDescriptor operationDescriptor) throws Throwable {
-        ProgressLogger progressLogger = progressLoggerFactory.newOperation(MISC, DistributionInstaller.class);
+        ProgressLogger progressLogger = progressLoggerFactory.newOperation(DistributionInstaller.class);
         progressLogger.setDescription("Download " + address);
         progressLogger.started();
         try {

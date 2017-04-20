@@ -67,8 +67,6 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
-import static org.gradle.internal.logging.events.LogEventType.MISC;
-
 class RuntimeShadedJarCreator {
 
     public static final int ADDITIONAL_PROGRESS_STEPS = 2;
@@ -89,7 +87,7 @@ class RuntimeShadedJarCreator {
 
     public void create(final File outputJar, final Iterable<? extends File> files) {
         LOGGER.info("Generating JAR file: " + outputJar.getAbsolutePath());
-        ProgressLogger progressLogger = progressLoggerFactory.newOperation(MISC, RuntimeShadedJarCreator.class);
+        ProgressLogger progressLogger = progressLoggerFactory.newOperation(RuntimeShadedJarCreator.class);
         progressLogger.setDescription("Gradle JARs generation");
         progressLogger.setLoggingHeader("Generating JAR file '" + outputJar.getName() + "'");
         progressLogger.started();

@@ -22,8 +22,6 @@ import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 
 import java.util.LinkedList;
 
-import static org.gradle.internal.logging.events.LogEventType.DEPENDENCY_RESOLUTION;
-
 public class DependencyResolutionLogger implements DependencyResolutionListener {
     private final ThreadLocal<LinkedList<ProgressLogger>> progressLoggers = new ThreadLocal<LinkedList<ProgressLogger>>() {
         protected LinkedList<ProgressLogger> initialValue() {
@@ -39,7 +37,7 @@ public class DependencyResolutionLogger implements DependencyResolutionListener 
     public void beforeResolve(ResolvableDependencies dependencies) {
         LinkedList<ProgressLogger> loggers = progressLoggers.get();
         progressLoggers.set(loggers);
-        ProgressLogger logger = loggerFactory.newOperation(DEPENDENCY_RESOLUTION, DependencyResolutionLogger.class);
+        ProgressLogger logger = loggerFactory.newOperation(DependencyResolutionLogger.class);
         logger.start("Resolve " + dependencies, "Resolving " + dependencies);
         loggers.add(logger);
     }

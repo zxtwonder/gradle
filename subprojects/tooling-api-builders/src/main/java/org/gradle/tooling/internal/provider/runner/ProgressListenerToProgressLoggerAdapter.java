@@ -25,8 +25,6 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.LinkedList;
 
-import static org.gradle.internal.logging.events.LogEventType.MISC;
-
 class ProgressListenerToProgressLoggerAdapter implements ProgressListener {
     private final ProgressLoggerFactory progressLoggerFactory;
     LinkedList<String> stack;
@@ -47,7 +45,7 @@ class ProgressListenerToProgressLoggerAdapter implements ProgressListener {
             return;
         }
         stack.addFirst(description);
-        ProgressLogger progressLogger = progressLoggerFactory.newOperation(MISC, ProgressListenerToProgressLoggerAdapter.class);
+        ProgressLogger progressLogger = progressLoggerFactory.newOperation(ProgressListenerToProgressLoggerAdapter.class);
         progressLogger.start(description, description);
         loggerStack.push(progressLogger);
     }

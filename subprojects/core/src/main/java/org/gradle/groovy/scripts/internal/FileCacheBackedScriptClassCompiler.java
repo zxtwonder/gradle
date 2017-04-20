@@ -48,8 +48,6 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 
-import static org.gradle.internal.logging.events.LogEventType.COMPILER;
-
 /**
  * A {@link ScriptClassCompiler} which compiles scripts to a cache directory, and loads them from there.
  */
@@ -173,7 +171,7 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
         }
 
         public void execute(PersistentCache cache) {
-            ProgressLogger op = progressLoggerFactory.newOperation(COMPILER, FileCacheBackedScriptClassCompiler.class)
+            ProgressLogger op = progressLoggerFactory.newOperation(FileCacheBackedScriptClassCompiler.class)
                 .start(shortDescription, longDescription);
             try {
                 delegate.execute(cache);

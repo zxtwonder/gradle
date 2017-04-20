@@ -16,16 +16,14 @@
 package org.gradle.tooling.internal.consumer.connection;
 
 import org.gradle.internal.event.ListenerManager;
-import org.gradle.internal.logging.progress.ProgressLogger;
 import org.gradle.internal.logging.events.ProgressCompleteEvent;
 import org.gradle.internal.logging.events.ProgressEvent;
-import org.gradle.internal.logging.progress.ProgressListener;
 import org.gradle.internal.logging.events.ProgressStartEvent;
+import org.gradle.internal.logging.progress.ProgressListener;
+import org.gradle.internal.logging.progress.ProgressLogger;
 import org.gradle.tooling.internal.consumer.LoggingProvider;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.protocol.ProgressListenerVersion1;
-
-import static org.gradle.internal.logging.events.LogEventType.MISC;
 
 /**
  * Provides some high-level progress information.
@@ -53,7 +51,7 @@ public class ProgressLoggingConsumerActionExecutor implements ConsumerActionExec
         ListenerManager listenerManager = loggingProvider.getListenerManager();
         listenerManager.addListener(listener);
         try {
-            ProgressLogger progressLogger = loggingProvider.getProgressLoggerFactory().newOperation(MISC, ProgressLoggingConsumerActionExecutor.class);
+            ProgressLogger progressLogger = loggingProvider.getProgressLoggerFactory().newOperation(ProgressLoggingConsumerActionExecutor.class);
             progressLogger.setDescription("Build");
             progressLogger.started();
             try {

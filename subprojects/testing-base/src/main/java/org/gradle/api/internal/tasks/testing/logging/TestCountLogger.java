@@ -25,8 +25,6 @@ import org.gradle.util.TextUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static org.gradle.internal.logging.events.LogEventType.MISC;
-
 public class TestCountLogger implements TestListener {
     private final ProgressLoggerFactory factory;
     private ProgressLogger progressLogger;
@@ -87,7 +85,7 @@ public class TestCountLogger implements TestListener {
     @Override
     public void beforeSuite(TestDescriptor suite) {
         if (suite.getParent() == null) {
-            progressLogger = factory.newOperation(MISC, TestCountLogger.class);
+            progressLogger = factory.newOperation(TestCountLogger.class);
             progressLogger.setDescription("Run tests");
             progressLogger.started();
             progressLogger.progress(summary());

@@ -16,8 +16,6 @@
 
 package org.gradle.internal.logging.progress;
 
-import org.gradle.internal.logging.events.LogEventType;
-
 /**
  * Thread-safe, however the progress logger instances created are not.
  */
@@ -28,7 +26,7 @@ public interface ProgressLoggerFactory {
      * @param loggerCategory The logger category.
      * @return The progress logger for the operation.
      */
-    ProgressLogger newOperation(LogEventType logEventType, String loggerCategory);
+    ProgressLogger newOperation(String loggerCategory);
 
     /**
      * Creates a new long-running operation which has not been started.
@@ -36,7 +34,7 @@ public interface ProgressLoggerFactory {
      * @param loggerCategory The logger category.
      * @return The progress logger for the operation.
      */
-    ProgressLogger newOperation(LogEventType logEventType, Class<?> loggerCategory);
+    ProgressLogger newOperation(Class<?> loggerCategory);
 
-    ProgressLogger newOperation(LogEventType logEventType, Class<?> loggerClass, ProgressLogger parent);
+    ProgressLogger newOperation(Class<?> loggerClass, ProgressLogger parent);
 }

@@ -23,8 +23,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 
-import static org.gradle.internal.logging.events.LogEventType.MISC;
-
 public class AbstractProgressLoggingHandler {
     protected final ProgressLoggerFactory progressLoggerFactory;
 
@@ -33,7 +31,7 @@ public class AbstractProgressLoggingHandler {
     }
 
     protected ResourceOperation createResourceOperation(URI resource, ResourceOperation.Type operationType, Class loggingClazz, long contentLength) {
-        ProgressLogger progressLogger = progressLoggerFactory.newOperation(MISC, loggingClazz != null ? loggingClazz : getClass());
+        ProgressLogger progressLogger = progressLoggerFactory.newOperation(loggingClazz != null ? loggingClazz : getClass());
         String description = createDescription(operationType, resource);
         progressLogger.setDescription(description);
         progressLogger.setLoggingHeader(description);

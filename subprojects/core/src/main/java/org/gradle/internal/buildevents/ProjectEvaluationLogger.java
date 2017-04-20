@@ -18,7 +18,6 @@ package org.gradle.internal.buildevents;
 import org.gradle.api.Project;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.ProjectState;
-import org.gradle.internal.logging.events.LogEventType;
 import org.gradle.internal.logging.progress.ProgressLogger;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 
@@ -39,7 +38,7 @@ public class ProjectEvaluationLogger implements ProjectEvaluationListener {
         // see ConfigurationOnDemandIntegrationTest
         final String projectPath = project.getPath().equals(":") ? "root project" : project.getPath();
         ProgressLogger currentTask = progressLoggerFactory
-            .newOperation(LogEventType.PROJECT_EVALUATION, ProjectEvaluationLogger.class)
+            .newOperation(ProjectEvaluationLogger.class)
             .start("Configuring ".concat(projectPath), projectPath);
         currentProjects.put(project.getPath(), currentTask);
     }

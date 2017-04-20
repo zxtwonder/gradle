@@ -44,8 +44,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Set;
 
-import static org.gradle.internal.logging.events.LogEventType.MISC;
-
 /**
  * Task to run a Play application.
  */
@@ -91,7 +89,7 @@ public class PlayRun extends ConventionTask {
         PlayApplicationDeploymentHandle deploymentHandle = registerOrFindDeploymentHandle(getPath());
 
         if (!deploymentHandle.isRunning()) {
-            ProgressLogger progressLogger = progressLoggerFactory.newOperation(MISC, PlayRun.class)
+            ProgressLogger progressLogger = progressLoggerFactory.newOperation(PlayRun.class)
                 .start("Start Play server", "Starting Play");
 
             try {
@@ -105,7 +103,7 @@ public class PlayRun extends ConventionTask {
         }
 
         if (!getProject().getGradle().getStartParameter().isContinuous()) {
-            ProgressLogger progressLogger = progressLoggerFactory.newOperation(MISC, PlayRun.class)
+            ProgressLogger progressLogger = progressLoggerFactory.newOperation(PlayRun.class)
                 .start("Run Play App at http://localhost:" + httpPort + "/",
                     "Running at http://localhost:"+ httpPort + "/");
             try {

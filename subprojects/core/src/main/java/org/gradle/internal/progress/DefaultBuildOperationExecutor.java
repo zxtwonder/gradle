@@ -103,7 +103,8 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor {
             try {
                 ProgressLogger progressLogger;
                 if (operationDetails.getProgressDisplayName() != null) {
-                    progressLogger = progressLoggerFactory.newOperation(BUILD_OPERATION, DefaultBuildOperationExecutor.class);
+                    System.out.println("---> " + operationDetails.getOperationDescriptor());
+                    progressLogger = progressLoggerFactory.newOperation(DefaultBuildOperationExecutor.class);
                     progressLogger.setDescription(operationDetails.getDisplayName());
                     progressLogger.setShortDescription(operationDetails.getProgressDisplayName());
                     progressLogger.started();
