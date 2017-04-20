@@ -20,12 +20,12 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import org.gradle.internal.logging.events.BatchOutputEventListener;
 import org.gradle.internal.logging.events.EndOutputEvent;
+import org.gradle.internal.logging.events.LoggingType;
 import org.gradle.internal.logging.events.OperationIdentifier;
 import org.gradle.internal.logging.events.OutputEvent;
 import org.gradle.internal.logging.events.ProgressCompleteEvent;
 import org.gradle.internal.logging.events.ProgressStartEvent;
 import org.gradle.internal.logging.events.RenderableOutputEvent;
-import org.gradle.internal.logging.events.LoggingType;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -58,36 +58,7 @@ public class GroupedBuildOperationRenderer extends BatchOutputEventListener {
     }
 
     private void scheduleTimedEventForwarding() {
-        executor.scheduleAtFixedRate(new Runnable() {
-            @Override
-            public void run() {
-                synchronized (lock) {
-                    for (Map.Entry<OperationIdentifier, List<OutputEvent>> groupedEvents : groupedTaskBuildOperations.entrySet()) {
-                        forwardOutputEvents(groupedEvents);
-                    }
-
-                    setRenderState();
-                }
-            }
-
-            private void forwardOutputEvents(Map.Entry<OperationIdentifier, List<OutputEvent>> groupedEvents) {
-                List<OutputEvent> originalOutputEvents = groupedEvents.getValue();
-                List<OutputEvent> outputEventsWithoutHeader = getOutputEventsWithoutHeader(originalOutputEvents);
-                List<OutputEvent> forwardedOutputEvents = renderState.isCurrentlyRendered(groupedEvents.getKey()) ? outputEventsWithoutHeader : originalOutputEvents;
-                forwardBatchedEvents(forwardedOutputEvents);
-                outputEventsWithoutHeader.clear();
-            }
-
-            private List<OutputEvent> getOutputEventsWithoutHeader(List<OutputEvent> outputEvents) {
-                return outputEvents.subList(1, outputEvents.size());
-            }
-
-            private void setRenderState() {
-                if (!groupedTaskBuildOperations.isEmpty()) {
-                    renderState.setCurrentlyRendered(Iterables.getLast(groupedTaskBuildOperations.keySet()));
-                }
-            }
-        }, SCHEDULER_INITIAL_DELAY_MS, SCHEDULER_CHECK_PERIOD_MS, TimeUnit.MILLISECONDS);
+        executor.scheduleAtFixedRate(new ForwardingOutputEventRunnable(), SCHEDULER_INITIAL_DELAY_MS, SCHEDULER_CHECK_PERIOD_MS, TimeUnit.MILLISECONDS);
     }
 
     @Override
@@ -153,7 +124,40 @@ public class GroupedBuildOperationRenderer extends BatchOutputEventListener {
         listener.onOutput(events);
     }
 
+    private class ForwardingOutputEventRunnable implements Runnable {
+
+        @Override
+        public void run() {
+            synchronized (lock) {
+                for (Map.Entry<OperationIdentifier, List<OutputEvent>> groupedEvents : groupedTaskBuildOperations.entrySet()) {
+                    forwardOutputEvents(groupedEvents);
+                }
+
+                setRenderState();
+            }
+        }
+
+        private void forwardOutputEvents(Map.Entry<OperationIdentifier, List<OutputEvent>> groupedEvents) {
+            List<OutputEvent> originalOutputEvents = groupedEvents.getValue();
+            List<OutputEvent> outputEventsWithoutHeader = getOutputEventsWithoutHeader(originalOutputEvents);
+            List<OutputEvent> forwardedOutputEvents = renderState.isCurrentlyRendered(groupedEvents.getKey()) ? outputEventsWithoutHeader : originalOutputEvents;
+            forwardBatchedEvents(forwardedOutputEvents);
+            outputEventsWithoutHeader.clear();
+        }
+
+        private List<OutputEvent> getOutputEventsWithoutHeader(List<OutputEvent> outputEvents) {
+            return outputEvents.subList(1, outputEvents.size());
+        }
+
+        private void setRenderState() {
+            if (!groupedTaskBuildOperations.isEmpty()) {
+                renderState.setCurrentlyRendered(Iterables.getLast(groupedTaskBuildOperations.keySet()));
+            }
+        }
+    }
+
     private static class RenderState {
+
         private OperationIdentifier currentlyRendered;
 
         public OperationIdentifier getCurrentlyRendered() {
