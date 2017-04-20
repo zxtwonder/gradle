@@ -65,51 +65,64 @@ public class GroupedBuildOperationRenderer extends BatchOutputEventListener {
     public void onOutput(OutputEvent event) {
         synchronized (lock) {
             if (event instanceof ProgressStartEvent) {
-                ProgressStartEvent startEvent = (ProgressStartEvent) event;
-                OperationIdentifier operationId = startEvent.getOperationId();
-
-                if (isTaskExecutionProgressStartEvent(startEvent)) {
-                    groupedTaskBuildOperations.put(operationId, Lists.newArrayList(event));
-                } else {
-                    forwardEvent(event);
-                }
+                onStart((ProgressStartEvent) event);
             } else if (event instanceof ProgressCompleteEvent) {
-                ProgressCompleteEvent progressCompleteEvent = (ProgressCompleteEvent) event;
-                OperationIdentifier operationId = progressCompleteEvent.getOperationId();
-
-                if (groupedTaskBuildOperations.containsKey(operationId)) {
-                    List<OutputEvent> outputEvents = groupedTaskBuildOperations.get(operationId);
-
-                    if (renderState.isCurrentlyRendered(operationId)) {
-                        List<OutputEvent> outputEventsWithoutHeader = outputEvents.subList(1, outputEvents.size());
-                        forwardBatchedEvents(outputEventsWithoutHeader);
-                    } else {
-                        forwardBatchedEvents(outputEvents);
-                    }
-
-                    forwardEvent(event);
-                    groupedTaskBuildOperations.remove(operationId);
-                    renderState.clearCurrentlyRendered();
-                } else {
-                    forwardEvent(event);
-                }
+                onComplete((ProgressCompleteEvent) event);
             } else if (event instanceof RenderableOutputEvent) {
-                RenderableOutputEvent renderableOutputEvent = (RenderableOutputEvent) event;
-                OperationIdentifier operationId = renderableOutputEvent.getOperationId();
-
-                if (groupedTaskBuildOperations.containsKey(operationId)) {
-                    List<OutputEvent> outputEvents = groupedTaskBuildOperations.get(operationId);
-                    outputEvents.add(event);
-                } else {
-                    forwardEvent(event);
-                }
+                onRenderable((RenderableOutputEvent) event);
             } else if (event instanceof EndOutputEvent) {
-                forwardEvent(event);
-                executor.shutdown();
-                groupedTaskBuildOperations.clear();
-                renderState.clearCurrentlyRendered();
+                onEnd((EndOutputEvent) event);
             }
         }
+    }
+
+    private void onStart(ProgressStartEvent event) {
+        OperationIdentifier operationId = event.getOperationId();
+
+        if (isTaskExecutionProgressStartEvent(event)) {
+            groupedTaskBuildOperations.put(operationId, Lists.newArrayList((OutputEvent) event));
+        } else {
+            forwardEvent(event);
+        }
+    }
+
+    private void onComplete(ProgressCompleteEvent event) {
+        OperationIdentifier operationId = event.getOperationId();
+
+        if (groupedTaskBuildOperations.containsKey(operationId)) {
+            List<OutputEvent> outputEvents = groupedTaskBuildOperations.get(operationId);
+
+            if (renderState.isCurrentlyRendered(operationId)) {
+                List<OutputEvent> outputEventsWithoutHeader = outputEvents.subList(1, outputEvents.size());
+                forwardBatchedEvents(outputEventsWithoutHeader);
+            } else {
+                forwardBatchedEvents(outputEvents);
+            }
+
+            forwardEvent(event);
+            groupedTaskBuildOperations.remove(operationId);
+            renderState.clearCurrentlyRendered();
+        } else {
+            forwardEvent(event);
+        }
+    }
+
+    private void onRenderable(RenderableOutputEvent event) {
+        OperationIdentifier operationId = event.getOperationId();
+
+        if (groupedTaskBuildOperations.containsKey(operationId)) {
+            List<OutputEvent> outputEvents = groupedTaskBuildOperations.get(operationId);
+            outputEvents.add(event);
+        } else {
+            forwardEvent(event);
+        }
+    }
+
+    private void onEnd(EndOutputEvent event) {
+        forwardEvent(event);
+        executor.shutdown();
+        groupedTaskBuildOperations.clear();
+        renderState.clearCurrentlyRendered();
     }
 
     private boolean isTaskExecutionProgressStartEvent(ProgressStartEvent event) {
