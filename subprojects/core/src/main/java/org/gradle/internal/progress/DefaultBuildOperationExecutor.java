@@ -262,6 +262,7 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor {
 
     private static class LoggingTypeFactory {
 
+        @Nullable
         private static LoggingType createForOperationDescriptor(Object operationDescriptor) {
             if (operationDescriptor instanceof TaskOperationDescriptor) {
                 return LoggingType.TASK_EXECUTION;
