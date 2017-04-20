@@ -36,8 +36,8 @@ import java.util.concurrent.TimeUnit;
 
 public class GroupedBuildOperationRenderer extends BatchOutputEventListener {
 
-    private static final int SCHEDULER_INITIAL_DELAY_MS = 100;
-    private static final int SCHEDULER_CHECK_PERIOD_MS = 5000;
+    static final int SCHEDULER_INITIAL_DELAY_MS = 100;
+    static final int SCHEDULER_CHECK_PERIOD_MS = 5000;
     private final BatchOutputEventListener listener;
     private final ScheduledExecutorService executor;
     private final Object lock = new Object();
@@ -66,15 +66,13 @@ public class GroupedBuildOperationRenderer extends BatchOutputEventListener {
                         List<OutputEvent> originalOutputEvents = groupedEvents.getValue();
 
                         if (renderState.isCurrentlyRendered(groupedEvents.getKey())) {
-                            List<OutputEvent> outputEventsWithoutHeader = originalOutputEvents.subList(1, originalOutputEvents.size());
+                            List<OutputEvent> outputEventsWithoutHeader = getOutputEventsWithoutHeader(originalOutputEvents);
                             forwardBatchedEvents(outputEventsWithoutHeader);
                         } else {
                             forwardBatchedEvents(originalOutputEvents);
                         }
 
-                        for (int i = 1; i <= groupedEvents.getValue().size(); i++) {
-                            originalOutputEvents.remove(i);
-                        }
+                        getOutputEventsWithoutHeader(originalOutputEvents).clear();
                     }
 
                     if (!groupedTaskBuildOperations.isEmpty()) {
@@ -82,11 +80,11 @@ public class GroupedBuildOperationRenderer extends BatchOutputEventListener {
                     }
                 }
             }
-        }, SCHEDULER_INITIAL_DELAY_MS, SCHEDULER_CHECK_PERIOD_MS, TimeUnit.MILLISECONDS);
-    }
 
-    Map<OperationIdentifier, List<OutputEvent>> getGroupedTaskBuildOperations() {
-        return groupedTaskBuildOperations;
+            private List<OutputEvent> getOutputEventsWithoutHeader(List<OutputEvent> outputEvents) {
+                return outputEvents.subList(1, outputEvents.size());
+            }
+        }, SCHEDULER_INITIAL_DELAY_MS, SCHEDULER_CHECK_PERIOD_MS, TimeUnit.MILLISECONDS);
     }
 
     @Override
@@ -155,16 +153,28 @@ public class GroupedBuildOperationRenderer extends BatchOutputEventListener {
     private static class RenderState {
         private OperationIdentifier currentlyRendered = null;
 
-        private void setCurrentlyRendered(OperationIdentifier operationId) {
+        public OperationIdentifier getCurrentlyRendered() {
+            return currentlyRendered;
+        }
+
+        public void setCurrentlyRendered(OperationIdentifier operationId) {
             currentlyRendered = operationId;
         }
 
-        private boolean isCurrentlyRendered(OperationIdentifier operationId) {
+        public boolean isCurrentlyRendered(OperationIdentifier operationId) {
             return currentlyRendered != null && currentlyRendered.equals(operationId);
         }
 
-        private void clearCurrentlyRendered() {
+        public void clearCurrentlyRendered() {
             currentlyRendered = null;
         }
+    }
+
+    Map<OperationIdentifier, List<OutputEvent>> getGroupedTaskBuildOperations() {
+        return groupedTaskBuildOperations;
+    }
+
+    RenderState getRenderState() {
+        return renderState;
     }
 }
