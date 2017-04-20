@@ -25,7 +25,7 @@ import org.gradle.internal.logging.events.ProgressCompleteEvent
 import org.gradle.internal.logging.events.ProgressEvent
 import org.gradle.internal.logging.events.ProgressStartEvent
 import org.gradle.internal.logging.events.StyledTextOutputEvent
-import org.gradle.internal.logging.progress.LoggingType
+import org.gradle.internal.logging.events.LoggingType
 import org.gradle.internal.logging.text.StyledTextOutput
 import org.gradle.internal.serialize.PlaceholderException
 import org.gradle.internal.serialize.Serializer

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.logging.progress;
+package org.gradle.internal.logging.events;
 
 /**
  * The logging type of an operation.

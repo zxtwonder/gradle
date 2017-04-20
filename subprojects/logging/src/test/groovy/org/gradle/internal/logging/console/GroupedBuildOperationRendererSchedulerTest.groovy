@@ -21,7 +21,7 @@ import org.gradle.internal.logging.events.BatchOutputEventListener
 import org.gradle.internal.logging.events.LogEvent
 import org.gradle.internal.logging.events.OperationIdentifier
 import org.gradle.internal.logging.events.ProgressStartEvent
-import org.gradle.internal.logging.progress.LoggingType
+import org.gradle.internal.logging.events.LoggingType
 import spock.lang.Specification
 
 class GroupedBuildOperationRendererSchedulerTest extends Specification {

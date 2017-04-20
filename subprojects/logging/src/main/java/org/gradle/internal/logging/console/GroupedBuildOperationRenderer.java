@@ -25,7 +25,7 @@ import org.gradle.internal.logging.events.OutputEvent;
 import org.gradle.internal.logging.events.ProgressCompleteEvent;
 import org.gradle.internal.logging.events.ProgressStartEvent;
 import org.gradle.internal.logging.events.RenderableOutputEvent;
-import org.gradle.internal.logging.progress.LoggingType;
+import org.gradle.internal.logging.events.LoggingType;
 
 import java.util.LinkedHashMap;
 import java.util.List;

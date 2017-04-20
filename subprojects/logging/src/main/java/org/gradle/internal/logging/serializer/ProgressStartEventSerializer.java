@@ -18,7 +18,7 @@ package org.gradle.internal.logging.serializer;
 
 import org.gradle.internal.logging.events.OperationIdentifier;
 import org.gradle.internal.logging.events.ProgressStartEvent;
-import org.gradle.internal.logging.progress.LoggingType;
+import org.gradle.internal.logging.events.LoggingType;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;

@@ -17,6 +17,7 @@
 package org.gradle.internal.logging.progress;
 
 import org.gradle.api.Nullable;
+import org.gradle.internal.logging.events.LoggingType;
 
 /**
  * Used to log the progress of a potentially long running operation.
