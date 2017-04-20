@@ -54,17 +54,15 @@ class GroupedBuildOperationRendererTest extends Specification {
         renderer.groupedTaskBuildOperations.isEmpty()
 
         where:
-        event << [new ProgressStartEvent(DEFAULT_OPERATION_ID, null, new Date().time, 'task', 'some task', null, null, null, null),
-                  new ProgressCompleteEvent(DEFAULT_OPERATION_ID, new Date().time, 'task', 'some task', 'complete'),
-                  new LogEvent(new Date().time, 'task', LogLevel.LIFECYCLE, DEFAULT_OPERATION_ID, 'complete', null),
-                  new StyledTextOutputEvent(new Date().time, 'task', DEFAULT_OPERATION_ID, 'text')]
+        event << [createProgressStartEvent(DEFAULT_OPERATION_ID, null, null),
+                  createProgressCompleteEvent(DEFAULT_OPERATION_ID),
+                  createDefaultLogEvent(),
+                  createDefaultStyledTextOutputEvent()]
     }
 
     def "batches task-based progress start event"() {
         given:
-        def timestamp = new Date().time
-        def loggingHeader = ':compileJava'
-        def event = new ProgressStartEvent(DEFAULT_OPERATION_ID, null, timestamp, 'class org.gradle.internal.buildevents.TaskExecutionLogger', 'some task', null, LoggingType.TASK_EXECUTION, loggingHeader, null)
+        def event = createDefaultProgressStartEvent()
 
         when:
         renderer.onOutput(event)
@@ -78,8 +76,7 @@ class GroupedBuildOperationRendererTest extends Specification {
 
     def "batches and flushes different types of task-based events"() {
         given:
-        def loggingHeader = ':compileJava'
-        def progressStartEvent = new ProgressStartEvent(DEFAULT_OPERATION_ID, null, new Date().time, 'class org.gradle.internal.buildevents.TaskExecutionLogger', 'some task', null, LoggingType.TASK_EXECUTION, loggingHeader, null)
+        def progressStartEvent = createDefaultProgressStartEvent()
 
         when:
         renderer.onOutput(progressStartEvent)
@@ -92,7 +89,7 @@ class GroupedBuildOperationRendererTest extends Specification {
         batchedEvents.get(0) == progressStartEvent
 
         when:
-        def logEvent = new LogEvent(new Date().time, 'class org.gradle.internal.buildevents.TaskExecutionLogger', LogLevel.LIFECYCLE, DEFAULT_OPERATION_ID, 'complete', null)
+        def logEvent = createDefaultLogEvent()
         renderer.onOutput(logEvent)
 
         then:
@@ -103,7 +100,7 @@ class GroupedBuildOperationRendererTest extends Specification {
         batchedEvents.get(1) == logEvent
 
         when:
-        def styledTextOutputEvent = new StyledTextOutputEvent(new Date().time, 'class org.gradle.internal.buildevents.TaskExecutionLogger', DEFAULT_OPERATION_ID, 'text')
+        def styledTextOutputEvent = createDefaultStyledTextOutputEvent()
         renderer.onOutput(styledTextOutputEvent)
 
         then:
@@ -115,7 +112,7 @@ class GroupedBuildOperationRendererTest extends Specification {
         batchedEvents.get(2) == styledTextOutputEvent
 
         when:
-        def progressCompleteEvent = new ProgressCompleteEvent(DEFAULT_OPERATION_ID, new Date().time, 'class org.gradle.internal.buildevents.TaskExecutionLogger', 'some task', 'complete')
+        def progressCompleteEvent = createDefaultProgressCompleteEvent()
         renderer.onOutput(progressCompleteEvent)
 
         then:
@@ -125,11 +122,9 @@ class GroupedBuildOperationRendererTest extends Specification {
 
     def "can batch and flush different build operations"() {
         given:
-        def loggingHeader1 = ':compileJava'
-        def progressStartEvent1 = new ProgressStartEvent(DEFAULT_OPERATION_ID, null, new Date().time, 'class org.gradle.internal.buildevents.TaskExecutionLogger', 'some task', null, LoggingType.TASK_EXECUTION, loggingHeader1, null)
+        def progressStartEvent1 = createDefaultProgressStartEvent()
         def operationIdentifier2 = new OperationIdentifier(456)
-        def loggingHeader2 = ':compileJava'
-        def progressStartEvent2 = new ProgressStartEvent(operationIdentifier2, null, new Date().time, 'class org.gradle.internal.buildevents.TaskExecutionLogger', 'some task', null, LoggingType.TASK_EXECUTION, loggingHeader2, null)
+        def progressStartEvent2 = createProgressStartEvent(operationIdentifier2, LoggingType.TASK_EXECUTION, ':assemble')
 
         when:
         renderer.onOutput(progressStartEvent1)
@@ -146,8 +141,8 @@ class GroupedBuildOperationRendererTest extends Specification {
         batchedEvents2.get(0) == progressStartEvent2
 
         when:
-        def progressCompleteEvent1 = new ProgressCompleteEvent(DEFAULT_OPERATION_ID, new Date().time, 'class org.gradle.internal.buildevents.TaskExecutionLogger', 'some task', 'complete')
-        def progressCompleteEvent2 = new ProgressCompleteEvent(operationIdentifier2, new Date().time, 'class org.gradle.internal.buildevents.TaskExecutionLogger', 'some task', 'complete')
+        def progressCompleteEvent1 = createDefaultProgressCompleteEvent()
+        def progressCompleteEvent2 = createProgressCompleteEvent(operationIdentifier2)
         renderer.onOutput(progressCompleteEvent1)
         renderer.onOutput(progressCompleteEvent2)
 
@@ -155,5 +150,29 @@ class GroupedBuildOperationRendererTest extends Specification {
         1 * listener.onOutput(renderer.groupedTaskBuildOperations.get(DEFAULT_OPERATION_ID))
         1 * listener.onOutput(renderer.groupedTaskBuildOperations.get(operationIdentifier2))
         renderer.groupedTaskBuildOperations.isEmpty()
+    }
+
+    static ProgressStartEvent createDefaultProgressStartEvent() {
+        return createProgressStartEvent(DEFAULT_OPERATION_ID, LoggingType.TASK_EXECUTION, ':compileJava')
+    }
+
+    static ProgressCompleteEvent createDefaultProgressCompleteEvent() {
+        return createProgressCompleteEvent(DEFAULT_OPERATION_ID)
+    }
+
+    static LogEvent createDefaultLogEvent() {
+        return new LogEvent(new Date().time, 'class org.gradle.internal.buildevents.TaskExecutionLogger', LogLevel.LIFECYCLE, DEFAULT_OPERATION_ID, 'complete', null)
+    }
+
+    static StyledTextOutputEvent createDefaultStyledTextOutputEvent() {
+        return new StyledTextOutputEvent(new Date().time, 'class org.gradle.internal.buildevents.TaskExecutionLogger', DEFAULT_OPERATION_ID, 'text')
+    }
+
+    static ProgressStartEvent createProgressStartEvent(OperationIdentifier operationId, LoggingType loggingType, String loggingHeader) {
+        return new ProgressStartEvent(operationId, null, new Date().time, 'class org.gradle.internal.buildevents.TaskExecutionLogger', 'some task', null, loggingType, loggingHeader, null)
+    }
+
+    static ProgressCompleteEvent createProgressCompleteEvent(OperationIdentifier operationId) {
+        return new ProgressCompleteEvent(operationId, new Date().time, 'class org.gradle.internal.buildevents.TaskExecutionLogger', 'some task', 'complete')
     }
 }
