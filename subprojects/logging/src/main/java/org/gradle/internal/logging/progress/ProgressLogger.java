@@ -16,6 +16,8 @@
 
 package org.gradle.internal.logging.progress;
 
+import org.gradle.api.Nullable;
+
 /**
  * Used to log the progress of a potentially long running operation.
  *
@@ -67,6 +69,23 @@ public interface ProgressLogger {
      * @param description The short description.
      */
     ProgressLogger setShortDescription(String description);
+
+    /**
+     * Returns the logging type of the operation. Defaults to null.
+     *
+     * @return The logging type
+     */
+    @Nullable
+    LoggingType getLoggingType();
+
+    /**
+     * Returns the logging type of the operation.
+     *
+     * <p>This must be called before {@link #started()}
+     *
+     * @param loggingType The logging type. May be null.
+     */
+    ProgressLogger setLoggingType(LoggingType loggingType);
 
     /**
      * <p>Returns the logging header for the operation. This is logged before any other log messages for this operation are logged. It is usually

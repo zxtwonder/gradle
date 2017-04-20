@@ -212,6 +212,19 @@ class DefaultProgressLoggerFactoryTest extends ConcurrentSpec {
         }
     }
 
+    def canSpecifyLoggingType() {
+        when:
+        def logger = factory.newOperation('logger')
+        logger.description = 'description'
+        logger.loggingType = LoggingType.TASK_EXECUTION
+        logger.started()
+
+        then:
+        1 * progressListener.started(!null) >> { ProgressStartEvent event ->
+            assert event.loggingType == LoggingType.TASK_EXECUTION
+        }
+    }
+
     def canSpecifyLoggingHeader() {
         when:
         def logger = factory.newOperation('logger')

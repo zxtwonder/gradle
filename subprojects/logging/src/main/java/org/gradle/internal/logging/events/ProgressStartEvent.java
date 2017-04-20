@@ -18,21 +18,24 @@ package org.gradle.internal.logging.events;
 
 import org.gradle.api.Nullable;
 import org.gradle.api.logging.LogLevel;
+import org.gradle.internal.logging.progress.LoggingType;
 
 public class ProgressStartEvent extends CategorisedOutputEvent {
     private final OperationIdentifier operationId;
     private final OperationIdentifier parentId;
     private final String description;
     private final String shortDescription;
+    private final LoggingType loggingType;
     private final String loggingHeader;
     private final String status;
 
-    public ProgressStartEvent(OperationIdentifier operationId, @Nullable OperationIdentifier parentId, long timestamp, String category, String description, @Nullable String shortDescription, @Nullable String loggingHeader, String status) {
+    public ProgressStartEvent(OperationIdentifier operationId, @Nullable OperationIdentifier parentId, long timestamp, String category, String description, @Nullable String shortDescription, @Nullable LoggingType loggingType, @Nullable String loggingHeader, String status) {
         super(timestamp, category, LogLevel.LIFECYCLE);
         this.operationId = operationId;
         this.parentId = parentId;
         this.description = description;
         this.shortDescription = shortDescription;
+        this.loggingType = loggingType;
         this.loggingHeader = loggingHeader;
         this.status = status;
     }
@@ -54,6 +57,11 @@ public class ProgressStartEvent extends CategorisedOutputEvent {
     @Nullable
     public String getLoggingHeader() {
         return loggingHeader;
+    }
+
+    @Nullable
+    public LoggingType getLoggingType() {
+        return loggingType;
     }
 
     public String getStatus() {

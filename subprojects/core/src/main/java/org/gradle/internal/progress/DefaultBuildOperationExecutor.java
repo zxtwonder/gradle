@@ -19,10 +19,12 @@ package org.gradle.internal.progress;
 import org.gradle.api.Action;
 import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
+import org.gradle.api.execution.internal.TaskOperationDescriptor;
 import org.gradle.internal.Transformers;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.GradleThread;
 import org.gradle.internal.logging.events.OperationIdentifier;
+import org.gradle.internal.logging.progress.LoggingType;
 import org.gradle.internal.logging.progress.ProgressLogger;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.operations.BuildOperationContext;
@@ -32,8 +34,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
-
-import static org.gradle.internal.logging.events.LogEventType.BUILD_OPERATION;
 
 public class DefaultBuildOperationExecutor implements BuildOperationExecutor {
 
@@ -103,10 +103,11 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor {
             try {
                 ProgressLogger progressLogger;
                 if (operationDetails.getProgressDisplayName() != null) {
-                    System.out.println("---> " + operationDetails.getOperationDescriptor());
                     progressLogger = progressLoggerFactory.newOperation(DefaultBuildOperationExecutor.class);
                     progressLogger.setDescription(operationDetails.getDisplayName());
                     progressLogger.setShortDescription(operationDetails.getProgressDisplayName());
+                    progressLogger.setLoggingType(LoggingTypeFactory.createForOperationDescriptor(operationDetails.getOperationDescriptor()));
+
                     progressLogger.started();
                 } else {
                     progressLogger = null;
@@ -256,6 +257,17 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor {
         @Override
         public String toString() {
             return operationDetails.getDisplayName();
+        }
+    }
+
+    private static class LoggingTypeFactory {
+
+        private static LoggingType createForOperationDescriptor(Object operationDescriptor) {
+            if (operationDescriptor instanceof TaskOperationDescriptor) {
+                return LoggingType.TASK_EXECUTION;
+            }
+
+            return null;
         }
     }
 }

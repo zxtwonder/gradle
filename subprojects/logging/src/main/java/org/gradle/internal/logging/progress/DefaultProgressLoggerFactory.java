@@ -16,7 +16,6 @@
 
 package org.gradle.internal.logging.progress;
 
-import org.gradle.internal.logging.events.LogEventType;
 import org.gradle.internal.logging.events.OperationIdentifier;
 import org.gradle.internal.logging.events.ProgressCompleteEvent;
 import org.gradle.internal.logging.events.ProgressEvent;
@@ -66,6 +65,7 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
         private ProgressLoggerImpl parent;
         private String description;
         private String shortDescription;
+        private LoggingType loggingType;
         private String loggingHeader;
         private State state = State.idle;
 
@@ -99,6 +99,16 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
         public ProgressLogger setShortDescription(String shortDescription) {
             assertCanConfigure();
             this.shortDescription = shortDescription;
+            return this;
+        }
+
+        public LoggingType getLoggingType() {
+            return loggingType;
+        }
+
+        public ProgressLogger setLoggingType(LoggingType loggingType) {
+            assertCanConfigure();
+            this.loggingType = loggingType;
             return this;
         }
 
@@ -136,7 +146,7 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
             }
             current.set(this);
             OperationIdentifierRegistry.setCurrentOperationId(id);
-            listener.started(new ProgressStartEvent(id, parent == null ? null : parent.id, timeProvider.getCurrentTime(), category, description, shortDescription, loggingHeader, toStatus(status)));
+            listener.started(new ProgressStartEvent(id, parent == null ? null : parent.id, timeProvider.getCurrentTime(), category, description, shortDescription, loggingType, loggingHeader, toStatus(status)));
         }
 
         public void progress(String status) {

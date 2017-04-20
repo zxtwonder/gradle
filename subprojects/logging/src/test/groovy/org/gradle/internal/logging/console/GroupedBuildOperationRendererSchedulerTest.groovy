@@ -21,6 +21,7 @@ import org.gradle.internal.logging.events.BatchOutputEventListener
 import org.gradle.internal.logging.events.LogEvent
 import org.gradle.internal.logging.events.OperationIdentifier
 import org.gradle.internal.logging.events.ProgressStartEvent
+import org.gradle.internal.logging.progress.LoggingType
 import spock.lang.Specification
 
 class GroupedBuildOperationRendererSchedulerTest extends Specification {
@@ -31,7 +32,7 @@ class GroupedBuildOperationRendererSchedulerTest extends Specification {
 
     def "scheduler forwards batched events before progress end event is received"() {
         given:
-        def progressStartEvent = new ProgressStartEvent(DEFAULT_OPERATION_ID, null, new Date().time, 'class org.gradle.internal.buildevents.TaskExecutionLogger', 'some task', null, ':compileJava', null)
+        def progressStartEvent = new ProgressStartEvent(DEFAULT_OPERATION_ID, null, new Date().time, 'class org.gradle.internal.buildevents.TaskExecutionLogger', 'some task', null, LoggingType.TASK_EXECUTION, ':compileJava', null)
         def logEvent = new LogEvent(new Date().time, 'class org.gradle.internal.buildevents.TaskExecutionLogger', LogLevel.LIFECYCLE, DEFAULT_OPERATION_ID, 'complete', null)
 
         when:

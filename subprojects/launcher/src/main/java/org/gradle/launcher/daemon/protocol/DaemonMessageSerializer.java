@@ -25,6 +25,7 @@ import org.gradle.internal.logging.events.ProgressCompleteEvent;
 import org.gradle.internal.logging.events.ProgressEvent;
 import org.gradle.internal.logging.events.ProgressStartEvent;
 import org.gradle.internal.logging.events.StyledTextOutputEvent;
+import org.gradle.internal.logging.progress.LoggingType;
 import org.gradle.internal.logging.serializer.LogEventSerializer;
 import org.gradle.internal.logging.serializer.LogLevelChangeEventSerializer;
 import org.gradle.internal.logging.serializer.ProgressCompleteEventSerializer;
@@ -116,6 +117,8 @@ public class DaemonMessageSerializer {
             encoder.writeString(event.getCategory());
             encoder.writeString(event.getDescription());
             encoder.writeNullableString(event.getShortDescription());
+            LoggingType loggingType = event.getLoggingType();
+            encoder.writeNullableString(loggingType != null ? loggingType.name() : null);
             encoder.writeNullableString(event.getLoggingHeader());
             encoder.writeString(event.getStatus());
         }
@@ -128,9 +131,11 @@ public class DaemonMessageSerializer {
             String category = decoder.readString();
             String description = decoder.readString();
             String shortDescription = decoder.readNullableString();
+            String loggingTypeString = decoder.readNullableString();
+            LoggingType loggingType = loggingTypeString != null ? LoggingType.valueOf(loggingTypeString) : null;
             String loggingHeader = decoder.readNullableString();
             String status = decoder.readString();
-            return new ProgressStartEvent(id, parentId, timestamp, category, description, shortDescription, loggingHeader, status);
+            return new ProgressStartEvent(id, parentId, timestamp, category, description, shortDescription, loggingType, loggingHeader, status);
         }
     }
 
