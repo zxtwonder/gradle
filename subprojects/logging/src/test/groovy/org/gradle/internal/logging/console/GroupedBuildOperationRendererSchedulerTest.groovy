@@ -33,12 +33,11 @@ class GroupedBuildOperationRendererSchedulerTest extends Specification {
     def "scheduler forwards batched events before progress end event is received"() {
         given:
         def progressStartEvent = new ProgressStartEvent(DEFAULT_OPERATION_ID, null, LogEventType.TASK_EXECUTION, new Date().time, 'class org.gradle.internal.buildevents.TaskExecutionLogger', 'some task', null, ':compileJava', null)
-        def logEvent1 = new LogEvent(new Date().time, 'class org.gradle.internal.buildevents.TaskExecutionLogger', LogLevel.LIFECYCLE, DEFAULT_OPERATION_ID, 'complete', null)
-        def logEvent2 = new LogEvent(new Date().time, 'class org.gradle.internal.buildevents.TaskExecutionLogger', LogLevel.LIFECYCLE, DEFAULT_OPERATION_ID, 'other', null)
+        def logEvent = new LogEvent(new Date().time, 'class org.gradle.internal.buildevents.TaskExecutionLogger', LogLevel.LIFECYCLE, DEFAULT_OPERATION_ID, 'complete', null)
 
         when:
         renderer.onOutput(progressStartEvent)
-        renderer.onOutput(logEvent1)
+        renderer.onOutput(logEvent)
 
         then:
         0 * listener.onOutput(_)
@@ -46,37 +45,37 @@ class GroupedBuildOperationRendererSchedulerTest extends Specification {
         def batchedEvents = renderer.groupedTaskBuildOperations.get(DEFAULT_OPERATION_ID)
         batchedEvents.size() == 2
         batchedEvents.get(0) == progressStartEvent
-        batchedEvents.get(1) == logEvent1
+        batchedEvents.get(1) == logEvent
         !renderer.renderState.currentlyRendered
 
         when:
         waitForSchedulerExecution()
 
         then:
-        1 * listener.onOutput([progressStartEvent, logEvent1])
+        1 * listener.onOutput([progressStartEvent, logEvent])
         renderer.groupedTaskBuildOperations.size() == 1
         batchedEvents.size() == 1
         batchedEvents.get(0) == progressStartEvent
         renderer.renderState.isCurrentlyRendered(DEFAULT_OPERATION_ID)
 
         when:
-        renderer.onOutput(logEvent1)
-        renderer.onOutput(logEvent2)
+        renderer.onOutput(logEvent)
+        renderer.onOutput(logEvent)
 
         then:
         0 * listener.onOutput(_)
         renderer.groupedTaskBuildOperations.size() == 1
         batchedEvents.size() == 3
         batchedEvents.get(0) == progressStartEvent
-        batchedEvents.get(1) == logEvent1
-        batchedEvents.get(2) == logEvent2
+        batchedEvents.get(1) == logEvent
+        batchedEvents.get(2) == logEvent
         renderer.renderState.isCurrentlyRendered(DEFAULT_OPERATION_ID)
 
         when:
         waitForSchedulerExecution()
 
         then:
-        1 * listener.onOutput([logEvent1, logEvent2])
+        1 * listener.onOutput([logEvent, logEvent])
         renderer.groupedTaskBuildOperations.size() == 1
         batchedEvents.size() == 1
         batchedEvents.get(0) == progressStartEvent
@@ -84,6 +83,6 @@ class GroupedBuildOperationRendererSchedulerTest extends Specification {
     }
 
     static void waitForSchedulerExecution() {
-        Thread.sleep(GroupedBuildOperationRenderer.SCHEDULER_CHECK_PERIOD_MS + 500)
+        Thread.sleep(GroupedBuildOperationRenderer.SCHEDULER_CHECK_PERIOD_MS + 200)
     }
 }

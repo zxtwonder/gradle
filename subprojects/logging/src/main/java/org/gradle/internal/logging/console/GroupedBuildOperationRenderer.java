@@ -48,11 +48,11 @@ public class GroupedBuildOperationRenderer extends BatchOutputEventListener {
         this(listener, true);
     }
 
-    GroupedBuildOperationRenderer(BatchOutputEventListener listener, boolean enabledScheduler) {
+    GroupedBuildOperationRenderer(BatchOutputEventListener listener, boolean enableScheduler) {
         this.listener = listener;
         executor = Executors.newSingleThreadScheduledExecutor();
 
-        if (enabledScheduler) {
+        if (enableScheduler) {
             scheduleTimedEventForwarding();
         }
     }
