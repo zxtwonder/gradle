@@ -19,7 +19,6 @@ package org.gradle.workers.internal;
 import org.gradle.api.internal.AsmBackedClassGenerator;
 import org.gradle.api.internal.DefaultInstantiatorFactory;
 import org.gradle.api.internal.InstantiatorFactory;
-import org.gradle.internal.logging.events.OperationIdentifier;
 import org.gradle.internal.logging.progress.OperationIdentifierRegistry;
 
 public class WorkerDaemonServer implements WorkerProtocol<ActionExecutionSpec> {
