@@ -16,7 +16,12 @@
 package org.gradle.internal.logging
 
 import org.gradle.api.logging.LogLevel
-import org.gradle.internal.logging.events.*
+import org.gradle.internal.logging.events.LogEvent
+import org.gradle.internal.logging.events.OperationIdentifier
+import org.gradle.internal.logging.events.ProgressCompleteEvent
+import org.gradle.internal.logging.events.ProgressEvent
+import org.gradle.internal.logging.events.ProgressStartEvent
+import org.gradle.internal.logging.progress.LoggingType
 import org.gradle.util.TextUtil
 import spock.lang.Specification
 
@@ -68,10 +73,10 @@ abstract class OutputSpecification extends Specification {
 
     ProgressStartEvent start(Map args) {
         OperationIdentifier parentId = args.containsKey("parentId") ? args.parentId : new OperationIdentifier(counter)
-        LogEventType logEventType = args.containsKey("logEventType") ? args.logEventType : null
+        LoggingType loggingType = args.containsKey("loggingType") ? args.loggingType : null
         long id = ++counter
         String category = args.containsKey("category") ? args.category : 'category'
-        return new ProgressStartEvent(new OperationIdentifier(id), parentId, logEventType, tenAm, category, args.description, args.shortDescription, args.loggingHeader, args.status)
+        return new ProgressStartEvent(new OperationIdentifier(id), parentId, loggingType, tenAm, category, args.description, args.shortDescription, args.loggingHeader, args.status)
     }
 
     ProgressEvent progress(String status) {
