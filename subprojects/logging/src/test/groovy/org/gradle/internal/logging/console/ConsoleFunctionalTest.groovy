@@ -18,6 +18,8 @@ package org.gradle.internal.logging.console
 
 import org.gradle.api.logging.LogLevel
 import org.gradle.internal.logging.events.EndOutputEvent
+import org.gradle.internal.logging.events.LogEvent
+import org.gradle.internal.logging.events.LoggingType
 import org.gradle.internal.logging.events.OperationIdentifier
 import org.gradle.internal.logging.events.ProgressCompleteEvent
 import org.gradle.internal.logging.events.ProgressEvent
@@ -61,7 +63,7 @@ class ConsoleFunctionalTest extends Specification {
 
     def "renders configuration progress"() {
         when:
-        renderer.onOutput(startEvent(1, null, BuildStatusRenderer.BUILD_PROGRESS_CATEGORY, 'CONFIGURATION PHASE', '<---> 0% CONFIGURING'))
+        renderer.onOutput(startEvent(1, null, BuildStatusRenderer.BUILD_PROGRESS_CATEGORY, 'CONFIGURATION PHASE', '<---> 0% CONFIGURING', null))
         renderer.onOutput(startEvent(2, 1, 'category', 'Configuring root project', 'root project', null, 'root project'))
 
         then:
@@ -116,7 +118,7 @@ class ConsoleFunctionalTest extends Specification {
     def "renders child operation work inline"() {
         when:
         renderer.onOutput(startEvent(1, ':foo'))
-        renderer.onOutput(startEvent(2, 1, null, null, null, null, ':bar'))
+        renderer.onOutput(startEvent(2, 1, null, null, null, null,null, ':bar'))
 
         then:
         ConcurrentTestUtil.poll(1) {
@@ -242,7 +244,7 @@ class ConsoleFunctionalTest extends Specification {
 
     def "progress display uses short description if status is empty"() {
         when:
-        renderer.onOutput(startEvent(1, null, 'CATEGORY', 'DESCRIPTION', 'SHORT_DESCRIPTION', 'LOGGING_HEADER', ''))
+        renderer.onOutput(startEvent(1, null, 'CATEGORY', 'DESCRIPTION', 'SHORT_DESCRIPTION', null, 'LOGGING_HEADER', ''))
 
         then:
         ConcurrentTestUtil.poll(1) {
@@ -250,19 +252,51 @@ class ConsoleFunctionalTest extends Specification {
         }
     }
 
-    ProgressStartEvent startEvent(Long id, Long parentId=null, category='CATEGORY', description='DESCRIPTION', shortDescription='SHORT_DESCRIPTION', loggingHeader='LOGGING_HEADER', status='STATUS') {
+    def "can group task execution log events"() {
+        given:
+        renderer.onOutput(startEvent(1, null, 'CATEGORY', 'DESCRIPTION', 'SHORT_DESCRIPTION', LoggingType.TASK_EXECUTION, 'LOGGING_HEADER', ''))
+        renderer.onOutput(logEvent(1, 'CATEGORY', 'a'))
+        renderer.onOutput(logEvent(1, 'CATEGORY', 'b'))
+        assert buildOutputArea.toString() == ''
+
+        when:
+        waitForSchedulerExecution()
+
+        then:
+        assert buildOutputArea.toString() == """LOGGING_HEADER
+a
+b
+"""
+        when:
+        renderer.onOutput(logEvent(1, 'CATEGORY', 'c'))
+        waitForSchedulerExecution()
+
+        then:
+        assert buildOutputArea.toString() == """LOGGING_HEADER
+a
+b
+c
+"""
+    }
+
+    ProgressStartEvent startEvent(Long id, Long parentId=null, category='CATEGORY', description='DESCRIPTION', shortDescription='SHORT_DESCRIPTION', LoggingType loggingType = null, loggingHeader='LOGGING_HEADER', status='STATUS') {
         long timestamp = timeProvider.currentTime
         OperationIdentifier parent = parentId ? new OperationIdentifier(parentId) : null
-        new ProgressStartEvent(new OperationIdentifier(id), parent, timestamp, category, description, shortDescription, loggingHeader, status)
+        new ProgressStartEvent(new OperationIdentifier(id), parent, timestamp, category, description, shortDescription, loggingType, loggingHeader, status)
     }
 
     ProgressStartEvent startEvent(Long id, String status) {
-        new ProgressStartEvent(new OperationIdentifier(id), null, timeProvider.currentTime, null, null, null, null, status)
+        new ProgressStartEvent(new OperationIdentifier(id), null, timeProvider.currentTime, null, null, null, null, null, status)
     }
 
     ProgressEvent progressEvent(Long id, category='CATEGORY', status='STATUS') {
         long timestamp = timeProvider.currentTime
         new ProgressEvent(new OperationIdentifier(id), timestamp, category, status)
+    }
+
+    LogEvent logEvent(Long id, String category, String message) {
+        long timestamp = timeProvider.currentTime
+        new LogEvent(timestamp, category, LogLevel.LIFECYCLE, new OperationIdentifier(id), message, null)
     }
 
     ProgressCompleteEvent completeEvent(Long id, category='CATEGORY', description='DESCRIPTION', status='STATUS') {
@@ -276,5 +310,13 @@ class ConsoleFunctionalTest extends Specification {
 
     private ConsoleStub.TestableBuildProgressTextArea getProgressArea() {
         console.buildProgressArea as ConsoleStub.TestableBuildProgressTextArea
+    }
+
+    private ConsoleStub.TestableBuildOutputTextArea getBuildOutputArea() {
+        console.buildOutputArea as ConsoleStub.TestableBuildOutputTextArea
+    }
+
+    static void waitForSchedulerExecution() {
+        Thread.sleep(GroupedBuildOperationRenderer.SCHEDULER_CHECK_PERIOD_MS + 200)
     }
 }
