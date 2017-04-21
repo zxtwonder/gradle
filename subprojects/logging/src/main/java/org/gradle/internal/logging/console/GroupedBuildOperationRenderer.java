@@ -16,7 +16,6 @@
 
 package org.gradle.internal.logging.console;
 
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import org.gradle.internal.logging.events.BatchOutputEventListener;
 import org.gradle.internal.logging.events.EndOutputEvent;
@@ -27,6 +26,7 @@ import org.gradle.internal.logging.events.ProgressCompleteEvent;
 import org.gradle.internal.logging.events.ProgressStartEvent;
 import org.gradle.internal.logging.events.RenderableOutputEvent;
 
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -142,11 +142,17 @@ public class GroupedBuildOperationRenderer extends BatchOutputEventListener {
         @Override
         public void run() {
             synchronized (lock) {
-                for (Map.Entry<OperationIdentifier, List<OutputEvent>> groupedEvents : groupedTaskBuildOperations.entrySet()) {
-                    forwardOutputEvents(groupedEvents);
+                Iterator<Map.Entry<OperationIdentifier, List<OutputEvent>>> entryIterator = groupedTaskBuildOperations.entrySet().iterator();
+                Map.Entry<OperationIdentifier, List<OutputEvent>> lastEntry = null;
+
+                while (entryIterator.hasNext()) {
+                    lastEntry = entryIterator.next();
+                    forwardOutputEvents(lastEntry);
                 }
 
-                setRenderState();
+                if (lastEntry != null) {
+                    renderState.setCurrentlyRendered(lastEntry.getKey());
+                }
             }
         }
 
@@ -168,12 +174,6 @@ public class GroupedBuildOperationRenderer extends BatchOutputEventListener {
 
         private List<OutputEvent> getOutputEventsWithoutHeader(List<OutputEvent> outputEvents) {
             return outputEvents.subList(1, outputEvents.size());
-        }
-
-        private void setRenderState() {
-            if (!groupedTaskBuildOperations.isEmpty()) {
-                renderState.setCurrentlyRendered(Iterables.getLast(groupedTaskBuildOperations.keySet()));
-            }
         }
     }
 
