@@ -95,13 +95,13 @@ public class GroupedBuildOperationRenderer extends BatchOutputEventListener {
             if (renderState.isCurrentlyRendered(operationId)) {
                 List<OutputEvent> outputEventsWithoutHeader = outputEvents.subList(1, outputEvents.size());
                 forwardBatchedEvents(outputEventsWithoutHeader);
+                renderState.clearCurrentlyRendered(operationId);
             } else {
                 forwardBatchedEvents(outputEvents);
             }
 
             forwardEvent(event);
             groupedTaskBuildOperations.remove(operationId);
-            renderState.clearCurrentlyRendered();
         } else {
             forwardEvent(event);
         }
@@ -122,7 +122,7 @@ public class GroupedBuildOperationRenderer extends BatchOutputEventListener {
         forwardEvent(event);
         executor.shutdown();
         groupedTaskBuildOperations.clear();
-        renderState.clearCurrentlyRendered();
+        renderState.clear();
     }
 
     private boolean isTaskExecutionProgressStartEvent(ProgressStartEvent event) {
@@ -153,8 +153,16 @@ public class GroupedBuildOperationRenderer extends BatchOutputEventListener {
         private void forwardOutputEvents(Map.Entry<OperationIdentifier, List<OutputEvent>> groupedEvents) {
             List<OutputEvent> originalOutputEvents = groupedEvents.getValue();
             List<OutputEvent> outputEventsWithoutHeader = getOutputEventsWithoutHeader(originalOutputEvents);
-            List<OutputEvent> forwardedOutputEvents = renderState.isCurrentlyRendered(groupedEvents.getKey()) ? outputEventsWithoutHeader : originalOutputEvents;
-            forwardBatchedEvents(forwardedOutputEvents);
+
+            if (renderState.isCurrentlyRendered(groupedEvents.getKey())) {
+                // Only forward output events if there's more than just the header
+                if (outputEventsWithoutHeader.size() > 1) {
+                    forwardBatchedEvents(outputEventsWithoutHeader);
+                }
+            } else {
+                forwardBatchedEvents(originalOutputEvents);
+            }
+
             outputEventsWithoutHeader.clear();
         }
 
@@ -185,7 +193,13 @@ public class GroupedBuildOperationRenderer extends BatchOutputEventListener {
             return currentlyRendered != null && currentlyRendered.equals(operationId);
         }
 
-        public void clearCurrentlyRendered() {
+        public void clearCurrentlyRendered(OperationIdentifier operationId) {
+            if (isCurrentlyRendered(operationId)) {
+                clear();
+            }
+        }
+
+        public void clear() {
             currentlyRendered = null;
         }
     }
