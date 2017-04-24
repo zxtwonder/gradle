@@ -162,7 +162,7 @@ public class GroupedBuildOperationRenderer extends BatchOutputEventListener {
 
             if (renderState.isCurrentlyRendered(groupedEvents.getKey())) {
                 // Only forward output events if there's more than just the header
-                if (outputEventsWithoutHeader.size() > 1) {
+                if (!outputEventsWithoutHeader.isEmpty()) {
                     forwardBatchedEvents(outputEventsWithoutHeader);
                 }
             } else {
