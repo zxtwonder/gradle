@@ -20,16 +20,17 @@ import org.gradle.api.logging.LogLevel
 import org.gradle.internal.logging.events.BatchOutputEventListener
 import org.gradle.internal.logging.events.EndOutputEvent
 import org.gradle.internal.logging.events.LogEvent
+import org.gradle.internal.logging.events.LoggingType
 import org.gradle.internal.logging.events.OperationIdentifier
 import org.gradle.internal.logging.events.ProgressCompleteEvent
 import org.gradle.internal.logging.events.ProgressStartEvent
 import org.gradle.internal.logging.events.StyledTextOutputEvent
-import org.gradle.internal.logging.events.LoggingType
 import spock.lang.Specification
 
 class GroupedBuildOperationRendererTest extends Specification {
 
     public static final OperationIdentifier DEFAULT_OPERATION_ID = new OperationIdentifier(123)
+    public static final String TASK_EXECUTION_CATEGORY = 'class org.gradle.internal.buildevents.TaskExecutionLogger'
     def listener = Mock(BatchOutputEventListener)
     def renderer = new GroupedBuildOperationRenderer(listener, false)
 
@@ -54,10 +55,10 @@ class GroupedBuildOperationRendererTest extends Specification {
         renderer.groupedTaskBuildOperations.isEmpty()
 
         where:
-        event << [createProgressStartEvent(DEFAULT_OPERATION_ID, null, null),
-                  createProgressCompleteEvent(DEFAULT_OPERATION_ID),
-                  createDefaultLogEvent(),
-                  createDefaultStyledTextOutputEvent()]
+        event << [createProgressStartEvent(DEFAULT_OPERATION_ID, null, null, null),
+                  createProgressCompleteEvent(DEFAULT_OPERATION_ID, null),
+                  createLogEvent(DEFAULT_OPERATION_ID, null),
+                  createStyledTextOutputEvent(DEFAULT_OPERATION_ID, null)]
     }
 
     def "batches task-based progress start event"() {
@@ -124,7 +125,7 @@ class GroupedBuildOperationRendererTest extends Specification {
         given:
         def progressStartEvent1 = createDefaultProgressStartEvent()
         def operationIdentifier2 = new OperationIdentifier(456)
-        def progressStartEvent2 = createProgressStartEvent(operationIdentifier2, LoggingType.TASK_EXECUTION, ':assemble')
+        def progressStartEvent2 = createProgressStartEvent(operationIdentifier2, LoggingType.TASK_EXECUTION, ':assemble', TASK_EXECUTION_CATEGORY)
 
         when:
         renderer.onOutput(progressStartEvent1)
@@ -142,7 +143,7 @@ class GroupedBuildOperationRendererTest extends Specification {
 
         when:
         def progressCompleteEvent1 = createDefaultProgressCompleteEvent()
-        def progressCompleteEvent2 = createProgressCompleteEvent(operationIdentifier2)
+        def progressCompleteEvent2 = createProgressCompleteEvent(operationIdentifier2, TASK_EXECUTION_CATEGORY)
         renderer.onOutput(progressCompleteEvent1)
         renderer.onOutput(progressCompleteEvent2)
 
@@ -153,26 +154,34 @@ class GroupedBuildOperationRendererTest extends Specification {
     }
 
     static ProgressStartEvent createDefaultProgressStartEvent() {
-        return createProgressStartEvent(DEFAULT_OPERATION_ID, LoggingType.TASK_EXECUTION, ':compileJava')
+        return createProgressStartEvent(DEFAULT_OPERATION_ID, LoggingType.TASK_EXECUTION, ':compileJava', TASK_EXECUTION_CATEGORY)
     }
 
     static ProgressCompleteEvent createDefaultProgressCompleteEvent() {
-        return createProgressCompleteEvent(DEFAULT_OPERATION_ID)
+        return createProgressCompleteEvent(DEFAULT_OPERATION_ID, TASK_EXECUTION_CATEGORY)
     }
 
     static LogEvent createDefaultLogEvent() {
-        return new LogEvent(new Date().time, 'class org.gradle.internal.buildevents.TaskExecutionLogger', LogLevel.LIFECYCLE, DEFAULT_OPERATION_ID, 'complete', null)
+        return createLogEvent(DEFAULT_OPERATION_ID, TASK_EXECUTION_CATEGORY)
     }
 
     static StyledTextOutputEvent createDefaultStyledTextOutputEvent() {
-        return new StyledTextOutputEvent(new Date().time, 'class org.gradle.internal.buildevents.TaskExecutionLogger', DEFAULT_OPERATION_ID, 'text')
+        return createStyledTextOutputEvent(DEFAULT_OPERATION_ID, TASK_EXECUTION_CATEGORY)
     }
 
-    static ProgressStartEvent createProgressStartEvent(OperationIdentifier operationId, LoggingType loggingType, String loggingHeader) {
-        return new ProgressStartEvent(operationId, null, new Date().time, 'class org.gradle.internal.buildevents.TaskExecutionLogger', 'some task', null, loggingType, loggingHeader, null)
+    static ProgressStartEvent createProgressStartEvent(OperationIdentifier operationId, LoggingType loggingType, String loggingHeader, String category) {
+        return new ProgressStartEvent(operationId, null, new Date().time, category, 'some task', null, loggingType, loggingHeader, null)
     }
 
-    static ProgressCompleteEvent createProgressCompleteEvent(OperationIdentifier operationId) {
-        return new ProgressCompleteEvent(operationId, new Date().time, 'class org.gradle.internal.buildevents.TaskExecutionLogger', 'some task', 'complete')
+    static ProgressCompleteEvent createProgressCompleteEvent(OperationIdentifier operationId, String category) {
+        return new ProgressCompleteEvent(operationId, new Date().time, category, 'some task', 'complete')
+    }
+
+    static LogEvent createLogEvent(OperationIdentifier operationId, String category) {
+        return new LogEvent(new Date().time, category, LogLevel.LIFECYCLE, operationId, 'complete', null)
+    }
+
+    static StyledTextOutputEvent createStyledTextOutputEvent(OperationIdentifier operationId, String category) {
+        return new StyledTextOutputEvent(new Date().time, category, operationId, 'text')
     }
 }

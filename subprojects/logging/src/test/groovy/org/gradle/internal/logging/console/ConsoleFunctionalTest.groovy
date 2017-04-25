@@ -252,11 +252,11 @@ class ConsoleFunctionalTest extends Specification {
         }
     }
 
-    def "can group task execution log events"() {
+    def "can group task execution log events triggered by scheduler"() {
         given:
-        renderer.onOutput(startEvent(1, null, 'CATEGORY', 'DESCRIPTION', 'SHORT_DESCRIPTION', LoggingType.TASK_EXECUTION, 'LOGGING_HEADER', ''))
-        renderer.onOutput(logEvent(1, 'CATEGORY', 'a'))
-        renderer.onOutput(logEvent(1, 'CATEGORY', 'b'))
+        renderer.onOutput(startEvent(1, null, 'class org.gradle.internal.buildevents.TaskExecutionLogger', 'DESCRIPTION', 'SHORT_DESCRIPTION', LoggingType.TASK_EXECUTION, 'LOGGING_HEADER', ''))
+        renderer.onOutput(logEvent(1, 'class org.gradle.internal.buildevents.TaskExecutionLogger', 'a'))
+        renderer.onOutput(logEvent(1, 'class org.gradle.internal.buildevents.TaskExecutionLogger', 'b'))
         assert buildOutputArea.toString() == ''
 
         when:

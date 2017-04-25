@@ -29,6 +29,7 @@ import spock.lang.Specification
 class GroupedBuildOperationRendererSchedulerTest extends Specification {
 
     public static final OperationIdentifier DEFAULT_OPERATION_ID = new OperationIdentifier(123)
+    public static final String TASK_EXECUTION_CATEGORY = 'class org.gradle.internal.buildevents.TaskExecutionLogger'
     def listener = Mock(BatchOutputEventListener)
     def renderer = new GroupedBuildOperationRenderer(listener, true)
 
@@ -235,18 +236,18 @@ class GroupedBuildOperationRendererSchedulerTest extends Specification {
     }
 
     static StyledTextOutputEvent createDefaultStyledTextOutputEvent() {
-        return new StyledTextOutputEvent(new Date().time, 'class org.gradle.internal.buildevents.TaskExecutionLogger', DEFAULT_OPERATION_ID, 'text')
+        return new StyledTextOutputEvent(new Date().time, TASK_EXECUTION_CATEGORY, DEFAULT_OPERATION_ID, 'text')
     }
 
     static ProgressStartEvent createProgressStartEvent(OperationIdentifier operationId, LoggingType loggingType, String loggingHeader) {
-        return new ProgressStartEvent(operationId, null, new Date().time, 'class org.gradle.internal.buildevents.TaskExecutionLogger', 'some task', null, loggingType, loggingHeader, null)
+        return new ProgressStartEvent(operationId, null, new Date().time, TASK_EXECUTION_CATEGORY, 'some task', null, loggingType, loggingHeader, null)
     }
 
     static LogEvent createLogEvent(OperationIdentifier operationId, String message) {
-        return new LogEvent(new Date().time, 'class org.gradle.internal.buildevents.TaskExecutionLogger', LogLevel.LIFECYCLE, operationId, message, null)
+        return new LogEvent(new Date().time, TASK_EXECUTION_CATEGORY, LogLevel.LIFECYCLE, operationId, message, null)
     }
 
     static ProgressCompleteEvent createProgressCompleteEvent(OperationIdentifier operationId) {
-        return new ProgressCompleteEvent(operationId, new Date().time, 'class org.gradle.internal.buildevents.TaskExecutionLogger', 'some task', 'complete')
+        return new ProgressCompleteEvent(operationId, new Date().time, TASK_EXECUTION_CATEGORY, 'some task', 'complete')
     }
 }

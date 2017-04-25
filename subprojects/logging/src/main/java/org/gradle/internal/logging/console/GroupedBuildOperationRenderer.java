@@ -19,7 +19,6 @@ package org.gradle.internal.logging.console;
 import com.google.common.collect.Lists;
 import org.gradle.internal.logging.events.BatchOutputEventListener;
 import org.gradle.internal.logging.events.EndOutputEvent;
-import org.gradle.internal.logging.events.LoggingType;
 import org.gradle.internal.logging.events.OperationIdentifier;
 import org.gradle.internal.logging.events.OutputEvent;
 import org.gradle.internal.logging.events.ProgressCompleteEvent;
@@ -126,7 +125,7 @@ public class GroupedBuildOperationRenderer extends BatchOutputEventListener {
     }
 
     private boolean isTaskExecutionProgressStartEvent(ProgressStartEvent event) {
-        return LoggingType.TASK_EXECUTION == event.getLoggingType();
+        return "class org.gradle.internal.buildevents.TaskExecutionLogger".equals(event.getCategory());
     }
 
     private void forwardEvent(OutputEvent event) {
