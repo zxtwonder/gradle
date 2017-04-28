@@ -49,7 +49,7 @@ class DefaultClasspathSnapshotterTest extends Specification {
         classpathContentHasher, new CachingContentHasher(new JarContentHasher(classpathContentHasher, stringInterner), jarCache),
         directoryFileTreeFactory,
         fileSystemSnapshotter,
-        stringInterner)
+        stringInterner, ignoreSpecs)
 
     def "directories and missing files are ignored"() {
         def emptyDir = file('root/emptyDir').createDir()

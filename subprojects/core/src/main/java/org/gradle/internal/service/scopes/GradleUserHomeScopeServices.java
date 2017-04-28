@@ -17,6 +17,7 @@
 package org.gradle.internal.service.scopes;
 
 import com.google.common.hash.HashCode;
+import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.cache.CrossBuildInMemoryCacheFactory;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.CachingContentHasher;
@@ -42,6 +43,7 @@ import org.gradle.api.internal.hash.FileHasher;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
 import org.gradle.api.internal.initialization.loadercache.DefaultClassLoaderCache;
 import org.gradle.api.internal.initialization.loadercache.DefaultClasspathHasher;
+import org.gradle.api.specs.Spec;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.internal.CacheRepositoryServices;
@@ -65,6 +67,7 @@ import org.gradle.internal.serialize.HashCodeSerializer;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -130,15 +133,11 @@ public class GradleUserHomeScopeServices {
         return new DefaultGenericFileCollectionSnapshotter(stringInterner, directoryFileTreeFactory, fileSystemSnapshotter);
     }
 
-    ClasspathSnapshotter createClasspathSnapshotter(StringInterner stringInterner, DirectoryFileTreeFactory directoryFileTreeFactory, TaskHistoryStore store, FileSystemSnapshotter fileSystemSnapshotter) {
+    ClasspathHasher createClasspathHasher(StringInterner stringInterner, DirectoryFileTreeFactory directoryFileTreeFactory, TaskHistoryStore store, FileSystemSnapshotter fileSystemSnapshotter) {
         PersistentIndexedCache<HashCode, HashCode> signatureCache = store.createCache("jvmRuntimeJarSignatures", HashCode.class, new HashCodeSerializer(), 400000, true);
         RuntimeClasspathContentHasher classpathContentHasher = new RuntimeClasspathContentHasher();
-        return new DefaultClasspathSnapshotter(
-            classpathContentHasher, new CachingContentHasher(new JarContentHasher(classpathContentHasher, stringInterner), signatureCache), directoryFileTreeFactory, fileSystemSnapshotter, stringInterner
-        );
-    }
-
-    ClasspathHasher createClasspathHasher(ClasspathSnapshotter snapshotter) {
+        ClasspathSnapshotter snapshotter = new DefaultClasspathSnapshotter(
+            classpathContentHasher, new CachingContentHasher(new JarContentHasher(classpathContentHasher, stringInterner), signatureCache), directoryFileTreeFactory, fileSystemSnapshotter, stringInterner, Collections.<Spec<RelativePath>>emptySet());
         return new DefaultClasspathHasher(snapshotter);
     }
 

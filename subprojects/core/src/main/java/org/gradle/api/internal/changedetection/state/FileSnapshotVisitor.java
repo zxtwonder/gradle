@@ -30,15 +30,15 @@ public interface FileSnapshotVisitor {
     /**
      * Visits a {@link DirectoryFileSnapshot} in the root of the {@link org.gradle.api.file.FileCollection}.
      */
-    void visitDirectorySnapshot(DirectoryFileSnapshot directory);
+    void visitRootDirectorySnapshot(DirectoryFileSnapshot directory);
 
     /**
      * Visits a {@link RegularFileSnapshot} in the root of the {@link org.gradle.api.file.FileCollection}.
      */
-    void visitFileSnapshot(RegularFileSnapshot file);
+    void visitRootFileSnapshot(RegularFileSnapshot file);
 
     /**
      * Visits a {@link MissingFileSnapshot} in the root of the {@link org.gradle.api.file.FileCollection}.
      */
-    void visitMissingFileSnapshot(MissingFileSnapshot missingFile);
+    void visitRootMissingFileSnapshot(MissingFileSnapshot missingFile);
 }

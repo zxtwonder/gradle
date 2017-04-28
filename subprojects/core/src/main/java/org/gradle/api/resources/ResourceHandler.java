@@ -16,7 +16,9 @@
 
 package org.gradle.api.resources;
 
+import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.api.resources.normalization.ResourceNormalizationHandler;
 
 /**
  * Provides access to resource-specific utility methods, for example factory methods that create various resources.

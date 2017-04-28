@@ -61,6 +61,10 @@ import org.gradle.api.internal.project.ant.DefaultAntLoggingAdapterFactory;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.internal.tasks.DefaultTaskContainerFactory;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
+import org.gradle.api.resources.normalization.ResourceNormalizationHandler;
+import org.gradle.api.resources.normalization.internal.DefaultResourceNormalizationHandler;
+import org.gradle.api.resources.normalization.internal.DefaultRuntimeClasspathNormalizationStrategy;
+import org.gradle.api.resources.normalization.internal.RuntimeClasspathNormalizationStrategyInternal;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.configuration.project.DefaultProjectConfigurationActionContainer;
@@ -233,11 +237,18 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         }
     }
 
-    ClasspathSnapshotter createClasspathSnapshotter(StringInterner stringInterner, DirectoryFileTreeFactory directoryFileTreeFactory, TaskHistoryStore store, FileSystemSnapshotter fileSystemSnapshotter) {
+    protected RuntimeClasspathNormalizationStrategyInternal createRuntimeClasspathNormalizationStrategy(Instantiator instantiator) {
+        return instantiator.newInstance(DefaultRuntimeClasspathNormalizationStrategy.class);
+    }
+
+    protected ResourceNormalizationHandler createResourceNormalizationHandler(Instantiator instantiator, RuntimeClasspathNormalizationStrategyInternal runtimeClasspathNormalizationStrategy) {
+        return instantiator.newInstance(DefaultResourceNormalizationHandler.class, runtimeClasspathNormalizationStrategy);
+    }
+
+    protected ClasspathSnapshotter createClasspathSnapshotter(StringInterner stringInterner, DirectoryFileTreeFactory directoryFileTreeFactory, TaskHistoryStore store, FileSystemSnapshotter fileSystemSnapshotter, RuntimeClasspathNormalizationStrategyInternal runtimeClasspathNormalizationStrategy) {
         PersistentIndexedCache<HashCode, HashCode> signatureCache = store.createCache("jvmRuntimeJarSignatures", HashCode.class, new HashCodeSerializer(), 400000, true);
         RuntimeClasspathContentHasher classpathContentHasher = new RuntimeClasspathContentHasher();
         return new DefaultClasspathSnapshotter(
-            classpathContentHasher, new CachingContentHasher(new JarContentHasher(classpathContentHasher, stringInterner), signatureCache), directoryFileTreeFactory, fileSystemSnapshotter, stringInterner
-        );
+            classpathContentHasher, new CachingContentHasher(new JarContentHasher(classpathContentHasher, stringInterner), signatureCache), directoryFileTreeFactory, fileSystemSnapshotter, stringInterner, runtimeClasspathNormalizationStrategy.buildIgnores());
     }
 }

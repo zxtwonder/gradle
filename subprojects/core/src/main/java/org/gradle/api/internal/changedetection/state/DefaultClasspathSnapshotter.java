@@ -16,18 +16,25 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
+import org.gradle.api.specs.Spec;
+
+import java.util.Set;
 
 public class DefaultClasspathSnapshotter extends AbstractFileCollectionSnapshotter implements ClasspathSnapshotter {
     private final ContentHasher classpathContentHasher;
     private final ContentHasher jarContentHasher;
+    private final Set<Spec<RelativePath>> ignoreSpecs;
 
-    public DefaultClasspathSnapshotter(ContentHasher classpathContentHasher, ContentHasher jarContentHasher, DirectoryFileTreeFactory directoryFileTreeFactory, FileSystemSnapshotter fileSystemSnapshotter, StringInterner stringInterner) {
+    public DefaultClasspathSnapshotter(ContentHasher classpathContentHasher, ContentHasher jarContentHasher, DirectoryFileTreeFactory directoryFileTreeFactory, FileSystemSnapshotter fileSystemSnapshotter, StringInterner stringInterner, Set<Spec<RelativePath>> ignoreSpecs) {
         super(stringInterner, directoryFileTreeFactory, fileSystemSnapshotter);
         this.classpathContentHasher = classpathContentHasher;
         this.jarContentHasher = jarContentHasher;
+        this.ignoreSpecs = ImmutableSet.copyOf(ignoreSpecs);
     }
 
     @Override
@@ -37,6 +44,6 @@ public class DefaultClasspathSnapshotter extends AbstractFileCollectionSnapshott
 
     @Override
     public FileCollectionSnapshot snapshot(FileCollection files, TaskFilePropertyCompareStrategy compareStrategy, SnapshotNormalizationStrategy snapshotNormalizationStrategy) {
-        return super.snapshot(files, new RuntimeClasspathSnapshotBuilder(classpathContentHasher, jarContentHasher, getStringInterner()));
+        return super.snapshot(files, new RuntimeClasspathSnapshotBuilder(classpathContentHasher, jarContentHasher, getStringInterner(), ignoreSpecs));
     }
 }
