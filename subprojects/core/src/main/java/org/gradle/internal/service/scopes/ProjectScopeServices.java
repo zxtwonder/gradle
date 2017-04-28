@@ -16,6 +16,7 @@
 
 package org.gradle.internal.service.scopes;
 
+import com.google.common.hash.HashCode;
 import org.gradle.api.Action;
 import org.gradle.api.AntBuilder;
 import org.gradle.api.component.SoftwareComponentContainer;
@@ -27,6 +28,14 @@ import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.ProjectBackedModule;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
+import org.gradle.api.internal.cache.StringInterner;
+import org.gradle.api.internal.changedetection.state.CachingContentHasher;
+import org.gradle.api.internal.changedetection.state.ClasspathSnapshotter;
+import org.gradle.api.internal.changedetection.state.DefaultClasspathSnapshotter;
+import org.gradle.api.internal.changedetection.state.FileSystemSnapshotter;
+import org.gradle.api.internal.changedetection.state.JarContentHasher;
+import org.gradle.api.internal.changedetection.state.RuntimeClasspathContentHasher;
+import org.gradle.api.internal.changedetection.state.TaskHistoryStore;
 import org.gradle.api.internal.component.ComponentRegistry;
 import org.gradle.api.internal.component.DefaultSoftwareComponentContainer;
 import org.gradle.api.internal.file.BaseDirFileResolver;
@@ -41,9 +50,9 @@ import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.initialization.DefaultScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.plugins.DefaultPluginManager;
-import org.gradle.api.internal.plugins.PluginTarget;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.plugins.PluginRegistry;
+import org.gradle.api.internal.plugins.PluginTarget;
 import org.gradle.api.internal.plugins.RuleBasedPluginTarget;
 import org.gradle.api.internal.project.DefaultAntBuilderFactory;
 import org.gradle.api.internal.project.DeferredProjectConfiguration;
@@ -53,6 +62,7 @@ import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.internal.tasks.DefaultTaskContainerFactory;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.configuration.project.DefaultProjectConfigurationActionContainer;
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
 import org.gradle.initialization.ProjectAccessListener;
@@ -62,6 +72,7 @@ import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.serialize.HashCodeSerializer;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
@@ -220,5 +231,13 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         public Module getModule() {
             return new ProjectBackedModule(project);
         }
+    }
+
+    ClasspathSnapshotter createClasspathSnapshotter(StringInterner stringInterner, DirectoryFileTreeFactory directoryFileTreeFactory, TaskHistoryStore store, FileSystemSnapshotter fileSystemSnapshotter) {
+        PersistentIndexedCache<HashCode, HashCode> signatureCache = store.createCache("jvmRuntimeJarSignatures", HashCode.class, new HashCodeSerializer(), 400000, true);
+        RuntimeClasspathContentHasher classpathContentHasher = new RuntimeClasspathContentHasher();
+        return new DefaultClasspathSnapshotter(
+            classpathContentHasher, new CachingContentHasher(new JarContentHasher(classpathContentHasher, stringInterner), signatureCache), directoryFileTreeFactory, fileSystemSnapshotter, stringInterner
+        );
     }
 }
