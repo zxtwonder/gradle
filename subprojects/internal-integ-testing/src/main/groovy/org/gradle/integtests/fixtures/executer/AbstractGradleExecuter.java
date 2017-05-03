@@ -763,6 +763,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 
         allArgs.addAll(args);
         allArgs.addAll(tasks);
+        allArgs.add(0, "-q");
         return allArgs;
     }
 
