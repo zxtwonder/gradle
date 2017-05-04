@@ -639,7 +639,7 @@
                     <tr>
                         <td><literal>@<apilink class="org.gradle.api.tasks.Destroys"/></literal></td>
                         <td><literal>File</literal > or <literal>Iterable&lt;File&gt;</literal>*</td>
-                        <td>Specifies one or more files that are removed by this task.</td>
+                        <td>Specifies one or more files that are removed by this task.  Note that a task can define either inputs/outputs or destroyables, but not both.</td>
                     </tr>
 
                     <tr>
@@ -781,7 +781,7 @@
                             <apilink class="org.gradle.api.Task" method="getOutputs()"/> of type <apilink class="org.gradle.api.tasks.TaskOutputs"/>
                         </listitem>
                         <listitem>
-                            <apilink class="org.gradle.api.Task" method="getDestroys()"/> of type <apilink class="org.gradle.api.tasks.TaskDestroys"/>
+                            <apilink class="org.gradle.api.Task" method="getDestroyables()"/> of type <apilink class="org.gradle.api.tasks.TaskDestroyables"/>
                         </listitem>
                     </itemizedlist>
                     <para>These objects have methods that allow you to specify files, directories and
@@ -819,11 +819,17 @@
                         the type of file object at the given path (file or directory), unlike the annotations.
                     </para>
                     <para>The files that a task removes can be specified through the methods on
-                        <literal>destroys</literal>.  For example, both individual files and directories
-                        can be specified using the <literal>destroys.file()</literal> method, while a
-                        collection of files can be specified using the <literal>destroy.files()</literal>
-                        method.
+                        <literal>destroyables</literal>.  For example, both individual files and directories
+                        can be specified using the <literal>destroyables.file()</literal> method, while a
+                        collection of files can be specified using the <literal>destroyables.files()</literal>
+                        method.  Any given task can either declare destroyables or inputs/outputs, but cannot
+                        declare both.
                     </para>
+                    <sample id="destroyableAdHocTask"
+                            dir="userguide/tasks/incrementalBuild/customTaskClass"
+                            title="Ad-hoc task declaring a destroyable">
+                        <sourcefile file="build.gradle" snippet="adhoc-destroyable-task"/>
+                    </sample>
                     <para>One notable difference between the runtime API and the annotations is the
                         lack of a method that corresponds directly to <literal>@Nested</literal>.
                         That’s why the example uses two <literal>property()</literal> declarations

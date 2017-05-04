@@ -219,7 +219,7 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         given:
         withParallelThreads(2)
         buildFile << """
-            aPing.destroys.file rootProject.file("dir")
+            aPing.destroyables.file rootProject.file("dir")
         
             bPing.outputs.file rootProject.file("dir")
         """
@@ -239,7 +239,7 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         withParallelThreads(2)
 
         buildFile << """
-            aPing.destroys.file file("foo")
+            aPing.destroyables.file file("foo")
         
             bPing.outputs.file file("foo")
             bPing.doLast { file("foo") << "foo" }
@@ -264,7 +264,7 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         withParallelThreads(2)
 
         buildFile << """
-            aPing.destroys.file file("foo")
+            aPing.destroyables.file file("foo")
         
             bPing.outputs.file file("foo")
             bPing.doLast { file("foo") << "foo" }
@@ -292,7 +292,7 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         withParallelThreads(2)
 
         buildFile << """
-            aPing.destroys.file file("foo")
+            aPing.destroyables.file file("foo")
             aPing.dependsOn ":bPing"
             
             task aIntermediate { dependsOn aPing }
@@ -317,7 +317,7 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         withParallelThreads(2)
 
         buildFile << """
-            aPing.destroys.file file("foo")
+            aPing.destroyables.file file("foo")
             aPing.mustRunAfter ":bPing"
             
             task aIntermediate { dependsOn aPing }
