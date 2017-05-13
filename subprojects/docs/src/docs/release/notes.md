@@ -158,6 +158,12 @@ This change makes Checkstyle build cache friendly, so that your build does not n
 
 Gradle will now download dependencies from remote repositories in parallel (both metadata and artifacts). It will also make sure that if you build multiple projects in parallel (with `--parallel`) and that 2 projects try to download the same dependency at the same time, that dependency wouldn't be downloaded twice.
 
+### Filtering Java test execution based on test failures
+
+When executing `Test` tasks, you can now pass the [`--failed` command-line option](userguide/java_plugin.html#test_filtering). This option will filter test execution to only the test classes that failed in the last execution.
+
+If there are no previous results, the previous results cannot be read or no tests failed in the last execution, all tests will be executed instead.
+
 ### Default Zinc compiler upgraded from 0.3.7 to 0.3.13
 
 This will take advantage of performance optimizations in the latest [Zinc](https://github.com/typesafehub/zinc) releases.

@@ -1265,11 +1265,16 @@
                     <listitem>Fully qualified class name or fully qualified method name is supported,
                         e.g. “org.gradle.SomeTest”, “org.gradle.SomeTest.someMethod”</listitem>
                     <listitem>Wildcard '*' is supported for matching any characters</listitem>
-                    <listitem>Command line option “--tests” is provided to conveniently set the test filter.
+                    <listitem>Command line option <literal>--tests</literal> is provided to conveniently set the test filter.
                         Especially useful for the classic 'single test method execution' use case.
                         When the command line option is used, the inclusion filters declared in the build script are ignored.
-                        It is possible to supply multiple “--tests” options and tests matching any of those patterns will be
+                        It is possible to supply multiple <literal>--tests</literal> options and tests matching any of those patterns will be
                         included.
+                    </listitem>
+                    <listitem>Command line option <literal>--failed</literal> is provided to set the test filter based on the results of the last execution.
+                        If there are no previous results, the previous results cannot be read or no tests failed in the last execution,
+                        no filters are applied and all tests will be executed.
+                        This command-line option will replace any existing filters.
                     </listitem>
                     <listitem>Gradle tries to filter the tests given the limitations of the test framework API.
                         Some advanced, synthetic tests may not be fully compatible with filtering.
@@ -1292,6 +1297,9 @@
                 Some examples of using the command line option:
 
                 <itemizedlist>
+                    <listitem>
+                        <para><literal>gradle test --failed</literal></para>
+                    </listitem>
                     <listitem>
                         <para><literal>gradle test --tests org.gradle.SomeTest.someSpecificFeature</literal></para>
                     </listitem>
