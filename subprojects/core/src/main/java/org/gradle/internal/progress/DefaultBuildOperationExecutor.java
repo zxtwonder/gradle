@@ -169,14 +169,15 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
             Throwable failure = null;
             DefaultBuildOperationContext context = new DefaultBuildOperationContext();
             try {
-                ProgressLogger progressLogger = createProgressLogger(currentOperation);
+                ProgressLogger progressLogger = maybeStartProgressLogging(currentOperation);
 
                 LOGGER.debug("Build operation '{}' started", descriptor.getDisplayName());
                 try {
                     worker.execute(buildOperation, context);
                 } finally {
-                    LOGGER.debug("Completing Build operation '{}'", descriptor.getDisplayName());
-                    progressLogger.completed();
+                    if (progressLogger != null) {
+                        progressLogger.completed();
+                    }
                 }
                 assertParentRunning("Parent operation (%2$s) completed before this operation (%1$s).", descriptor, parent);
             } catch (Throwable t) {
@@ -216,10 +217,21 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
         }
     }
 
-    private ProgressLogger createProgressLogger(DefaultBuildOperationState currentOperation) {
-        BuildOperationDescriptor descriptor = currentOperation.getDescription();
-        ProgressLogger progressLogger = progressLoggerFactory.newOperation(DefaultBuildOperationExecutor.class, descriptor);
-        return progressLogger.start(descriptor.getDisplayName(), descriptor.getProgressDisplayName());
+    @Nullable
+    private ProgressLogger maybeStartProgressLogging(DefaultBuildOperationState currentOperation) {
+        if (providesProgressLogging(currentOperation)) {
+            ProgressLogger progressLogger = progressLoggerFactory.newOperation(DefaultBuildOperationExecutor.class, (OperationIdentifier) currentOperation.getId());
+            progressLogger.setDescription(currentOperation.getDescription().getDisplayName());
+            progressLogger.setShortDescription(currentOperation.getDescription().getProgressDisplayName());
+            progressLogger.started();
+            return progressLogger;
+        } else {
+            return null;
+        }
+    }
+
+    private boolean providesProgressLogging(DefaultBuildOperationState currentOperation) {
+        return currentOperation.getDescription().getProgressDisplayName() != null;
     }
 
     private DefaultBuildOperationState maybeStartUnmanagedThreadOperation(DefaultBuildOperationState parentState) {

@@ -18,7 +18,6 @@ package org.gradle.internal.logging.console;
 
 import org.gradle.internal.logging.events.BatchOutputEventListener;
 import org.gradle.internal.logging.events.EndOutputEvent;
-import org.gradle.internal.logging.events.OperationIdentifier;
 import org.gradle.internal.logging.events.OutputEvent;
 import org.gradle.internal.logging.events.ProgressCompleteEvent;
 import org.gradle.internal.logging.events.ProgressEvent;
@@ -27,6 +26,7 @@ import org.gradle.internal.logging.format.TersePrettyDurationFormatter;
 import org.gradle.internal.logging.text.Span;
 import org.gradle.internal.logging.text.Style;
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
+import org.gradle.internal.logging.events.OperationIdentifier;
 import org.gradle.internal.time.TimeProvider;
 
 import java.util.Arrays;
@@ -46,12 +46,8 @@ public class BuildStatusRenderer extends BatchOutputEventListener {
     private final ScheduledExecutorService executor;
     private final TersePrettyDurationFormatter elapsedTimeFormatter = new TersePrettyDurationFormatter();
     private final Object lock = new Object();
-
-    // What actually shows up on the console
     private String currentBuildStatus;
-    private OperationIdentifier currentPhaseOperationId;
-
-    // Used to maintain timer
+    private OperationIdentifier rootOperationId;
     private long buildStartTimestamp;
     private ScheduledFuture future;
 
@@ -77,7 +73,7 @@ public class BuildStatusRenderer extends BatchOutputEventListener {
         currentBuildStatus = progressEvent.getStatus();
     }
 
-    private void buildFinished() {
+    private void buildFinished(ProgressCompleteEvent progressCompleteEvent) {
         currentBuildStatus = "";
     }
 
@@ -85,17 +81,20 @@ public class BuildStatusRenderer extends BatchOutputEventListener {
     public void onOutput(OutputEvent event) {
         if (event instanceof ProgressStartEvent) {
             ProgressStartEvent startEvent = (ProgressStartEvent) event;
-            if (currentPhaseOperationId == null && BUILD_PROGRESS_CATEGORY.equals(startEvent.getCategory())) {
-                currentPhaseOperationId = startEvent.getProgressOperationId();
+            // if it has no parent ID, assign this operation as the root operation
+            if (startEvent.getParentProgressOperationId() == null && BUILD_PROGRESS_CATEGORY.equals(startEvent.getCategory())) {
+                rootOperationId = startEvent.getProgressOperationId();
                 buildStarted(startEvent);
             }
         } else if (event instanceof ProgressCompleteEvent) {
-            if (((ProgressCompleteEvent) event).getProgressOperationId().equals(currentPhaseOperationId)) {
-                currentPhaseOperationId = null;
+            ProgressCompleteEvent completeEvent = (ProgressCompleteEvent) event;
+            if (completeEvent.getProgressOperationId().equals(rootOperationId)) {
+                rootOperationId = null;
+                buildFinished(completeEvent);
             }
         } else if (event instanceof ProgressEvent) {
             ProgressEvent progressEvent = (ProgressEvent) event;
-            if (progressEvent.getProgressOperationId().equals(currentPhaseOperationId)) {
+            if (progressEvent.getProgressOperationId().equals(rootOperationId)) {
                 buildProgressed(progressEvent);
             }
         } else if (event instanceof EndOutputEvent) {
@@ -103,7 +102,6 @@ public class BuildStatusRenderer extends BatchOutputEventListener {
                 future.cancel(false);
             }
             executor.shutdown();
-            buildFinished();
         }
     }
 

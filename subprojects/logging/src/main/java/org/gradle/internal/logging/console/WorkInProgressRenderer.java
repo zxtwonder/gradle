@@ -22,12 +22,12 @@ import com.google.common.collect.Sets;
 import org.gradle.internal.logging.events.BatchOutputEventListener;
 import org.gradle.internal.logging.events.EndOutputEvent;
 import org.gradle.internal.logging.events.MaxWorkerCountChangeEvent;
-import org.gradle.internal.logging.events.OperationIdentifier;
 import org.gradle.internal.logging.events.OutputEvent;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.events.ProgressCompleteEvent;
 import org.gradle.internal.logging.events.ProgressEvent;
 import org.gradle.internal.logging.events.ProgressStartEvent;
+import org.gradle.internal.logging.events.OperationIdentifier;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
@@ -139,7 +139,7 @@ public class WorkInProgressRenderer extends BatchOutputEventListener {
     }
 
     private void attach(ProgressOperation operation) {
-        // Skip attach if a child is already present or no progress message to display
+        // Skip attach if a children is already present
         if (isChildAssociationAlreadyExists(operation.getOperationId())) {
             return;
         }
@@ -161,7 +161,7 @@ public class WorkInProgressRenderer extends BatchOutputEventListener {
         }
 
         // No parent? Try to use a new label
-        if (!unusedProgressLabels.isEmpty()) {
+        if (association == null && !unusedProgressLabels.isEmpty()) {
             association = new AssociationLabel(operation, unusedProgressLabels.pop());
         }
 
@@ -206,7 +206,7 @@ public class WorkInProgressRenderer extends BatchOutputEventListener {
     private void removeDirectChildOperationId(OperationIdentifier parentId, OperationIdentifier childId) {
         Set<OperationIdentifier> children = parentIdToChildrenIds.get(parentId);
         if (children == null) {
-            return;
+            throw new IllegalStateException("");
         }
         children.remove(childId);
         if (children.isEmpty()) {

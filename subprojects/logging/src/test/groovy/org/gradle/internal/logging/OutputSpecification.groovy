@@ -21,7 +21,6 @@ import org.gradle.internal.logging.events.OperationIdentifier
 import org.gradle.internal.logging.events.ProgressCompleteEvent
 import org.gradle.internal.logging.events.ProgressEvent
 import org.gradle.internal.logging.events.ProgressStartEvent
-import org.gradle.internal.progress.BuildOperationType
 import org.gradle.util.TextUtil
 import spock.lang.Specification
 
@@ -56,10 +55,6 @@ abstract class OutputSpecification extends Specification {
         return new LogEvent(tenAm, 'category', logLevel, text, null)
     }
 
-    LogEvent event(String text, LogLevel logLevel, Object buildOperationId) {
-        return new LogEvent(tenAm, 'category', logLevel, text, null, buildOperationId)
-    }
-
     LogEvent event(long timestamp, String text, LogLevel logLevel) {
         return new LogEvent(timestamp, 'category', logLevel, text, null)
     }
@@ -85,14 +80,11 @@ abstract class OutputSpecification extends Specification {
     }
 
     ProgressStartEvent start(Map args) {
-        Long parentId = args.containsKey("parentId") ? args.parentId : counter
-        OperationIdentifier parent = parentId ? new OperationIdentifier(parentId) : null
-        Object buildOperationId = args.containsKey("buildOperationId") ? args.buildOperationId : null
-        Object parentBuildOperationId = args.containsKey("parentBuildOperationId") ? args.parentBuildOperationId : null
-        BuildOperationType buildOperationType = args.containsKey("buildOperationType") ? args.buildOperationType : BuildOperationType.UNCATEGORIZED
-        Long id = args.containsKey("id") ? args.id : ++counter
+        OperationIdentifier parentId = args.containsKey("parentId") ? args.parentId : new OperationIdentifier(counter)
+        OperationIdentifier buildOperationId = args.containsKey("buildOperationId") ? args.buildOperationId : new OperationIdentifier(counter)
+        long id = ++counter
         String category = args.containsKey("category") ? args.category : CATEGORY
-        return new ProgressStartEvent(new OperationIdentifier(id), parent, tenAm, category, args.description, args.shortDescription, args.loggingHeader, args.status, buildOperationId, parentBuildOperationId, buildOperationType)
+        return new ProgressStartEvent(new OperationIdentifier(id), parentId, tenAm, category, args.description, args.shortDescription, args.loggingHeader, args.status, buildOperationId)
     }
 
     ProgressEvent progress(String status) {
