@@ -23,7 +23,7 @@ import java.util.List;
 public class ConsoleStub implements Console {
     private final TestableBuildOutputTextArea buildOutputArea = new TestableBuildOutputTextArea();
     private final TestableRedrawableLabel buildStatusLabel = new TestableRedrawableLabel("0");
-    private final TestableBuildProgressTextArea buildProgressArea = new TestableBuildProgressTextArea();
+    private final TestableBuildProgressTextArea buildProgressArea = new TestableBuildProgressTextArea(4);
 
     @Override
     public StyledLabel getStatusBar() {
@@ -74,8 +74,19 @@ public class ConsoleStub implements Console {
     protected class TestableBuildProgressTextArea extends TestStyledTextOutput implements BuildProgressArea {
         boolean visible;
         int buildProgressLabelCount;
-        private final List<TestableRedrawableLabel> testableLabels = new ArrayList<TestableRedrawableLabel>();
-        private final List<StyledLabel> buildProgressLabels = new ArrayList<StyledLabel>();
+        private final List<TestableRedrawableLabel> testableLabels;
+        private final List<StyledLabel> buildProgressLabels;
+
+        public TestableBuildProgressTextArea(int numLabels) {
+            this.buildProgressLabels = new ArrayList<StyledLabel>(numLabels);
+            this.testableLabels = new ArrayList<TestableRedrawableLabel>(numLabels);
+
+            for (int i = 0; i < numLabels; i++) {
+                final TestableRedrawableLabel label = new TestableRedrawableLabel(String.valueOf(i + 1));
+                buildProgressLabels.add(label);
+                testableLabels.add(label);
+            }
+        }
 
         @Override
         public StyledLabel getProgressBar() {
@@ -98,11 +109,6 @@ public class ConsoleStub implements Console {
 
         @Override
         public void resizeBuildProgressTo(int buildProgressLabelCount) {
-            for (int i = buildProgressLabelCount - this.buildProgressLabelCount; i > 0; --i) {
-                final TestableRedrawableLabel label = new TestableRedrawableLabel(String.valueOf((buildProgressLabelCount - i) + 1));
-                buildProgressLabels.add(label);
-                testableLabels.add(label);
-            }
             this.buildProgressLabelCount = buildProgressLabelCount;
         }
 

@@ -57,7 +57,7 @@ class ConsoleFunctionalTest extends Specification {
         then:
         ConcurrentTestUtil.poll(1) {
             assert statusBar.display == '<---> 0% INITIALIZING [0s]'
-            assert progressArea.display == []
+            assert progressArea.display == [IDLE, IDLE, IDLE, IDLE]
         }
     }
 
@@ -69,7 +69,7 @@ class ConsoleFunctionalTest extends Specification {
         then:
         ConcurrentTestUtil.poll(1) {
             assert statusBar.display == '<---> 0% CONFIGURING [0s]'
-            assert progressArea.display == ['> root project']
+            assert progressArea.display == ['> root project', IDLE, IDLE, IDLE]
         }
 
         when:
@@ -80,7 +80,7 @@ class ConsoleFunctionalTest extends Specification {
         then:
         ConcurrentTestUtil.poll(1) {
             assert statusBar.display == '<=--> 33% CONFIGURING [2s]'
-            assert progressArea.display == [IDLE]
+            assert progressArea.display == [IDLE, IDLE, IDLE, IDLE]
         }
     }
 
@@ -90,7 +90,7 @@ class ConsoleFunctionalTest extends Specification {
 
         then:
         ConcurrentTestUtil.poll(1) {
-            assert progressArea.display == ['> :foo']
+            assert progressArea.display == ['> :foo', IDLE, IDLE, IDLE]
         }
 
         when:
@@ -98,7 +98,7 @@ class ConsoleFunctionalTest extends Specification {
 
         then:
         ConcurrentTestUtil.poll(1) {
-            assert progressArea.display == [IDLE]
+            assert progressArea.display == [IDLE, IDLE, IDLE, IDLE]
         }
     }
 
@@ -122,7 +122,7 @@ class ConsoleFunctionalTest extends Specification {
 
         then:
         ConcurrentTestUtil.poll(1) {
-            assert progressArea.display == ['> :foo > :bar']
+            assert progressArea.display == ['> :foo > :bar', IDLE, IDLE, IDLE]
         }
     }
 
@@ -135,7 +135,7 @@ class ConsoleFunctionalTest extends Specification {
 
         then:
         ConcurrentTestUtil.poll(1) {
-            assert progressArea.display == ['> abcdefghijklmnopqrstuvwxyzABCDEF']
+            assert progressArea.display == ['> abcdefghijklmnopqrstuvwxyzABCDEF', IDLE, IDLE, IDLE]
         }
     }
 
@@ -201,70 +201,19 @@ class ConsoleFunctionalTest extends Specification {
         renderer.onOutput(startEvent(2, ':foo'))
         renderer.onOutput(startEvent(3, ':bar'))
         renderer.onOutput(startEvent(4, ':baz'))
-        renderer.onOutput(startEvent(5, ':foz'))
-        renderer.onOutput(startEvent(6, ':nope'))
-
-        then:
-        ConcurrentTestUtil.poll(1) {
-            assert progressArea.display == ['> :wat', '> :foo', '> :bar', '> :baz', '> :foz']
-        }
-        progressArea.buildProgressLabelCount == metaData.rows / 2
-
-        when:
-        renderer.onOutput(completeEvent(1, ':wat'))
-
-        then:
-        ConcurrentTestUtil.poll(1) {
-            assert progressArea.display == ['> :nope', '> :foo', '> :bar', '> :baz', '> :foz']
-        }
-        progressArea.buildProgressLabelCount == metaData.rows / 2
-    }
-
-    def "progress display height scales when more work in progress are added"() {
-        when:
-        renderer.onOutput(startEvent(1, ':wat'))
-        renderer.onOutput(startEvent(2, ':foo'))
-
-        then:
-        ConcurrentTestUtil.poll(1) {
-            assert progressArea.display == ['> :wat', '> :foo']
-        }
-
-        and:
-        renderer.onOutput(startEvent(3, ':bar'))
-        renderer.onOutput(startEvent(4, ':baz'))
+        renderer.onOutput(startEvent(5, ':nope'))
 
         then:
         ConcurrentTestUtil.poll(1) {
             assert progressArea.display == ['> :wat', '> :foo', '> :bar', '> :baz']
         }
 
-        and:
-        renderer.onOutput(completeEvent(1, ':wat'))
-
-        then:
-        ConcurrentTestUtil.poll(1) {
-            assert progressArea.display == [IDLE, '> :foo', '> :bar', '> :baz']
-        }
-    }
-
-    def "progress display height doesn't scale back down when complete events are received"() {
         when:
-        renderer.onOutput(startEvent(1, ':wat'))
-        renderer.onOutput(startEvent(2, ':foo'))
-
-        then:
-        ConcurrentTestUtil.poll(1) {
-            assert progressArea.display == ['> :wat', '> :foo']
-        }
-
-        and:
-        renderer.onOutput(completeEvent(2, ':foo'))
         renderer.onOutput(completeEvent(1, ':wat'))
 
         then:
         ConcurrentTestUtil.poll(1) {
-            assert progressArea.display == [IDLE, IDLE]
+            assert progressArea.display == ['> :nope', '> :foo', '> :bar', '> :baz']
         }
     }
 
@@ -277,7 +226,7 @@ class ConsoleFunctionalTest extends Specification {
 
         then:
         ConcurrentTestUtil.poll(1) {
-            assert progressArea.display == ['> [3 / 7] :wat']
+            assert progressArea.display == ['> [3 / 7] :wat', IDLE, IDLE, IDLE]
         }
     }
 
@@ -289,7 +238,7 @@ class ConsoleFunctionalTest extends Specification {
 
         then:
         ConcurrentTestUtil.poll(1, 0.1) {
-            assert progressArea.display == []
+            assert progressArea.display == [IDLE, IDLE, IDLE, IDLE]
         }
     }
 
@@ -299,7 +248,7 @@ class ConsoleFunctionalTest extends Specification {
 
         then:
         ConcurrentTestUtil.poll(1) {
-            assert progressArea.display == ['> SHORT_DESCRIPTION']
+            assert progressArea.display == ['> SHORT_DESCRIPTION', IDLE, IDLE, IDLE]
         }
     }
 
