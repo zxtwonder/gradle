@@ -24,7 +24,6 @@ import org.gradle.internal.logging.console.ConsoleStub
 import org.gradle.internal.logging.events.LogEvent
 import org.gradle.internal.logging.events.OutputEventListener
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData
-import org.gradle.internal.progress.BuildOperationType
 import org.gradle.util.RedirectStdOutAndErr
 import org.junit.Rule
 import spock.lang.Unroll
@@ -233,7 +232,7 @@ class OutputEventRendererTest extends OutputSpecification {
     def rendersProgressEvents() {
         when:
         renderer.attachSystemOutAndErr()
-        renderer.onOutput(start(loggingHeader: 'description', buildOperationId: 1L, buildOperationType: BuildOperationType.TASK))
+        renderer.onOutput(start(loggingHeader: 'description'))
         renderer.onOutput(complete('status'))
 
         then:
@@ -258,14 +257,14 @@ class OutputEventRendererTest extends OutputSpecification {
         renderer.addConsole(console, true, true, metaData)
 
         when:
-        renderer.onOutput(start(loggingHeader: 'description', buildOperationId: 1L, buildOperationType: BuildOperationType.TASK))
-        renderer.onOutput(event('info', LogLevel.INFO, 1L))
-        renderer.onOutput(event('error', LogLevel.ERROR, 1L))
+        renderer.onOutput(start(loggingHeader: 'description'))
+        renderer.onOutput(event('info', LogLevel.INFO))
+        renderer.onOutput(event('error', LogLevel.ERROR))
         renderer.onOutput(complete('status'))
         renderer.restore(snapshot) // close console to flush
 
         then:
-        console.buildOutputArea.toString().readLines() == ['{header}> description{normal}', 'info', '{error}error', '{normal}']
+        console.buildOutputArea.toString().readLines() == ['description', 'info', '{error}error', '{normal}description {progressstatus}status{normal}']
     }
 
     def rendersLogEventsWhenOnlyStdOutIsConsole() {
@@ -273,14 +272,14 @@ class OutputEventRendererTest extends OutputSpecification {
         renderer.addConsole(console, true, false, metaData)
 
         when:
-        renderer.onOutput(start(loggingHeader: 'description', buildOperationId: 1L, buildOperationType: BuildOperationType.TASK))
-        renderer.onOutput(event('info', LogLevel.INFO, 1L))
-        renderer.onOutput(event('error', LogLevel.ERROR, 1L))
+        renderer.onOutput(start(loggingHeader: 'description'))
+        renderer.onOutput(event('info', LogLevel.INFO))
+        renderer.onOutput(event('error', LogLevel.ERROR))
         renderer.onOutput(complete('status'))
         renderer.restore(snapshot) // close console to flush
 
         then:
-        console.buildOutputArea.toString().readLines() == ['{header}> description{normal}', 'info', '']
+        console.buildOutputArea.toString().readLines() == ['description', 'info', 'description {progressstatus}status{normal}']
     }
 
     def rendersLogEventsWhenOnlyStdErrIsConsole() {
