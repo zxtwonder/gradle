@@ -646,7 +646,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
                     return setTestNameIncludePatterns(failedTestClasses);
                 }
             } catch (Exception e) {
-                // ignore
+                getLogger().debug("cannot find previously failed tests", e);
             } finally {
                 IOUtils.closeQuietly(resultsProvider);
             }
