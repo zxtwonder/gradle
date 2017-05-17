@@ -797,6 +797,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
 
     private void recordTaskStarted(TaskInfo taskInfo) {
         runningTasks.add(taskInfo);
+        taskInfo.getTask().getOutputs().finalizeOutputFiles();
         TaskMutationInfo taskMutationInfo = taskMutations.get(taskInfo);
         taskMutationInfo.outputPaths.addAll(getOutputPaths(taskInfo));
         taskMutationInfo.destroyablePaths.addAll(getDestroyablePaths(taskInfo));

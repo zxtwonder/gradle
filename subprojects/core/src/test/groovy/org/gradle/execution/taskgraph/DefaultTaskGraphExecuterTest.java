@@ -23,6 +23,7 @@ import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.execution.internal.InternalTaskExecutionListener;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.internal.tasks.DefaultTaskDestroyables;
@@ -33,7 +34,6 @@ import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.TaskDestroyables;
-import org.gradle.api.tasks.TaskOutputs;
 import org.gradle.execution.TaskFailureHandler;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.Factories;
@@ -548,7 +548,7 @@ public class DefaultTaskGraphExecuterTest {
     private Task brokenTask(String name, final RuntimeException failure, final Task... dependsOn) {
         final TaskInternal task = context.mock(TaskInternal.class);
         final TaskStateInternal state = context.mock(TaskStateInternal.class);
-        final TaskOutputs outputs = context.mock(DefaultTaskOutputs.class);
+        final TaskOutputsInternal outputs = context.mock(DefaultTaskOutputs.class);
         final TaskDestroyables destroys = context.mock(DefaultTaskDestroyables.class);
         setExpectations(name, task, state, outputs, destroys);
         dependsOn(task, dependsOn);
@@ -566,7 +566,7 @@ public class DefaultTaskGraphExecuterTest {
     private Task task(final String name, final Task... dependsOn) {
         final TaskInternal task = context.mock(TaskInternal.class);
         final TaskStateInternal state = context.mock(TaskStateInternal.class);
-        final TaskOutputs outputs = context.mock(DefaultTaskOutputs.class);
+        final TaskOutputsInternal outputs = context.mock(DefaultTaskOutputs.class);
         final TaskDestroyables destroys = context.mock(DefaultTaskDestroyables.class);
         setExpectations(name, task, state, outputs, destroys);
         dependsOn(task, dependsOn);
@@ -582,13 +582,13 @@ public class DefaultTaskGraphExecuterTest {
     private TaskInternal createTask(final String name) {
         TaskInternal task = context.mock(TaskInternal.class);
         TaskStateInternal state = context.mock(TaskStateInternal.class);
-        final TaskOutputs outputs = context.mock(DefaultTaskOutputs.class);
+        final TaskOutputsInternal outputs = context.mock(DefaultTaskOutputs.class);
         final TaskDestroyables destroys = context.mock(DefaultTaskDestroyables.class);
         setExpectations(name, task, state, outputs, destroys);
         return task;
     }
 
-    private void setExpectations(final String name, final TaskInternal task, final TaskStateInternal state, final TaskOutputs outputs, final TaskDestroyables destroys) {
+    private void setExpectations(final String name, final TaskInternal task, final TaskStateInternal state, final TaskOutputsInternal outputs, final TaskDestroyables destroys) {
         context.checking(new Expectations() {{
             allowing(task).getProject();
             will(returnValue(root));
@@ -622,6 +622,7 @@ public class DefaultTaskGraphExecuterTest {
             will(returnValue(outputs));
             allowing(outputs).getFiles();
             will(returnValue(root.files()));
+            allowing(outputs).finalizeOutputFiles();
             allowing(task).getDestroyables();
             will(returnValue(destroys));
             allowing(destroys).getFiles();

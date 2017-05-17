@@ -44,4 +44,9 @@ public interface TaskOutputsInternal extends TaskOutputs {
      * Returns whether the task has declared any outputs.
      */
     boolean hasDeclaredOutputs();
+
+    /**
+     * Finalize the task outputs.
+     */
+    void finalizeOutputFiles();
 }

@@ -32,6 +32,7 @@ import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
+import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec.OutputType;
 import org.gradle.api.internal.tasks.execution.SelfDescribingSpec;
 import org.gradle.api.specs.AndSpec;
@@ -52,6 +53,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     private static final TaskOutputCachingState NO_OUTPUTS_DECLARED = DefaultTaskOutputCachingState.disabled(TaskOutputCachingDisabledReasonCategory.NO_OUTPUTS_DECLARED, "No outputs declared");
 
     private final FileCollection allOutputFiles;
+    private FileCollection finalizedOutputFiles;
     private AndSpec<TaskInternal> upToDateSpec = AndSpec.empty();
     private List<SelfDescribingSpec<TaskInternal>> cacheIfSpecs = new LinkedList<SelfDescribingSpec<TaskInternal>>();
     private List<SelfDescribingSpec<TaskInternal>> doNotCacheIfSpecs = new LinkedList<SelfDescribingSpec<TaskInternal>>();
@@ -180,7 +182,16 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
 
     @Override
     public FileCollection getFiles() {
-        return allOutputFiles;
+        if (finalizedOutputFiles != null) {
+            return finalizedOutputFiles;
+        } else {
+            return allOutputFiles;
+        }
+    }
+
+    @Override
+    public void finalizeOutputFiles() {
+        finalizedOutputFiles = new SimpleFileCollection(allOutputFiles.getFiles());
     }
 
     @Override
