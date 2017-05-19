@@ -233,6 +233,12 @@ allprojects {
     }
 }
 
+// Needs to be available at `integTest.gradle` configuration time
+def patchedExternalModulesDir = new File(buildDir, "external/files")
+def patchedExternalModules = files({ -> fileTree(patchedExternalModulesDir).files.sort() })
+patchedExternalModules.builtBy 'patchExternalModules'
+ext.patchedExternalModules = patchedExternalModules
+
 subprojects {
     version = rootProject.version
 
@@ -282,9 +288,6 @@ configurations {
     }
 }
 
-def patchedExternalModulesDir = new File(buildDir, "external/files")
-def patchedExternalModules = files({ -> fileTree(patchedExternalModulesDir).files.sort() })
-patchedExternalModules.builtBy 'patchExternalModules'
 
 dependencies {
     externalModules 'org.gradle:gradle-script-kotlin:0.8.0'

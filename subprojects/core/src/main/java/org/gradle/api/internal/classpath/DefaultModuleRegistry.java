@@ -34,6 +34,11 @@ import java.util.zip.ZipFile;
  * Determines the classpath for a module by looking for a '${module}-classpath.properties' resource with 'name' set to the name of the module.
  */
 public class DefaultModuleRegistry implements ModuleRegistry {
+
+    public static ClassPath getDefaultModuleClassPath() {
+        return new EffectiveClassPath(DefaultModuleRegistry.class.getClassLoader());
+    }
+
     private final GradleInstallation gradleInstallation;
     private final Map<String, Module> modules = new HashMap<String, Module>();
     private final List<File> classpath = new ArrayList<File>();

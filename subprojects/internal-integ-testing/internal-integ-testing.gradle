@@ -44,7 +44,12 @@ task prepareVersionsInfo(type: PrepareVersionsInfo) {
     mostRecentSnapshot = releasedVersions.mostRecentSnapshot
 }
 
-sourceSets.main.output.dir generatedResourcesDir, builtBy: prepareVersionsInfo
+task prepareExternalModulesInfo(type: PrepareExternalModulesInfo) {
+    destFile = new File(generatedResourcesDir, "external-modules.properties")
+    externalModules = rootProject.patchedExternalModules
+}
+
+sourceSets.main.output.dir generatedResourcesDir, builtBy: [prepareVersionsInfo, prepareExternalModulesInfo]
 
 @CacheableTask
 class PrepareVersionsInfo extends DefaultTask {
@@ -59,6 +64,18 @@ class PrepareVersionsInfo extends DefaultTask {
         properties.mostRecentSnapshot = mostRecentSnapshot
         properties.versions = versions.join(' ')
 
+        org.gradle.build.ReproduciblePropertiesWriter.store(properties, destFile)
+    }
+}
+
+@CacheableTask
+class PrepareExternalModulesInfo extends DefaultTask {
+    @OutputFile File destFile
+    @InputFiles FileCollection externalModules
+
+    @TaskAction void prepareExternalModulesInfo() {
+        def properties = new Properties()
+        properties.runtime = externalModules.files.collect { it.name }.join(',')
         org.gradle.build.ReproduciblePropertiesWriter.store(properties, destFile)
     }
 }

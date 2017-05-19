@@ -16,7 +16,6 @@
 package org.gradle.integtests.fixtures.executer;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Sets;
 import com.google.common.io.CharSource;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
@@ -24,6 +23,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.ClosureBackedAction;
+import org.gradle.api.internal.classpath.DefaultModuleRegistry;
 import org.gradle.api.internal.initialization.DefaultClassLoaderScope;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -31,6 +31,8 @@ import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer;
 import org.gradle.internal.ImmutableActionSet;
 import org.gradle.internal.MutableActionSet;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.logging.services.LoggingServiceRegistry;
@@ -52,6 +54,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
+import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -61,22 +64,52 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 
+import static com.google.common.base.Splitter.on;
+import static com.google.common.collect.Lists.newArrayListWithCapacity;
+import static com.google.common.collect.Sets.newHashSet;
 import static org.gradle.integtests.fixtures.executer.AbstractGradleExecuter.CliDaemonArgument.*;
 import static org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult.STACK_TRACE_ELEMENT;
 import static org.gradle.internal.service.scopes.DefaultGradleUserHomeScopeServiceRegistry.REUSE_USER_HOME_SERVICES;
 import static org.gradle.util.CollectionUtils.collect;
 import static org.gradle.util.CollectionUtils.join;
+import static org.gradle.util.GUtil.loadProperties;
 
 public abstract class AbstractGradleExecuter implements GradleExecuter {
     protected static final ServiceRegistry GLOBAL_SERVICES = ServiceRegistryBuilder.builder()
         .displayName("Global services")
         .parent(LoggingServiceRegistry.newCommandLineProcessLogging())
         .parent(NativeServicesTestFixture.getInstance())
-        .provider(new GlobalScopeServices(true))
+        .provider(new GlobalScopeServices(true, externalModulesClassPath()))
         .build();
-    protected final static Set<String> PROPAGATED_SYSTEM_PROPERTIES = Sets.newHashSet();
+
+    private static ClassPath externalModulesClassPath() {
+        Set<String> externalModules = externalModulesRuntime();
+        List<File> externalModulesClassPath = newArrayListWithCapacity(externalModules.size());
+        for (File module : defaultModuleClassPath()) {
+            if (externalModules.contains(module.getName())) {
+                externalModulesClassPath.add(module);
+            }
+        }
+        return new DefaultClassPath(externalModulesClassPath);
+    }
+
+    private static Set<String> externalModulesRuntime() {
+        Properties properties = loadProperties(resource("external-modules.properties"));
+        return newHashSet(on(',').split(properties.getProperty("runtime")));
+    }
+
+    private static List<File> defaultModuleClassPath() {
+        return DefaultModuleRegistry.getDefaultModuleClassPath().getAsFiles();
+    }
+
+    private static URL resource(String name) {
+        return GradleExecuter.class.getClassLoader().getResource(name);
+    }
+
+    protected final static Set<String> PROPAGATED_SYSTEM_PROPERTIES = newHashSet();
 
     public static void propagateSystemProperty(String name) {
         PROPAGATED_SYSTEM_PROPERTIES.add(name);
