@@ -34,6 +34,7 @@ class DynamicModulesClassPathProviderTest extends Specification {
         then:
         classpath.asFiles.collect { it.name } == ["gradle-workers-runtime",
                                                   "gradle-dependency-management-runtime",
+                                                  "gradle-script-kotlin-tooling-builders-runtime",
                                                   "gradle-plugin-use-runtime",
                                                   "plugin1-runtime", "plugin2-runtime",
                                                   "extension1-runtime", "extension2-runtime"]
@@ -42,6 +43,7 @@ class DynamicModulesClassPathProviderTest extends Specification {
         1 * moduleRegistry.getModule("gradle-core") >> module("gradle-core", module("gradle-cli"))
         1 * moduleRegistry.getModule("gradle-workers") >> module("gradle-workers")
         1 * moduleRegistry.getModule("gradle-dependency-management") >> module("gradle-dependency-management")
+        1 * moduleRegistry.getModule("gradle-script-kotlin-tooling-builders") >> module("gradle-script-kotlin-tooling-builders")
         1 * moduleRegistry.getModule("gradle-plugin-use") >> module("gradle-plugin-use")
         1 * pluginModuleRegistry.getApiModules() >> ([module("plugin1"), module("plugin2")] as LinkedHashSet)
         1 * pluginModuleRegistry.getImplementationModules() >> ([module("extension1"), module("extension2")] as LinkedHashSet)
