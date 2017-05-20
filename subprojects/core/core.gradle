@@ -103,3 +103,24 @@ task implementationPluginsManifest(type: WriteProperties) {
 sourceSets.main.output.dir generatedResourcesDir, builtBy: implementationPluginsManifest
 
 verifyTestFilesCleanup.errorWhenNotEmpty = false
+
+// See TestGlobalScopeServices
+task prepareExternalModulesInfo(type: PrepareExternalModulesInfo) {
+    destFile = new File(generatedResourcesDir, "external-modules.properties")
+    externalModules = rootProject.patchedExternalModules
+}
+
+sourceSets.test.output.dir generatedTestResourcesDir, builtBy: prepareExternalModulesInfo
+
+@CacheableTask
+class PrepareExternalModulesInfo extends DefaultTask {
+    @OutputFile File destFile
+    @InputFiles FileCollection externalModules
+
+    @TaskAction void prepareExternalModulesInfo() {
+        def properties = new Properties()
+        properties.runtime = externalModules.files.collect { it.name }.join(',')
+        org.gradle.build.ReproduciblePropertiesWriter.store(properties, destFile)
+    }
+}
+

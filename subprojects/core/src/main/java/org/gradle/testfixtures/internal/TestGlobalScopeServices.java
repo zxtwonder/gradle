@@ -16,8 +16,11 @@
 package org.gradle.testfixtures.internal;
 
 import org.gradle.StartParameter;
+import org.gradle.api.internal.classpath.DefaultModuleRegistry;
 import org.gradle.cache.internal.CacheFactory;
 import org.gradle.cache.internal.FileLockManager;
+import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
@@ -29,9 +32,44 @@ import org.gradle.internal.service.scopes.GlobalScopeServices;
 import org.gradle.internal.time.TimeProvider;
 import org.gradle.internal.work.WorkerLeaseService;
 
+import java.io.File;
+import java.net.URL;
+import java.util.List;
+import java.util.Properties;
+import java.util.Set;
+
+import static com.google.common.base.Splitter.on;
+import static com.google.common.collect.Lists.newArrayListWithCapacity;
+import static com.google.common.collect.Sets.newHashSet;
+import static org.gradle.util.GUtil.loadProperties;
+
 public class TestGlobalScopeServices extends GlobalScopeServices {
     public TestGlobalScopeServices() {
-        super(false);
+        super(false, externalModulesClassPath());
+    }
+
+    public static ClassPath externalModulesClassPath() {
+        Set<String> externalModules = externalModulesRuntime();
+        List<File> externalModulesClassPath = newArrayListWithCapacity(externalModules.size());
+        for (File module : defaultModuleClassPath()) {
+            if (externalModules.contains(module.getName())) {
+                externalModulesClassPath.add(module);
+            }
+        }
+        return new DefaultClassPath(externalModulesClassPath);
+    }
+
+    private static Set<String> externalModulesRuntime() {
+        Properties properties = loadProperties(resource("external-modules.properties"));
+        return newHashSet(on(',').split(properties.getProperty("runtime")));
+    }
+
+    private static List<File> defaultModuleClassPath() {
+        return DefaultModuleRegistry.getDefaultModuleClassPath().getAsFiles();
+    }
+
+    private static URL resource(String name) {
+        return TestGlobalScopeServices.class.getClassLoader().getResource(name);
     }
 
     @Override
