@@ -19,7 +19,6 @@ package org.gradle.internal.logging
 import org.gradle.integtests.fixtures.AbstractConsoleFunctionalSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.logging.sink.GroupingProgressLogEventGenerator
-import org.junit.Ignore
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 
