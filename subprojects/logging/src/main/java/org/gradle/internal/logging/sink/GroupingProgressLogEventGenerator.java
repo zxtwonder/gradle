@@ -105,13 +105,11 @@ public class GroupingProgressLogEventGenerator extends BatchOutputEventListener 
                 operationsInProgress.put(buildOpId, new OperationGroup(startEvent.getCategory(), header, startEvent.getTimestamp(), startEvent.getBuildOperationId()));
 
                 if (future == null || future.isCancelled()) {
-                    future = executor.scheduleWithFixedDelay(new Runnable() {
+                    future = executor.scheduleAtFixedRate(new Runnable() {
                         @Override
                         public void run() {
                             for (OperationGroup group : operationsInProgress.values()) {
-                                if ((group.lastUpdateTime + LONG_RUNNING_TASK_OUTPUT_FLUSH_TIMEOUT) < timeProvider.getCurrentTime()) {
-                                    group.flushOutput();
-                                }
+                                group.maybeFlushOutput(timeProvider.getCurrentTime());
                             }
                         }
                     }, LONG_RUNNING_TASK_OUTPUT_FLUSH_TIMEOUT, 500, TimeUnit.MILLISECONDS);
@@ -173,7 +171,6 @@ public class GroupingProgressLogEventGenerator extends BatchOutputEventListener 
         private final Object buildOpIdentifier;
         private final String category;
         private final String loggingHeader;
-        private final long startTime;
         private long lastUpdateTime;
 
         private List<RenderableOutputEvent> bufferedLogs = new ArrayList<RenderableOutputEvent>();
@@ -181,7 +178,6 @@ public class GroupingProgressLogEventGenerator extends BatchOutputEventListener 
         private OperationGroup(String category, @Nullable String loggingHeader, long startTime, Object buildOpIdentifier) {
             this.category = category;
             this.loggingHeader = loggingHeader;
-            this.startTime = startTime;
             this.lastUpdateTime = startTime;
             this.buildOpIdentifier = buildOpIdentifier;
         }
@@ -190,12 +186,12 @@ public class GroupingProgressLogEventGenerator extends BatchOutputEventListener 
             return new LogEvent(lastUpdateTime, category, null, "", null);
         }
 
-        StyledTextOutputEvent header(final String message) {
+        private StyledTextOutputEvent header(final String message) {
             List<StyledTextOutputEvent.Span> spans = Lists.newArrayList(new StyledTextOutputEvent.Span(StyledTextOutput.Style.Header, "> " + message), new StyledTextOutputEvent.Span(EOL));
             return new StyledTextOutputEvent(lastUpdateTime, category, null, buildOpIdentifier, spans);
         }
 
-        void bufferOutput(RenderableOutputEvent output) {
+        synchronized void bufferOutput(RenderableOutputEvent output) {
             // Forward output immediately when the focus is on this operation group
             if (Objects.equal(buildOpIdentifier, lastRenderedBuildOpId)) {
                 listener.onOutput(output);
@@ -205,7 +201,7 @@ public class GroupingProgressLogEventGenerator extends BatchOutputEventListener 
             }
         }
 
-        void flushOutput() {
+        synchronized void flushOutput() {
             if (!bufferedLogs.isEmpty()) {
                 // Visually indicate group by adding surrounding lines
                 listener.onOutput(spacerLine());
@@ -218,6 +214,12 @@ public class GroupingProgressLogEventGenerator extends BatchOutputEventListener 
                 bufferedLogs.clear();
                 lastUpdateTime = timeProvider.getCurrentTime();
                 lastRenderedBuildOpId = buildOpIdentifier;
+            }
+        }
+
+        synchronized void maybeFlushOutput(long now) {
+            if ((lastUpdateTime + LONG_RUNNING_TASK_OUTPUT_FLUSH_TIMEOUT) < now) {
+                flushOutput();
             }
         }
     }

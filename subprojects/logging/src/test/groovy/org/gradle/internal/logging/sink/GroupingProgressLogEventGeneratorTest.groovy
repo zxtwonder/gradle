@@ -40,7 +40,7 @@ class GroupingProgressLogEventGeneratorTest extends OutputSpecification {
     def latestScheduledRunnable
 
     def setup() {
-        executor.scheduleWithFixedDelay(_, _, _, _) >> { runnable, initialDelay, delay, timeUnit ->
+        executor.scheduleAtFixedRate(_, _, _, _) >> { runnable, initialDelay, delay, timeUnit ->
             latestScheduledRunnable = runnable
             future
         }
@@ -129,20 +129,20 @@ class GroupingProgressLogEventGeneratorTest extends OutputSpecification {
     }
 
     def "schedules render at fixed rate once an root progress event is started"() {
-        def event = new ProgressStartEvent(new OperationIdentifier(-3L), new OperationIdentifier(-4L), timeProvider.currentTime, CATEGORY, "Execute :a", ":a", null, null, new OperationIdentifier(2L), null, BuildOperationType.TASK)
+        def event = new ProgressStartEvent(new OperationIdentifier(-3L), new OperationIdentifier(-4L), timeProvider.currentTime, CATEGORY, "Execute :a", ":a", null, null, new OperationIdentifier(2L), null, BuildOperationCategory.TASK)
 
         when:
         listener.onOutput([event] as ArrayList<OutputEvent>)
 
         then:
-        1 * executor.scheduleWithFixedDelay(_, _, _, _)
+        1 * executor.scheduleAtFixedRate(_, _, _, _)
     }
 
     def "forward a group of logs after a initial delay"() {
         given:
-        def taskAStartEvent = new ProgressStartEvent(new OperationIdentifier(-3L), new OperationIdentifier(-4L), timeProvider.currentTime, CATEGORY, "Execute :a", ":a", null, null, new OperationIdentifier(2L), null, BuildOperationType.TASK)
+        def taskAStartEvent = new ProgressStartEvent(new OperationIdentifier(-3L), new OperationIdentifier(-4L), timeProvider.currentTime, CATEGORY, "Execute :a", ":a", null, null, new OperationIdentifier(2L), null, BuildOperationCategory.TASK)
         def taskAOutput = event(timeProvider.currentTime, 'message for task a', LogLevel.WARN, taskAStartEvent.buildOperationId)
-        def taskACompleteEvent = new ProgressCompleteEvent(taskAStartEvent.progressOperationId, timeProvider.currentTime, CATEGORY, 'Complete: :a', 'UP-TO-DATE')
+        def taskACompleteEvent = new ProgressCompleteEvent(taskAStartEvent.progressOperationId, timeProvider.currentTime, 'UP-TO-DATE')
         def endEvent = new EndOutputEvent()
 
         when:
@@ -164,10 +164,10 @@ class GroupingProgressLogEventGeneratorTest extends OutputSpecification {
 
     def "keep forwarding the task output while still in focus"() {
         given:
-        def taskAStartEvent = new ProgressStartEvent(new OperationIdentifier(-3L), new OperationIdentifier(-4L), timeProvider.currentTime, CATEGORY, "Execute :a", ":a", null, null, new OperationIdentifier(2L), null, BuildOperationType.TASK)
+        def taskAStartEvent = new ProgressStartEvent(new OperationIdentifier(-3L), new OperationIdentifier(-4L), timeProvider.currentTime, CATEGORY, "Execute :a", ":a", null, null, new OperationIdentifier(2L), null, BuildOperationCategory.TASK)
         def taskAOutput1 = event(timeProvider.currentTime, 'first message for task a', LogLevel.WARN, taskAStartEvent.buildOperationId)
         def taskAOutput2 = event(timeProvider.currentTime, 'second message for task a', LogLevel.WARN, taskAStartEvent.buildOperationId)
-        def taskACompleteEvent = new ProgressCompleteEvent(taskAStartEvent.progressOperationId, timeProvider.currentTime, CATEGORY, 'Complete: :a', 'UP-TO-DATE')
+        def taskACompleteEvent = new ProgressCompleteEvent(taskAStartEvent.progressOperationId, timeProvider.currentTime, 'UP-TO-DATE')
         def endEvent = new EndOutputEvent()
 
         and:
@@ -190,13 +190,13 @@ class GroupingProgressLogEventGeneratorTest extends OutputSpecification {
 
     def "correctly interlace grouped of logs of long running task with a short running task"() {
         given:
-        def taskAStartEvent = new ProgressStartEvent(new OperationIdentifier(-3L), new OperationIdentifier(-4L), timeProvider.currentTime, CATEGORY, "Execute :a", ":a", null, null, new OperationIdentifier(2L), null, BuildOperationType.TASK)
+        def taskAStartEvent = new ProgressStartEvent(new OperationIdentifier(-3L), new OperationIdentifier(-4L), timeProvider.currentTime, CATEGORY, "Execute :a", ":a", null, null, new OperationIdentifier(2L), null, BuildOperationCategory.TASK)
         def taskAOutput1 = event(timeProvider.currentTime, 'first message for task a', LogLevel.WARN, taskAStartEvent.buildOperationId)
-        def taskBStartEvent = new ProgressStartEvent(new OperationIdentifier(-5L), new OperationIdentifier(-6L), timeProvider.currentTime, CATEGORY, "Execute :b", ":b", null, null, new OperationIdentifier(3L), null, BuildOperationType.TASK)
+        def taskBStartEvent = new ProgressStartEvent(new OperationIdentifier(-5L), new OperationIdentifier(-6L), timeProvider.currentTime, CATEGORY, "Execute :b", ":b", null, null, new OperationIdentifier(3L), null, BuildOperationCategory.TASK)
         def taskBOutput = event(timeProvider.currentTime, 'message for task b', LogLevel.WARN, taskBStartEvent.buildOperationId)
-        def taskBCompleteEvent = new ProgressCompleteEvent(taskBStartEvent.progressOperationId, timeProvider.currentTime, CATEGORY, 'Complete: :b', 'UP-TO-DATE')
+        def taskBCompleteEvent = new ProgressCompleteEvent(taskBStartEvent.progressOperationId, timeProvider.currentTime, 'UP-TO-DATE')
         def taskAOutput2 = event(timeProvider.currentTime, 'second message for task a', LogLevel.WARN, taskAStartEvent.buildOperationId)
-        def taskACompleteEvent = new ProgressCompleteEvent(taskAStartEvent.progressOperationId, timeProvider.currentTime, CATEGORY, 'Complete: :a', 'UP-TO-DATE')
+        def taskACompleteEvent = new ProgressCompleteEvent(taskAStartEvent.progressOperationId, timeProvider.currentTime, 'UP-TO-DATE')
         def endEvent = new EndOutputEvent()
 
         and:
@@ -220,7 +220,7 @@ class GroupingProgressLogEventGeneratorTest extends OutputSpecification {
     }
 
     def "correctly cancel the future and shutdown executor once the end event is received"() {
-        def startEvent = new ProgressStartEvent(new OperationIdentifier(-3L), new OperationIdentifier(-4L), timeProvider.currentTime, CATEGORY, "Execute :a", ":a", null, null, new OperationIdentifier(2L), null, BuildOperationType.TASK)
+        def startEvent = new ProgressStartEvent(new OperationIdentifier(-3L), new OperationIdentifier(-4L), timeProvider.currentTime, CATEGORY, "Execute :a", ":a", null, null, new OperationIdentifier(2L), null, BuildOperationCategory.TASK)
         def end = new EndOutputEvent()
 
         given:
