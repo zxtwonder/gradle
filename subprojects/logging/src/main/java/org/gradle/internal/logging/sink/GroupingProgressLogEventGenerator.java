@@ -151,8 +151,11 @@ public class GroupingProgressLogEventGenerator extends BatchOutputEventListener 
     }
 
     private void onUngroupedOutput(RenderableOutputEvent event) {
+        if (lastRenderedBuildOpId != null) {
+            listener.onOutput(spacerLine(event.getTimestamp(), event.getCategory()));
+            lastRenderedBuildOpId = null;
+        }
         listener.onOutput(event);
-        lastRenderedBuildOpId = null;
     }
 
     // Return the id of the operation/group, checking up the build operation hierarchy
@@ -165,6 +168,10 @@ public class GroupingProgressLogEventGenerator extends BatchOutputEventListener 
             current = buildOpIdHierarchy.get(current);
         }
         return null;
+    }
+
+    private static LogEvent spacerLine(long timestamp, String category) {
+        return new LogEvent(timestamp, category, null, "", null);
     }
 
     private class OperationGroup {
@@ -183,7 +190,7 @@ public class GroupingProgressLogEventGenerator extends BatchOutputEventListener 
         }
 
         private LogEvent spacerLine() {
-            return new LogEvent(lastUpdateTime, category, null, "", null);
+            return GroupingProgressLogEventGenerator.spacerLine(lastUpdateTime, category);
         }
 
         private StyledTextOutputEvent header(final String message) {
