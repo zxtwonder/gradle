@@ -43,6 +43,7 @@ public class DefaultIncludedBuild implements IncludedBuildInternal {
     private GradleLauncher gradleLauncher;
     private SettingsInternal settings;
     private GradleInternal gradle;
+    private List<Action<GradleInternal>> configureActions = Lists.newArrayList();
 
     public DefaultIncludedBuild(File projectDir, Factory<GradleLauncher> launcherFactory, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
         this.projectDir = projectDir;
@@ -76,7 +77,6 @@ public class DefaultIncludedBuild implements IncludedBuildInternal {
     public DependencySubstitutionsInternal resolveDependencySubstitutions() {
         if (dependencySubstitutions == null) {
             dependencySubstitutions = DefaultDependencySubstitutions.forIncludedBuild(this, moduleIdentifierFactory);
-
             for (Action<? super DependencySubstitutions> action : dependencySubstitutionActions) {
                 action.execute(dependencySubstitutions);
             }
@@ -98,6 +98,11 @@ public class DefaultIncludedBuild implements IncludedBuildInternal {
     public GradleInternal getConfiguredBuild() {
         if (gradle == null) {
             GradleLauncher gradleLauncher = getGradleLauncher();
+            if (configureActions != null && !configureActions.isEmpty()) {
+                for (Action<GradleInternal> configureAction : configureActions) {
+                    configureAction.execute(gradleLauncher.getGradle());
+                }
+            }
             gradleLauncher.getBuildAnalysis();
             settings = gradleLauncher.getSettings();
             gradle = gradleLauncher.getGradle();
@@ -127,6 +132,11 @@ public class DefaultIncludedBuild implements IncludedBuildInternal {
         } finally {
             markAsNotReusable();
         }
+    }
+
+    @Override
+    public void configure(Action<GradleInternal> configurationAction) {
+        this.configureActions.add(configurationAction);
     }
 
     private void markAsNotReusable() {

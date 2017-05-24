@@ -15,6 +15,7 @@
  */
 package org.gradle.initialization;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
@@ -44,6 +45,7 @@ import org.gradle.plugin.management.PluginManagementSpec;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.util.List;
 import java.util.Map;
 
 public class DefaultSettings extends AbstractPluginAware implements SettingsInternal {
@@ -64,6 +66,7 @@ public class DefaultSettings extends AbstractPluginAware implements SettingsInte
     private final ClassLoaderScope buildRootClassLoaderScope;
     private final ServiceRegistry services;
     private final Map<File, ConfigurableIncludedBuild> includedBuilds = Maps.newLinkedHashMap();
+    private List<Action<GradleInternal>> includedBuildActions = Lists.newArrayList();
 
     public DefaultSettings(ServiceRegistryFactory serviceRegistryFactory, GradleInternal gradle,
                            ClassLoaderScope settingsClassLoaderScope, ClassLoaderScope buildRootClassLoaderScope, File settingsDir,
@@ -85,6 +88,16 @@ public class DefaultSettings extends AbstractPluginAware implements SettingsInte
 
     public GradleInternal getGradle() {
         return gradle;
+    }
+
+    @Override
+    public void includedBuilds(Action<GradleInternal> includedBuildConfigurationAction) {
+        this.includedBuildActions.add(includedBuildConfigurationAction);
+    }
+
+    @Override
+    public List<Action<GradleInternal>> getIncludedBuildConfigurationActions() {
+        return includedBuildActions;
     }
 
     public Settings getSettings() {

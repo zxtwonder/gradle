@@ -16,9 +16,11 @@
 
 package org.gradle.composite.internal;
 
+import org.gradle.api.Action;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.initialization.IncludedBuild;
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.artifacts.component.DefaultBuildIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionsInternal;
@@ -30,6 +32,7 @@ import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifi
 import org.gradle.internal.composite.CompositeContextBuilder;
 import org.gradle.util.Path;
 
+import java.util.List;
 import java.util.Set;
 
 public class DefaultCompositeContextBuilder implements CompositeContextBuilder {
@@ -37,6 +40,7 @@ public class DefaultCompositeContextBuilder implements CompositeContextBuilder {
     private final DefaultIncludedBuilds allIncludedBuilds;
     private final DefaultProjectPathRegistry projectRegistry;
     private final CompositeBuildContext context;
+    private List<Action<GradleInternal>> includedBuildConfigurationActions;
 
     public DefaultCompositeContextBuilder(DefaultIncludedBuilds allIncludedBuilds, DefaultProjectPathRegistry projectRegistry, CompositeBuildContext context) {
         this.allIncludedBuilds = allIncludedBuilds;
@@ -46,6 +50,7 @@ public class DefaultCompositeContextBuilder implements CompositeContextBuilder {
 
     @Override
     public void setRootBuild(SettingsInternal settings) {
+        this.includedBuildConfigurationActions = settings.getIncludedBuildConfigurationActions();
         ProjectRegistry<DefaultProjectDescriptor> settingsProjectRegistry = settings.getProjectRegistry();
         String rootName = settingsProjectRegistry.getRootProject().getName();
         DefaultBuildIdentifier buildIdentifier = new DefaultBuildIdentifier(rootName, true);
@@ -88,6 +93,9 @@ public class DefaultCompositeContextBuilder implements CompositeContextBuilder {
         if (!substitutions.hasRules()) {
             // Configure the included build to discover substitutions
             LOGGER.lifecycle("[composite-build] Configuring build: " + build.getProjectDir());
+            for (Action<GradleInternal> includedBuildConfigurationAction : includedBuildConfigurationActions) {
+                build.configure(includedBuildConfigurationAction);
+            }
             contextBuilder.build(build);
         } else {
             // Register the defined substitutions for included build

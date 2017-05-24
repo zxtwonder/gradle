@@ -20,6 +20,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.gradle.StartParameter;
 import org.gradle.api.GradleException;
+import org.gradle.api.initialization.ConfigurableIncludedBuild;
 import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
@@ -48,7 +49,6 @@ public class CompositeBuildSettingsLoader implements SettingsLoader {
     public SettingsInternal findAndLoadSettings(GradleInternal gradle) {
         SettingsInternal settings = delegate.findAndLoadSettings(gradle);
         compositeContextBuilder.setRootBuild(settings);
-
         Collection<IncludedBuild> includedBuilds = getIncludedBuilds(gradle.getStartParameter(), settings);
         if (!includedBuilds.isEmpty()) {
             gradle.setIncludedBuilds(includedBuilds);
@@ -61,10 +61,10 @@ public class CompositeBuildSettingsLoader implements SettingsLoader {
     private Collection<IncludedBuild> getIncludedBuilds(StartParameter startParameter, SettingsInternal settings) {
         Map<File, IncludedBuild> includedBuildMap = Maps.newLinkedHashMap();
         includedBuildMap.putAll(settings.getIncludedBuilds());
-
         for (File file : startParameter.getIncludedBuilds()) {
             if (!includedBuildMap.containsKey(file)) {
-                includedBuildMap.put(file, includedBuildFactory.createBuild(file));
+                ConfigurableIncludedBuild includedBuild = includedBuildFactory.createBuild(file);
+                includedBuildMap.put(file, includedBuild);
             }
         }
 
