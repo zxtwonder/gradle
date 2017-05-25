@@ -70,7 +70,7 @@ public class ComparableGradleBuildExecuter {
         String[] arguments = argumentsList.toArray(new String[0]);
 
         // Run the build and get the build outcomes model
-        ModelBuilder<ProjectOutcomes> modelBuilder = connection.model(ProjectOutcomes.class);
+        ModelBuilder<ProjectOutcomes> modelBuilder = connection.model(ProjectOutcomes.class).setJvmArguments(spec.getJvmArguments());
         return modelBuilder.
             withArguments(arguments).
             forTasks(tasks).
