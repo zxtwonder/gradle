@@ -16,6 +16,7 @@
 
 package org.gradle.process.internal
 
+import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.process.internal.worker.WorkerProcessException
 import org.gradle.util.TextUtil
 import spock.lang.Ignore
@@ -26,6 +27,7 @@ class SingleRequestWorkerProcessIntegrationTest extends AbstractWorkerProcessInt
     def "runs method in worker process and returns the result"() {
         when:
         def builder = workerFactory.singleRequestWorker(TestProtocol.class, TestWorker.class)
+        builder.javaCommand.jvmArgs("-Xmx${GradleExecuter.DEFAULT_MAX_MEMORY_WORKER}")
         def worker = builder.build()
         def result = worker.convert("abc", 12)
 
@@ -49,6 +51,7 @@ class CustomResult implements Serializable {
 
         when:
         def builder = workerFactory.singleRequestWorker(TestProtocol.class, cl)
+        builder.javaCommand.jvmArgs("-Xmx${GradleExecuter.DEFAULT_MAX_MEMORY_WORKER}")
         def worker = builder.build()
         def result = worker.convert("abc", 12)
 
@@ -59,6 +62,7 @@ class CustomResult implements Serializable {
     def "runs method in worker process and returns null"() {
         when:
         def builder = workerFactory.singleRequestWorker(TestProtocol.class, TestWorker.class)
+        builder.javaCommand.jvmArgs("-Xmx${GradleExecuter.DEFAULT_MAX_MEMORY_WORKER}")
         def worker = builder.build()
         def result = worker.convert(null, 12)
 
@@ -69,6 +73,7 @@ class CustomResult implements Serializable {
     def "runs method in worker process and returns void result"() {
         when:
         def builder = workerFactory.singleRequestWorker(TestProtocol.class, TestWorker.class)
+        builder.javaCommand.jvmArgs("-Xmx${GradleExecuter.DEFAULT_MAX_MEMORY_WORKER}")
         def worker = builder.build()
         worker.doSomething()
 
@@ -79,6 +84,7 @@ class CustomResult implements Serializable {
     def "propagates failure thrown by method in worker process"() {
         when:
         def builder = workerFactory.singleRequestWorker(TestProtocol.class, BrokenTestWorker.class)
+        builder.javaCommand.jvmArgs("-Xmx${GradleExecuter.DEFAULT_MAX_MEMORY_WORKER}")
         def worker = builder.build()
         worker.convert("abc", 12)
 
@@ -91,6 +97,7 @@ class CustomResult implements Serializable {
     def "can reuse worker proxy to run multiple worker processes"() {
         when:
         def builder = workerFactory.singleRequestWorker(TestProtocol.class, TestWorker.class)
+        builder.javaCommand.jvmArgs("-Xmx${GradleExecuter.DEFAULT_MAX_MEMORY_WORKER}")
         def worker = builder.build()
         def result1 = worker.convert("abc", 12)
         def result2 = worker.convert(null, 12)
@@ -114,6 +121,7 @@ class CustomTestWorker implements TestProtocol {
 
         when:
         def builder = workerFactory.singleRequestWorker(TestProtocol.class, cl)
+        builder.javaCommand.jvmArgs("-Xmx${GradleExecuter.DEFAULT_MAX_MEMORY_WORKER}")
         builder.baseName = 'broken worker'
         def worker = builder.build()
         worker.convert("abc", 12)
@@ -127,6 +135,7 @@ class CustomTestWorker implements TestProtocol {
     def "propagates failure to instantiate worker implementation instance"() {
         when:
         def builder = workerFactory.singleRequestWorker(TestProtocol.class, TestProtocol.class)
+        builder.javaCommand.jvmArgs("-Xmx${GradleExecuter.DEFAULT_MAX_MEMORY_WORKER}")
         builder.baseName = 'broken worker'
         def worker = builder.build()
         worker.convert("abc", 12)
@@ -140,6 +149,7 @@ class CustomTestWorker implements TestProtocol {
     def "propagates failure to start worker process"() {
         when:
         def builder = workerFactory.singleRequestWorker(TestProtocol.class, TestWorker.class)
+        builder.javaCommand.jvmArgs("-Xmx${GradleExecuter.DEFAULT_MAX_MEMORY_WORKER}")
         builder.baseName = 'broken worker'
         builder.javaCommand.jvmArgs("-broken")
         def worker = builder.build()
@@ -155,6 +165,7 @@ class CustomTestWorker implements TestProtocol {
     def "reports failure when worker halts handling request"() {
         when:
         def builder = workerFactory.singleRequestWorker(TestProtocol.class, CrashingWorker.class)
+        builder.javaCommand.jvmArgs("-Xmx${GradleExecuter.DEFAULT_MAX_MEMORY_WORKER}")
         builder.baseName = 'broken worker'
         def worker = builder.build()
         worker.convert("halt", 0)
@@ -169,6 +180,7 @@ class CustomTestWorker implements TestProtocol {
     def "reports failure when worker crashes handling request"() {
         when:
         def builder = workerFactory.singleRequestWorker(TestProtocol.class, CrashingWorker.class)
+        builder.javaCommand.jvmArgs("-Xmx${GradleExecuter.DEFAULT_MAX_MEMORY_WORKER}")
         builder.baseName = 'broken worker'
         def worker = builder.build()
         worker.convert("halt", 12)
