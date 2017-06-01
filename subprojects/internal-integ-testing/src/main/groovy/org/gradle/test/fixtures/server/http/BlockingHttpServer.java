@@ -279,6 +279,15 @@ public class BlockingHttpServer extends ExternalResource {
     }
 
     /**
+     * This is usually called automatically at the end of the test, but this can be called in the middle of the test
+     * to ensure that previous expectations were met.
+     */
+    public void assertComplete() {
+        handler.assertComplete();
+        // TODO: Clear the expected handlers?
+    }
+
+    /**
      * For testing this fixture only.
      */
     void waitForRequests(int requestCount) {

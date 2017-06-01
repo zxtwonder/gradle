@@ -68,6 +68,7 @@ class ScalaCompileParallelIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         noExceptionThrown()
+        blockingServer.assertComplete()
         zincCacheInterfaceJars.size() == 1
         configuredZincDirInterfaceJars.size() == 0
         output.count(ZincScalaCompilerUtil.ZINC_DIR_IGNORED_MESSAGE) == MAX_PARALLEL_COMPILERS
