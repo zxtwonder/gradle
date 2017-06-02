@@ -34,13 +34,11 @@ import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.scopes.GlobalScopeServices;
 import org.gradle.internal.time.Clock;
-import org.gradle.util.GFileUtils;
 import sbt.ScalaInstance;
 import sbt.compiler.AnalyzingCompiler;
 import xsbti.compile.JavaCompiler;
 
 import java.io.File;
-import java.io.IOException;
 
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
@@ -56,7 +54,7 @@ public class ZincScalaCompilerFactory {
         String zincCacheName = String.format("Zinc %s compiler cache", zincVersion);
         final PersistentCache zincCache = cacheRepository.cache(zincCacheKey)
                 .withDisplayName(zincCacheName)
-                .withLockOptions(mode(FileLockManager.LockMode.Exclusive))
+                .withLockOptions(mode(FileLockManager.LockMode.None))
                 .open();
 
         Compiler compiler;
@@ -95,60 +93,32 @@ public class ZincScalaCompilerFactory {
     }
 
     // parallel safe version of Compiler.compilerInterface()
-    private static File getCompilerInterface(final Setup setup, final ScalaInstance instance, PersistentCache zincCache, final xsbti.Logger logger) {
-        final String sbtInterfaceFileName = Compiler.interfaceId(instance.actualVersion()) + ".jar";
-        final File compilerInterface = new File(setup.cacheDir(), sbtInterfaceFileName);
-        if (compilerInterface.exists()) {
-            return zincCache.useCache(new Factory<File>() {
-                @Override
-                public File create() {
+    private static File getCompilerInterface(final Setup setup, final ScalaInstance instance, final PersistentCache zincCache, final xsbti.Logger logger) {
+        return zincCache.useCache(new Factory<File>() {
+            public File create() {
+                final String sbtInterfaceFileName = Compiler.interfaceId(instance.actualVersion()) + ".jar";
+                final File compilerInterface = new File(setup.cacheDir(), sbtInterfaceFileName);
+
+                if (compilerInterface.exists()) {
                     return compilerInterface;
                 }
-            });
-        }
-
-        try {
-            // Compile the interface to a temp file and then copy it to the cache folder.
-            // This avoids sporadic cache lock timeouts when the compiler interface JAR takes
-            // a long time to generate while avoiding starving multiple compiler daemons.
-            final File tmpDir = new File(zincCache.getBaseDir(), "tmp");
-            tmpDir.mkdirs();
-            final File tempFile = File.createTempFile("zinc", ".jar", tmpDir);
-            final Clock timer = new Clock();
-            sbt.compiler.IC.compileInterfaceJar(
+                final Clock timer = new Clock();
+                sbt.compiler.IC.compileInterfaceJar(
                     sbtInterfaceFileName,
                     setup.compilerInterfaceSrc(),
-                    tempFile,
+                    compilerInterface,
                     setup.sbtInterface(),
                     instance,
                     logger);
-            final String interfaceCompletedMessage = String.format("Zinc interface compilation took %s", timer.getElapsed());
-            if (timer.getElapsedMillis() > 30000) {
-                LOGGER.warn(interfaceCompletedMessage);
-            } else {
-                LOGGER.debug(interfaceCompletedMessage);
+                final String interfaceCompletedMessage = String.format("Zinc interface compilation took %s", timer.getElapsed());
+                if (timer.getElapsedMillis() > 30000) {
+                    LOGGER.warn(interfaceCompletedMessage);
+                } else {
+                    LOGGER.debug(interfaceCompletedMessage);
+                }
+                return compilerInterface;
             }
-
-            return zincCache.useCache(new Factory<File>() {
-                public File create() {
-                    // Another process may have already copied the compiler interface JAR
-                    // Avoid copying over same existing file to avoid locking problems
-                    if (!compilerInterface.exists()) {
-                        GFileUtils.moveFile(tempFile, compilerInterface);
-                    } else {
-                        GFileUtils.deleteQuietly(tempFile);
-                    }
-                    return compilerInterface;
-                }
-            });
-        } catch (IOException e) {
-            // fall back to the default logic
-            return zincCache.useCache(new Factory<File>() {
-                public File create() {
-                    return Compiler.compilerInterface(setup, instance, logger);
-                }
-            });
-        }
+        });
     }
 
     private static Setup createZincSetup(Iterable<File> scalaClasspath, Iterable<File> zincClasspath, xsbti.Logger logger) {
