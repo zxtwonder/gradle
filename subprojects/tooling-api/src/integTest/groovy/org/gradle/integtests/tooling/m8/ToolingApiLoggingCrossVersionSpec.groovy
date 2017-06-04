@@ -96,7 +96,7 @@ project.logger.info ("info logging");
 project.logger.debug("debug logging");
 """
         when:
-        def commandLineResult = runUsingCommandLine();
+        def commandLineResult = runUsingCommandLine()
 
         and:
         def op = withBuild()
