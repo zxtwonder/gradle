@@ -18,10 +18,12 @@ package org.gradle.composite.internal;
 
 import com.google.common.collect.Sets;
 import org.gradle.StartParameter;
+import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.initialization.ConfigurableIncludedBuild;
 import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.initialization.Settings;
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.initialization.GradleLauncher;
@@ -33,6 +35,7 @@ import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.reflect.Instantiator;
 
 import java.io.File;
+import java.util.List;
 import java.util.Set;
 
 public class DefaultIncludedBuildFactory implements IncludedBuildFactory, Stoppable {
@@ -68,10 +71,10 @@ public class DefaultIncludedBuildFactory implements IncludedBuildFactory, Stoppa
     }
 
     @Override
-    public ConfigurableIncludedBuild createBuild(File buildDirectory) {
+    public ConfigurableIncludedBuild createBuild(File buildDirectory, List<Action<GradleInternal>> buildConfigurationActions) {
         validateBuildDirectory(buildDirectory);
         Factory<GradleLauncher> factory = new ContextualGradleLauncherFactory(buildDirectory, nestedBuildFactory, startParameter);
-        DefaultIncludedBuild includedBuild = instantiator.newInstance(DefaultIncludedBuild.class, buildDirectory, factory, moduleIdentifierFactory);
+        DefaultIncludedBuild includedBuild = instantiator.newInstance(DefaultIncludedBuild.class, buildDirectory, factory, moduleIdentifierFactory, buildConfigurationActions);
 
         SettingsInternal settingsInternal = includedBuild.getLoadedSettings();
         validateIncludedBuild(includedBuild, settingsInternal);

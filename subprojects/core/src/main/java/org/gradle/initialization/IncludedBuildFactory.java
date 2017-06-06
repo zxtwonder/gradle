@@ -16,10 +16,13 @@
 
 package org.gradle.initialization;
 
+import org.gradle.api.Action;
 import org.gradle.api.initialization.ConfigurableIncludedBuild;
+import org.gradle.api.internal.GradleInternal;
 
 import java.io.File;
+import java.util.List;
 
 public interface IncludedBuildFactory {
-    ConfigurableIncludedBuild createBuild(File buildDirectory);
+    ConfigurableIncludedBuild createBuild(File buildDirectory, List<Action<GradleInternal>> includedBuildActions);
 }

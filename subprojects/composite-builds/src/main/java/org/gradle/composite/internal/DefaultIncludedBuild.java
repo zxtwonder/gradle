@@ -43,12 +43,13 @@ public class DefaultIncludedBuild implements IncludedBuildInternal {
     private GradleLauncher gradleLauncher;
     private SettingsInternal settings;
     private GradleInternal gradle;
-    private List<Action<GradleInternal>> configureActions = Lists.newArrayList();
+    private final List<Action<GradleInternal>> configureActions;
 
-    public DefaultIncludedBuild(File projectDir, Factory<GradleLauncher> launcherFactory, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+    public DefaultIncludedBuild(File projectDir, Factory<GradleLauncher> launcherFactory, ImmutableModuleIdentifierFactory moduleIdentifierFactory, List<Action<GradleInternal>> configureActions) {
         this.projectDir = projectDir;
         this.gradleLauncherFactory = launcherFactory;
         this.moduleIdentifierFactory = moduleIdentifierFactory;
+        this.configureActions = configureActions;
     }
 
     public File getProjectDir() {
@@ -132,11 +133,6 @@ public class DefaultIncludedBuild implements IncludedBuildInternal {
         } finally {
             markAsNotReusable();
         }
-    }
-
-    @Override
-    public void configure(Action<GradleInternal> configurationAction) {
-        this.configureActions.add(configurationAction);
     }
 
     private void markAsNotReusable() {

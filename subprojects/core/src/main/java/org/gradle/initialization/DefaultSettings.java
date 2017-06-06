@@ -273,7 +273,7 @@ public class DefaultSettings extends AbstractPluginAware implements SettingsInte
         File projectDir = getFileResolver().resolve(rootProject);
         ConfigurableIncludedBuild build = includedBuilds.get(projectDir);
         if (build == null) {
-            build = getIncludedBuildFactory().createBuild(projectDir);
+            build = getIncludedBuildFactory().createBuild(projectDir, includedBuildActions);
             includedBuilds.put(projectDir, build);
         }
         configuration.execute(build);

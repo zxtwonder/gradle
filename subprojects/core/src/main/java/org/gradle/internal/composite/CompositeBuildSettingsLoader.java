@@ -63,7 +63,7 @@ public class CompositeBuildSettingsLoader implements SettingsLoader {
         includedBuildMap.putAll(settings.getIncludedBuilds());
         for (File file : startParameter.getIncludedBuilds()) {
             if (!includedBuildMap.containsKey(file)) {
-                ConfigurableIncludedBuild includedBuild = includedBuildFactory.createBuild(file);
+                ConfigurableIncludedBuild includedBuild = includedBuildFactory.createBuild(file, settings.getIncludedBuildConfigurationActions());
                 includedBuildMap.put(file, includedBuild);
             }
         }

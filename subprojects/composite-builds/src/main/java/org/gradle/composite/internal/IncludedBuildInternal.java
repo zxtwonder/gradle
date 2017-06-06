@@ -17,7 +17,6 @@
 package org.gradle.composite.internal;
 
 import org.gradle.BuildResult;
-import org.gradle.api.Action;
 import org.gradle.api.initialization.ConfigurableIncludedBuild;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
@@ -28,6 +27,4 @@ public interface IncludedBuildInternal extends ConfigurableIncludedBuild {
     SettingsInternal getLoadedSettings();
     GradleInternal getConfiguredBuild();
     BuildResult execute(Iterable<String> tasks);
-
-    void configure(Action<GradleInternal> configurationAction);
 }

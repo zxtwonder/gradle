@@ -93,9 +93,6 @@ public class DefaultCompositeContextBuilder implements CompositeContextBuilder {
         if (!substitutions.hasRules()) {
             // Configure the included build to discover substitutions
             LOGGER.lifecycle("[composite-build] Configuring build: " + build.getProjectDir());
-            for (Action<GradleInternal> includedBuildConfigurationAction : includedBuildConfigurationActions) {
-                build.configure(includedBuildConfigurationAction);
-            }
             contextBuilder.build(build);
         } else {
             // Register the defined substitutions for included build
