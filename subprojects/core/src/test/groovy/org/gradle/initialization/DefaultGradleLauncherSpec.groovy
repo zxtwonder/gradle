@@ -32,6 +32,7 @@ import org.gradle.configuration.BuildConfigurer
 import org.gradle.execution.BuildConfigurationActionExecuter
 import org.gradle.execution.BuildExecuter
 import org.gradle.execution.TaskGraphExecuter
+import org.gradle.internal.concurrent.ParallelExecutionManager
 import org.gradle.internal.concurrent.Stoppable
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService
@@ -71,7 +72,7 @@ class DefaultGradleLauncherSpec extends Specification {
     private BuildCompletionListener buildCompletionListener = Mock(BuildCompletionListener.class);
     private TestBuildOperationExecutor buildOperationExecutor = new TestBuildOperationExecutor();
     private ResourceLockCoordinationService coordinationService = new DefaultResourceLockCoordinationService()
-    private WorkerLeaseService workerLeaseService = new DefaultWorkerLeaseService(coordinationService, true, 1)
+    private WorkerLeaseService workerLeaseService = new DefaultWorkerLeaseService(coordinationService, parallelExecutionManager())
     private BuildScopeServices buildServices = Mock(BuildScopeServices.class);
     private Stoppable otherService = Mock(Stoppable)
     public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
@@ -110,6 +111,7 @@ class DefaultGradleLauncherSpec extends Specification {
         _ * taskExecuterMock.getFilteredTasks() >> [Mock(Task)]
         _ * gradleMock.getStartParameter() >> expectedStartParams
         _ * gradleMock.getServices() >> buildScopeServices
+        _ * gradleMock.includedBuilds >> []
         0 * gradleMock._
 
         buildScopeServices.get(TaskHistoryStore) >> taskArtifactStateCacheAccess
@@ -320,5 +322,11 @@ class DefaultGradleLauncherSpec extends Specification {
 
     private void expectTasksRunWithFailure(final Throwable failure) {
         1 * buildExecuter.execute(gradleMock) >> { throw failure }
+    }
+
+    ParallelExecutionManager parallelExecutionManager() {
+        return Stub(ParallelExecutionManager) {
+            getParallelismConfiguration() >> new DefaultParallelismConfiguration(true, 1)
+        }
     }
 }

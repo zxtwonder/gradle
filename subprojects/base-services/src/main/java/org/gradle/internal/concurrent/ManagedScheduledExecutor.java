@@ -14,18 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
+package org.gradle.internal.concurrent;
 
-import org.gradle.api.artifacts.FileCollectionDependency;
+import java.util.concurrent.ScheduledExecutorService;
 
-import java.util.Map;
-
-/**
- * Collects the top level file dependencies visited during graph traversal. These should be treated as dependencies, but are currently treated separately as a migration step.
- */
-public interface SelectedFileDependencyResults {
-    /**
-     * Returns the direct dependencies of the root node.
-     */
-    Map<FileCollectionDependency, ResolvedArtifactSet> getFirstLevelFiles();
+public interface ManagedScheduledExecutor extends ManagedExecutor, ScheduledExecutorService {
 }

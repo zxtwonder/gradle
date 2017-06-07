@@ -14,12 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.initialization;
+package org.gradle.includedbuild.internal;
 
 import org.gradle.api.artifacts.component.BuildIdentifier;
 
 public interface IncludedBuildTaskGraph {
-    void addTask(BuildIdentifier requestingBuild, BuildIdentifier targetBuild, String taskName);
+    void addTask(BuildIdentifier requestingBuild, BuildIdentifier targetBuild, String taskPath);
 
-    void awaitCompletion(BuildIdentifier targetBuild);
+    void awaitCompletion(BuildIdentifier targetBuild, String taskPath);
+
+    boolean isComplete(BuildIdentifier targetBuild, String taskPath);
 }
