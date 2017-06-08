@@ -29,7 +29,6 @@ abstract class AbstractCompositeBuildIntegrationTest extends AbstractIntegration
     List<File> includedBuilds = []
     def operations = new BuildOperationsFixture(executer, temporaryFolder)
 
-
     def setup() {
         buildTestFixture.withBuildInSubDir()
         buildA = singleProjectBuild("buildA") {
