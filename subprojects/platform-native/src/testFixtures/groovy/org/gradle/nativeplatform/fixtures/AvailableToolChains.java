@@ -421,6 +421,7 @@ public class AvailableToolChains {
         /**
          * The environment required to execute a binary created by this toolchain.
          */
+        @Override
         public List<String> getRuntimeEnv() {
             if (pathEntries.isEmpty()) {
                 return Collections.emptyList();
@@ -445,6 +446,19 @@ public class AvailableToolChains {
     public static class InstalledSwiftc extends InstalledToolChain {
         public InstalledSwiftc(String displayName) {
             super(displayName);
+        }
+
+        /**
+         * The environment required to execute a binary created by this toolchain.
+         */
+        @Override
+        public List<String> getRuntimeEnv() {
+            if (pathEntries.isEmpty()) {
+                return Collections.emptyList();
+            }
+
+            String path = Joiner.on(File.pathSeparator).join(pathEntries) + File.pathSeparator + System.getenv(pathVarName);
+            return Collections.singletonList(pathVarName + "=" + path);
         }
 
         @Override
