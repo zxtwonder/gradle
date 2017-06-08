@@ -191,14 +191,17 @@ public class AvailableToolChains {
     static private ToolChainCandidate findSwiftc() {
         File compilerExe = new File("/opt/swift/latest/usr/bin/swiftc");
         if (compilerExe.isFile()) {
+            System.out.println("FOUND SWITFC in /opt/...");
             return new InstalledSwiftc("swiftc").inPath(compilerExe.getParentFile());
         }
 
         List<File> swiftcCandidates = OperatingSystem.current().findAllInPath("swiftc");
         if (!swiftcCandidates.isEmpty()) {
+            System.out.println("Found swiftc in PATH");
             return new InstalledSwiftc("swiftc");
         }
 
+        System.out.println("Didn't find swiftc");
         return new UnavailableToolChain("swiftc");
     }
 
