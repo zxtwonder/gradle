@@ -16,6 +16,7 @@
 
 package org.gradle.nativeplatform.fixtures;
 
+import com.google.common.base.Joiner;
 import org.gradle.integtests.fixtures.AbstractMultiTestRunner;
 
 import java.util.Arrays;
@@ -113,6 +114,9 @@ public class SingleToolChainTestRunner extends AbstractMultiTestRunner {
         @Override
         protected void before() {
             System.out.println(String.format("Using tool chain %s", toolChain.getDisplayName()));
+            System.out.println(Joiner.on(" - ").join(((AvailableToolChains.InstalledToolChain) toolChain).getPathEntries()));
+            System.out.println(toolChain.isAvailable());
+            System.out.println(((AvailableToolChains.InstalledToolChain) toolChain).getPluginClass());
             AbstractInstalledToolChainIntegrationSpec.setToolChain((AvailableToolChains.InstalledToolChain) toolChain);
         }
     }
