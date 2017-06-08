@@ -468,7 +468,11 @@ public class AvailableToolChains {
 
         @Override
         public String getBuildScriptConfig() {
-            return "swiftc(Swiftc)";
+            String config = String.format("%s(%s)\n", getId(), getImplementationClass());
+            for (File pathEntry : getPathEntries()) {
+                config += String.format("%s.path file('%s')", getId(), pathEntry.toURI());
+            }
+            return config;
         }
 
         @Override
