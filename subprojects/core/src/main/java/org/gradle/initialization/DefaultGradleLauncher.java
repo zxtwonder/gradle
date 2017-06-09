@@ -210,7 +210,8 @@ public class DefaultGradleLauncher implements GradleLauncher {
 
         @Override
         public BuildOperationDescriptor.Builder description() {
-            return BuildOperationDescriptor.displayName(contextualize("Configure build"));
+            return BuildOperationDescriptor.displayName(contextualize("Configure build")).
+                parent(getGradle().getBuildOperation());
         }
     }
 
