@@ -250,7 +250,7 @@ public class BuildOperationTrace implements Stoppable {
                             roots.add(record);
                         } else {
                             List<BuildOperationRecord> parentChildren = childrens.get(start.parentId);
-                            assert parentChildren != null;
+                            assert parentChildren != null : "parentChildren != null, '" + line + "'";
                             parentChildren.add(record);
                         }
                     }
