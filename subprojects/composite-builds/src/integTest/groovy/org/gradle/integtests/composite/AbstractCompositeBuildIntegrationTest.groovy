@@ -20,6 +20,7 @@ import com.google.common.collect.Lists
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.build.BuildTestFile
+import org.gradle.internal.execution.ExecuteTaskBuildOperationType
 import org.gradle.test.fixtures.file.TestFile
 /**
  * Tests for composite build.
@@ -69,16 +70,19 @@ abstract class AbstractCompositeBuildIntegrationTest extends AbstractIntegration
     protected void execute(BuildTestFile build, String[] tasks, Iterable<String> arguments = []) {
         prepare(build, arguments)
         succeeds(tasks)
+        assertSingleBuildOperationsTree()
     }
 
     protected void execute(BuildTestFile build, String task, Iterable<String> arguments = []) {
         prepare(build, arguments)
         succeeds(task)
+        assertSingleBuildOperationsTree()
     }
 
     protected void fails(BuildTestFile build, String task, Iterable<String> arguments = []) {
         prepare(build, arguments)
         fails(task)
+        assertSingleBuildOperationsTree()
     }
 
     private void prepare(BuildTestFile build, Iterable<String> arguments) {
@@ -103,6 +107,28 @@ abstract class AbstractCompositeBuildIntegrationTest extends AbstractIntegration
     protected static void containsOnce(List<String> tasks, String task) {
         assert tasks.contains(task)
         assert tasks.findAll({ it == task }).size() == 1
+    }
+
+    void assertTaskExecuted(String build, String taskPath) {
+        assert operations.first(ExecuteTaskBuildOperationType) {
+            it.details.buildPath == build && it.details.taskPath == taskPath
+        }
+    }
+
+    void assertTaskExecutedOnce(String build, String taskPath) {
+        operations.only(ExecuteTaskBuildOperationType) {
+            it.details.buildPath == build && it.details.taskPath == taskPath
+        }
+    }
+
+    void assertTaskNotExecuted(String build, String taskPath) {
+        operations.none(ExecuteTaskBuildOperationType) {
+            it.details.buildPath == build && it.details.taskPath == taskPath
+        }
+    }
+
+    void assertSingleBuildOperationsTree() {
+        assert operations.roots().size() == 1
     }
 
     TestFile getRootDir() {

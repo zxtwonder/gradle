@@ -68,6 +68,9 @@ class CompositeBuildClassloadingIntegrationTest extends AbstractCompositeBuildIn
 
         expect:
         execute(buildA, "doStringOp")
+        assertSingleBuildOperationsTree()
+
         execute(buildA, "doStringOp")
+        assertSingleBuildOperationsTree()
     }
 }
