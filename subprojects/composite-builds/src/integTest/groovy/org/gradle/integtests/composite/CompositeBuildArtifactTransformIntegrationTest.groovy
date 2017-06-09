@@ -51,7 +51,6 @@ class CompositeBuildArtifactTransformIntegrationTest extends AbstractCompositeBu
         """
         expect:
         execute(buildA, "assemble")
-        assertSingleBuildOperationsTree()
         assertTaskExecuted(":buildB", ":jar")
         assertTaskExecuted(":buildC", ":jar")
     }
