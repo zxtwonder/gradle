@@ -220,6 +220,7 @@ class DefaultGradleLauncherSpec extends Specification {
 
     void testNotifiesListenerOnBuildListenerFailure() {
         given:
+        isRootBuild()
         1 * buildBroadcaster.buildStarted(gradleMock) >> { throw failure }
         1 * buildBroadcaster.buildFinished({ it.failure == transformedException })
 
@@ -234,6 +235,7 @@ class DefaultGradleLauncherSpec extends Specification {
 
     void testNotifiesListenerOnSettingsInitWithFailure() {
         given:
+        isRootBuild()
         expectInitScriptsExecuted()
 
         and:
