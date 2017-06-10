@@ -32,6 +32,7 @@ import org.gradle.configuration.BuildConfigurer
 import org.gradle.execution.BuildConfigurationActionExecuter
 import org.gradle.execution.BuildExecuter
 import org.gradle.execution.TaskGraphExecuter
+import org.gradle.includedbuild.internal.IncludedBuildControllers
 import org.gradle.internal.concurrent.ParallelExecutionManager
 import org.gradle.internal.concurrent.Stoppable
 import org.gradle.internal.operations.TestBuildOperationExecutor
@@ -75,6 +76,7 @@ class DefaultGradleLauncherSpec extends Specification {
     private WorkerLeaseService workerLeaseService = new DefaultWorkerLeaseService(coordinationService, parallelExecutionManager())
     private BuildScopeServices buildServices = Mock(BuildScopeServices.class)
     private Stoppable otherService = Mock(Stoppable)
+    private IncludedBuildControllers includedBuildControllers = Mock()
     public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
     final RuntimeException failure = new RuntimeException("main")
@@ -116,6 +118,7 @@ class DefaultGradleLauncherSpec extends Specification {
         0 * gradleMock._
 
         buildScopeServices.get(TaskHistoryStore) >> taskArtifactStateCacheAccess
+        buildScopeServices.get(IncludedBuildControllers) >> includedBuildControllers
         buildServices.get(WorkerLeaseService) >> workerLeaseService
     }
 
