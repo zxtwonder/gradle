@@ -98,7 +98,7 @@ class ArtifactBackedResolvedVariant implements ResolvedVariant {
                     // Cannot currently build these artifacts asynchronously due to various locking problems
                     // Build it now instead
                     new DownloadArtifactFile(artifact, this, listener).run(null);
-                } else if (artifact.isResolved()){
+                } else if (artifact.isResolved()) {
                     // Already resolved. Push the artifact to the listener now, rather than queuing it up
                     new DownloadArtifactFile(artifact, this, listener).run(null);
                 } else {
@@ -140,6 +140,8 @@ class ArtifactBackedResolvedVariant implements ResolvedVariant {
             try {
                 artifact.getFile();
                 listener.artifactAvailable(artifact);
+                // Cannot set result because this is sometimes called with a null context
+                //context.setResult(DownloadArtifactBuildOperationType.RESULT);
             } catch (Throwable t) {
                 owner.failure = t;
             }
