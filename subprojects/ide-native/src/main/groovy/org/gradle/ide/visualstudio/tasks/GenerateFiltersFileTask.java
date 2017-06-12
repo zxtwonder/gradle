@@ -56,6 +56,9 @@ public class GenerateFiltersFileTask extends XmlGeneratorTask<VisualStudioFilter
 
     @Override
     protected void configure(final VisualStudioFiltersFile filtersFile) {
+        // Discards previous contents to prevent collision.
+        filtersFile.loadDefaults();
+
         DefaultVisualStudioProject vsProject = visualStudioProject;
 
         for (File sourceFile : vsProject.getSourceFiles()) {

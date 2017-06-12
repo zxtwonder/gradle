@@ -93,6 +93,9 @@ public class GenerateProjectFileTask extends XmlGeneratorTask<VisualStudioProjec
 
     @Override
     protected void configure(VisualStudioProjectFile projectFile) {
+        // Discards previous contents to prevent collision.
+        projectFile.loadDefaults();
+
         DefaultVisualStudioProject vsProject = visualStudioProject;
         projectFile.setGradleCommand(buildGradleCommand());
         projectFile.setProjectUuid(vsProject.getUuid());

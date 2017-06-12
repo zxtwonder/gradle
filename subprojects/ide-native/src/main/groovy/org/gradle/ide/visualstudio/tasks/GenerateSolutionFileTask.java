@@ -75,6 +75,9 @@ public class GenerateSolutionFileTask extends GeneratorTask<VisualStudioSolution
         }
 
         public void configure(final VisualStudioSolutionFile solutionFile) {
+            // Discards previous contents to prevent collision.
+            solutionFile.loadDefaults();
+
             DefaultVisualStudioSolution solution = (DefaultVisualStudioSolution) getSolution();
             solutionFile.setMainProject(solution.getRootProject());
 
