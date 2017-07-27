@@ -232,6 +232,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
         p.configureOnDemand = configureOnDemand;
         p.setMaxWorkerCount(getMaxWorkerCount());
         p.systemPropertiesArgs = new HashMap<String, String>(systemPropertiesArgs);
+        p.projectCacheDir = projectCacheDir;
         return p;
     }
 

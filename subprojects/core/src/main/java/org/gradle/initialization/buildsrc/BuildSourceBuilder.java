@@ -104,7 +104,7 @@ public class BuildSourceBuilder {
 
     PersistentCache createCache(StartParameter startParameter) {
         return cacheRepository
-                .cache(new File(startParameter.getCurrentDir(), ".gradle/noVersion/buildSrc"))
+                .cache(startParameter.getProjectCacheDir() != null ? new File(startParameter.getProjectCacheDir(), "buildSrc") : new File(startParameter.getCurrentDir(), ".gradle/noVersion/buildSrc"))
                 .withCrossVersionCache(CacheBuilder.LockTarget.CachePropertiesFile)
                 .withDisplayName("buildSrc state cache")
                 .withLockOptions(mode(FileLockManager.LockMode.None).useCrossVersionImplementation())
